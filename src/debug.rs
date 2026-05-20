@@ -6,7 +6,7 @@ use axum::extract::Path;
 use axum::routing::{get, post};
 use axum::Router;
 use dat::manager::DatManager;
-use dat::signature_key::DatSignatureKeyOutOption;
+use dat::signature::DatSignatureKeyExportOption;
 
 pub async fn debug_router() -> Router {
     api::router().await
@@ -50,7 +50,7 @@ async fn parse(Path(dat): Path<String>) -> ApiResult<String> {
 
 async fn manager() -> ApiResult<DatManager> {
     let manager: DatManager = DatManager::new();
-    let (body, _) = cms::get_certificates(DatSignatureKeyOutOption::FULL, db_pool()).await?;
+    let (body, _) = cms::get_certificates(DatSignatureKeyExportOption::PAIR, db_pool()).await?;
     manager.import(&body, true)?;
     Ok(manager)
 }

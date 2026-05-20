@@ -1,5 +1,5 @@
-use dat::crypto_algorithm::DatCryptoAlgorithm;
-use dat::signature_algorithm::DatSignatureAlgorithm;
+use dat::crypto::DatCryptoAlgorithm;
+use dat::signature::DatSignatureAlgorithm;
 use dat::util::now_unix_timestamp;
 use std::env;
 use std::str::FromStr;

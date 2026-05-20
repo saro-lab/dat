@@ -31,7 +31,7 @@ podman build --memory=32g --memory-swap=-1 \
 
 # push (publish)
 podman manifest push sarolab-dat-cms-manifest docker.io/sarolab/dat-cms:latest
-podman manifest push sarolab-dat-cms-manifest docker.io/sarolab/dat-cms:2.2.0
+podman manifest push sarolab-dat-cms-manifest docker.io/sarolab/dat-cms:2.4.0
 ```
 
 

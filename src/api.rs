@@ -4,13 +4,13 @@ use crate::middleware::error::ApiResult;
 use crate::service::cms;
 use axum::routing::{get, post};
 use axum::{Extension, Router};
-use dat::signature_key::DatSignatureKeyOutOption;
+use dat::signature::DatSignatureKeyExportOption;
 use std::net::IpAddr;
 
 pub async fn router() -> Router {
     Router::new()
         .route("/certificates", post(generate_key))
-        .route("/certificates", get(full_certificate_list))
+        .route("/certificates", get(pair_certificate_list))
         .route("/certificates/signing", get(signing_certificate_list))
         .route("/certificates/verifying", get(verifying_certificate_list))
         .route("/health", get(health))
@@ -26,20 +26,20 @@ pub async fn generate_key(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<St
     Ok("OK".to_string())
 }
 
-pub async fn full_certificate_list(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<String> {
-    let (body, certificate_count) = cms::get_certificates(DatSignatureKeyOutOption::FULL, db_pool()).await?;
-    tracing::info!("{ip_addr} GET {certificate_count} FULL CERTIFICATES");
+pub async fn pair_certificate_list(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<String> {
+    let (body, certificate_count) = cms::get_certificates(DatSignatureKeyExportOption::PAIR, db_pool()).await?;
+    tracing::info!("{ip_addr} GET {certificate_count} PAIR CERTIFICATES");
     Ok(body)
 }
 
 pub async fn signing_certificate_list(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<String> {
-    let (body, certificate_count) = cms::get_certificates(DatSignatureKeyOutOption::SIGNING, db_pool()).await?;
+    let (body, certificate_count) = cms::get_certificates(DatSignatureKeyExportOption::SIGNING, db_pool()).await?;
     tracing::info!("{ip_addr} GET {certificate_count} SIGNING CERTIFICATES");
     Ok(body)
 }
 
 pub async fn verifying_certificate_list(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<String> {
-    let (body, certificate_count) = cms::get_certificates(DatSignatureKeyOutOption::VERIFYING, db_pool()).await?;
+    let (body, certificate_count) = cms::get_certificates(DatSignatureKeyExportOption::VERIFYING, db_pool()).await?;
     tracing::info!("{ip_addr} GET {certificate_count} VERIFYING CERTIFICATES");
     Ok(body)
 }

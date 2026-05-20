@@ -1,7 +1,7 @@
 use crate::entity::dat_certificates;
 use crate::env::ENV;
 use crate::middleware::error::ApiResult;
-use dat::signature_key::DatSignatureKeyOutOption;
+use dat::signature::DatSignatureKeyExportOption;
 use dat::util::now_unix_timestamp;
 use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter};
 
@@ -9,7 +9,7 @@ pub(crate) type CertificateCount = usize;
 pub(crate) type NewCid = i64;
 pub(crate) type DeleteCount = u64;
 
-pub async fn get_certificates<C: ConnectionTrait>(signature_key_out_option: DatSignatureKeyOutOption, db: &C) -> ApiResult<(String, CertificateCount)> {
+pub async fn get_certificates<C: ConnectionTrait>(signature_key_out_option: DatSignatureKeyExportOption, db: &C) -> ApiResult<(String, CertificateCount)> {
     let certificates = dat_certificates::Entity::find().all(db).await?
         .iter().map(|e| e.to_certificate().unwrap().export(signature_key_out_option).unwrap())
         .collect::<Vec<String>>();
