@@ -568,17 +568,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
-name = "chacha20"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f8d983286843e49675a4b7a2d174efe136dc93a18d69130dd18198a6c167601"
-dependencies = [
- "cfg-if",
- "cpufeatures 0.3.0",
- "rand_core 0.10.1",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -848,9 +837,9 @@ dependencies = [
 
 [[package]]
 name = "dat"
-version = "2.4.0"
+version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2eec81e8add303b0c0c37e09aa2b1597e4b9717f284d044aece39fd6313925ae"
+checksum = "9778e1014463fbcc29b03350c7fb6af85d474f54edddd5d2170077a3e73f4a68"
 dependencies = [
  "aes-gcm",
  "aws-lc-rs",
@@ -860,14 +849,13 @@ dependencies = [
  "p256",
  "p384",
  "p521",
- "rand 0.10.1",
  "strum 0.28.0",
  "strum_macros 0.28.0",
 ]
 
 [[package]]
 name = "dat-cms"
-version = "2.4.0"
+version = "2.4.1"
 dependencies = [
  "axum",
  "dat",
@@ -2434,17 +2422,6 @@ checksum = "44c5af06bb1b7d3216d91932aed5265164bf384dc89cd6ba05cf59a35f5f76ea"
 dependencies = [
  "rand_chacha 0.9.0",
  "rand_core 0.9.5",
-]
-
-[[package]]
-name = "rand"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2e8e8bcc7961af1fdac401278c6a831614941f6164ee3bf4ce61b7edb162207"
-dependencies = [
- "chacha20",
- "getrandom 0.4.2",
- "rand_core 0.10.1",
 ]
 
 [[package]]
