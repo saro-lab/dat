@@ -36,15 +36,6 @@ podman manifest push sarolab-dat-cms-manifest docker.io/sarolab/dat-cms:4.0.2
 
 
 ## Configuration
-### Linux (Debian) - AMD64 Machine (issue -> does not execute in mac)
-```
-# install qemu-user-static for complie arm64
-sudo apt-get update
-sudo apt-get install -y qemu-user-static binfmt-support
-
-# check qemu-user-static installation
-ls /proc/sys/fs/binfmt_misc/qemu-aarch64
-```
 ### Mac
 ```
 # 맥은 podman이 리눅스 가상머신에서 돌아가기 때문에
