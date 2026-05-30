@@ -4,9 +4,9 @@
 
 ### [DAT Run Online](https://dat.saro.me)
 
-### [What is DAT](https://dat.saro.me/--/intro)
+### [What is DAT](https://dat.saro.me/intro)
 
-### [Quick Start!! Docker, Kubernetes, Binary](https://dat.saro.me/--/svc/docker-saro-lab-dat-cms)
+### [Quick Start!! Docker, Kubernetes, Binary](https://dat.saro.me/svc/docker-saro-lab-dat-cms)
 
 ### [Support Languages](https://dat.saro.me)
 - Rust -> Crates
