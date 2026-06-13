@@ -67,7 +67,7 @@ impl Model {
 }
 
 impl ActiveModel {
-    pub fn generate(cid: i64, issued_at: u64, issuance_duration: u64, dat_ttl: u64, signature_algorithm: DatSignatureAlgorithm, crypto_algorithm: DatCryptoAlgorithm) -> Result<Self, DatError> {
+    pub fn generate(cid: i64, issued_at: i64, issuance_duration: i64, dat_ttl: i64, signature_algorithm: DatSignatureAlgorithm, crypto_algorithm: DatCryptoAlgorithm) -> Result<Self, DatError> {
         let signature_key = DatSignature::generate(signature_algorithm)?.export_key()?;
         let crypto_key = DatCrypto::generate(crypto_algorithm).export_key().to_vec();
 
@@ -77,10 +77,10 @@ impl ActiveModel {
             signature_key: Set(signature_key),
             crypto_algorithm: Set(crypto_algorithm.to_string()),
             crypto_key: Set(crypto_key),
-            issued_at: Set(issued_at as i64),
-            issuance_duration: Set(issuance_duration as i64),
-            dat_ttl: Set(dat_ttl as i64),
-            expire_time: Set((issued_at + issuance_duration) as i64),
+            issued_at: Set(issued_at),
+            issuance_duration: Set(issuance_duration),
+            dat_ttl: Set(dat_ttl),
+            expire_time: Set((issued_at + issuance_duration)),
             ..Default::default()
         })
     }

@@ -5,7 +5,7 @@ use crate::service::cms;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
 pub async fn bind() -> ApiResult<()> {
-    if !ENV.cron {
+    if ENV.cron_expression.is_empty() {
         return Ok(())
     }
 
@@ -14,7 +14,7 @@ pub async fn bind() -> ApiResult<()> {
     // DatCertificate Generate Cron
     cms::generate(db_pool()).await?; // initial generate
     sched.add(
-        Job::new_async("0 0/10 * * * *", |_,_| {
+        Job::new_async(ENV.cron_expression.clone(), |_,_| {
             Box::pin(async move {
                 tracing::info!("DatCertificate Generate Cron");
                 cms::generate(db_pool()).await.unwrap();

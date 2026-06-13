@@ -1,3 +1,6 @@
+use std::str::FromStr;
+use dat::crypto::DatCryptoAlgorithm;
+use dat::signature::DatSignatureAlgorithm;
 use crate::entity::dat_cert;
 use crate::env::ENV;
 use crate::middleware::error::{ApiError, ApiResult};
@@ -36,10 +39,25 @@ pub async fn get_certificates<C: ConnectionTrait>(verify_only: bool, db: &C) -> 
     Ok((certificates.join("\n"), count))
 }
 
-pub async fn generate<C: ConnectionTrait>(db: &C) -> ApiResult<(NewCid, DeleteCount)> {
+pub async fn generate<C: ConnectionTrait>(
+    signature: String,
+    crypto: String,
+    cron_certificate_propagation_delay_seconds: u64,
+    cron_dat_issuance_duration_seconds: u64,
+    cron_dat_ttl_seconds: u64,
+    db: &C
+) -> ApiResult<(NewCid, DeleteCount)> {
+    let now = now_unix_timestamp() as i64;
     let delete_count = cleanup_expired(db).await?;
     let cid = generate_cid(db).await?;
-    let cid = dat_cert::ActiveModel::generate(cid, ENV.issued_at(), ENV.issue_dur, ENV.dat_ttl, ENV.signature, ENV.crypto)?
+    let cid = dat_cert::ActiveModel::generate(
+        cid,
+        now.checked_add(cron_certificate_propagation_delay_seconds),
+        cron_dat_issuance_duration_seconds,
+        cron_dat_ttl_seconds,
+        DatSignatureAlgorithm::from_str(&signature)?,
+        DatCryptoAlgorithm::from_str(&crypto)?,
+    )?
         .save(db).await?.cid.unwrap();
     Ok((cid, delete_count))
 }

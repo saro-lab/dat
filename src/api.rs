@@ -6,17 +6,21 @@ use axum::routing::{get, post};
 use axum::{Extension, Router};
 use std::net::IpAddr;
 
+pub static API_VERSION: &str = "v1";
+
 pub async fn router() -> Router {
     Router::new()
-        .route("/cert", post(generate_key))
-        .route("/certs", get(certificate_list))
-        .route("/certs/verifying", get(verifying_only_certificate_list))
+        .route(format!("/{API_VERSION}/cert/{{aaa}}/").as_str(), post(generate_key))
+        .route(format!("/{API_VERSION}/certs").as_str(), post(generate_key))
+        .route(format!("/{API_VERSION}/certs/verifying").as_str(), post(generate_key))
         .route("/health", get(health))
         .route("/version", get(version))
+        .route("/version/api", get(version_api))
 }
 
 async fn health() -> &'static str { "OK" }
 async fn version() -> &'static str { &ENV.version }
+async fn version_api() -> &'static str { &ENV.version }
 
 pub async fn generate_key(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<String> {
     let (new_cid, delete_count) = cms::generate(db_pool()).await?;
