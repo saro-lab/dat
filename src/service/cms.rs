@@ -1,12 +1,11 @@
-use std::str::FromStr;
+use crate::entity::dat_cert;
+use crate::middleware::error::{ApiError, ApiResult};
 use dat::crypto::DatCryptoAlgorithm;
 use dat::signature::DatSignatureAlgorithm;
-use crate::entity::dat_cert;
-use crate::env::ENV;
-use crate::middleware::error::{ApiError, ApiResult};
 use dat::util::now_unix_timestamp;
 use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter, SelectExt};
+use std::str::FromStr;
 
 pub(crate) type CertificateCount = usize;
 pub(crate) type NewCid = i64;
@@ -19,12 +18,6 @@ pub async fn get_certificates<C: ConnectionTrait>(verify_only: bool, db: &C) -> 
         .iter()
         .map(|x|
             x.to_certificate()
-                .map(|y| {
-                    if y.signature_algorithm() != ENV.signature || y.crypto_algorithm() != ENV.crypto {
-                        tracing::warn!("{} {} {} The stored certificate does not match the server settings", x.cid, x.signature_algorithm, x.crypto_algorithm);
-                    }
-                    y
-                })
                 .unwrap()
                 .export(verify_only)
                 .unwrap_or_else(|_| {
@@ -42,9 +35,9 @@ pub async fn get_certificates<C: ConnectionTrait>(verify_only: bool, db: &C) -> 
 pub async fn generate<C: ConnectionTrait>(
     signature: String,
     crypto: String,
-    cron_certificate_propagation_delay_seconds: u64,
-    cron_dat_issuance_duration_seconds: u64,
-    cron_dat_ttl_seconds: u64,
+    cron_certificate_propagation_delay_seconds: i64,
+    cron_dat_issuance_duration_seconds: i64,
+    cron_dat_ttl_seconds: i64,
     db: &C
 ) -> ApiResult<(NewCid, DeleteCount)> {
     let now = now_unix_timestamp() as i64;
@@ -52,7 +45,7 @@ pub async fn generate<C: ConnectionTrait>(
     let cid = generate_cid(db).await?;
     let cid = dat_cert::ActiveModel::generate(
         cid,
-        now.checked_add(cron_certificate_propagation_delay_seconds),
+        now + cron_certificate_propagation_delay_seconds,
         cron_dat_issuance_duration_seconds,
         cron_dat_ttl_seconds,
         DatSignatureAlgorithm::from_str(&signature)?,

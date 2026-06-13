@@ -5,7 +5,6 @@ use dat::error::DatError;
 use dat::signature::{DatSignature, DatSignatureAlgorithm};
 use sea_orm::entity::prelude::*;
 use sea_orm::prelude::async_trait::async_trait;
-use sea_orm::sea_query::prelude::rust_decimal::prelude::ToPrimitive;
 use sea_orm::sea_query::StringLen;
 use sea_orm::{ActiveModelBehavior, Set};
 use serde::{Deserialize, Serialize};
