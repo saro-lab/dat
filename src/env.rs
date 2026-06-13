@@ -3,6 +3,7 @@ use dat::signature::DatSignatureAlgorithm;
 use std::env;
 use std::str::FromStr;
 use std::sync::LazyLock;
+use sea_orm::sea_query::prelude::rust_decimal::prelude::ToPrimitive;
 use tokio_cron_scheduler::Job;
 
 pub static ENV: LazyLock<Env> = LazyLock::new(|| bind());
@@ -28,9 +29,9 @@ pub struct Env {
     pub cron_expression: String,
     pub cron_signature_algorithm: String,
     pub cron_crypto_algorithm: String,
-    pub cron_certificate_propagation_delay_seconds: u64,
-    pub cron_dat_issuance_duration_seconds: u64,
-    pub cron_dat_ttl_seconds: u64,
+    pub cron_certificate_propagation_delay_seconds: i64,
+    pub cron_dat_issuance_duration_seconds: i64,
+    pub cron_dat_ttl_seconds: i64,
 }
 
 fn bind() -> Env {
@@ -58,9 +59,9 @@ fn bind() -> Env {
     let mut cron_expression = "".to_string();
     let mut cron_signature_algorithm = "".to_string();
     let mut cron_crypto_algorithm = "".to_string();
-    let mut cron_certificate_propagation_delay_seconds: u64 = 0;
-    let mut cron_dat_issuance_duration_seconds: u64 = 0;
-    let mut cron_dat_ttl_seconds: u64 = 0;
+    let mut cron_certificate_propagation_delay_seconds: i64 = 0;
+    let mut cron_dat_issuance_duration_seconds: i64 = 0;
+    let mut cron_dat_ttl_seconds: i64 = 0;
     let cron = env_str("SINGLE_SERVER", if debug { "HMAC-SHA512-MFS,IV-AES256-GCM" } else { "" });
     if !cron.is_empty() {
         let arg_example = "
@@ -89,9 +90,9 @@ ex) HMAC-SHA512-MFS, IV-AES256-GCM, 0 0/30 * * * *, 1200, 10800, 600
         cron_expression = Job::schedule_to_cron(parts[2]).expect(format!("invalid cron expression\n{arg_example}").as_str());
         cron_signature_algorithm = parts[0].to_string();
         cron_crypto_algorithm = parts[1].to_string();
-        cron_certificate_propagation_delay_seconds = parts[3].parse::<u64>().expect(format!("invalid certificate propagation delay seconds\n{arg_example}").as_str());
-        cron_dat_issuance_duration_seconds = parts[4].parse::<u64>().expect(format!("invalid dat issuance duration seconds\n{arg_example}").as_str());
-        cron_dat_ttl_seconds = parts[5].parse::<u64>().expect(format!("invalid dat ttl seconds\n{arg_example}").as_str());
+        cron_certificate_propagation_delay_seconds = parts[3].parse::<i64>().expect(format!("invalid certificate propagation delay seconds\n{arg_example}").as_str());
+        cron_dat_issuance_duration_seconds = parts[4].parse::<i64>().expect(format!("invalid dat issuance duration seconds\n{arg_example}").as_str());
+        cron_dat_ttl_seconds = parts[5].parse::<i64>().expect(format!("invalid dat ttl seconds\n{arg_example}").as_str());
     }
 
     Env {

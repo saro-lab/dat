@@ -12,12 +12,27 @@ pub async fn bind() -> ApiResult<()> {
     let sched = JobScheduler::new().await.unwrap();
 
     // DatCertificate Generate Cron
-    cms::generate(db_pool()).await?; // initial generate
+    cms::generate(
+        ENV.cron_signature_algorithm.clone(),
+        ENV.cron_crypto_algorithm.clone(),
+        ENV.cron_certificate_propagation_delay_seconds,
+        ENV.cron_dat_issuance_duration_seconds,
+        ENV.cron_dat_ttl_seconds,
+        db_pool(),
+    ).await?; // initial generate
+
     sched.add(
         Job::new_async(ENV.cron_expression.clone(), |_,_| {
             Box::pin(async move {
                 tracing::info!("DatCertificate Generate Cron");
-                cms::generate(db_pool()).await.unwrap();
+                cms::generate(
+                    ENV.cron_signature_algorithm.clone(),
+                    ENV.cron_crypto_algorithm.clone(),
+                    ENV.cron_certificate_propagation_delay_seconds,
+                    ENV.cron_dat_issuance_duration_seconds,
+                    ENV.cron_dat_ttl_seconds,
+                    db_pool(),
+                ).await.unwrap();
             })
         }).unwrap(),
     ).await.unwrap();
