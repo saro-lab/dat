@@ -5,12 +5,13 @@ use crate::service::cms;
 use axum::routing::{get, post};
 use axum::{Extension, Router};
 use std::net::IpAddr;
+use axum::extract::Path;
 
 pub static API_VERSION: &str = "v1";
 
 pub async fn router() -> Router {
     Router::new()
-        .route(format!("/{API_VERSION}/cert/{{aaa}}/").as_str(), post(generate_key))
+        .route(format!("/{API_VERSION}/cert/{{signature_algorithm}}/{{crypto_algorithm}}/{{certificate_propagation_delay_seconds}}/{{dat_issuance_duration_seconds}}/{{dat_ttl_seconds}}").as_str(), post(generate_key))
         .route(format!("/{API_VERSION}/certs").as_str(), post(generate_key))
         .route(format!("/{API_VERSION}/certs/verifying").as_str(), post(generate_key))
         .route("/health", get(health))
@@ -22,8 +23,24 @@ async fn health() -> &'static str { "OK" }
 async fn version() -> &'static str { &ENV.version }
 async fn version_api() -> &'static str { &ENV.version }
 
-pub async fn generate_key(Extension(ip_addr): Extension<IpAddr>) -> ApiResult<String> {
-    let (new_cid, delete_count) = cms::generate(db_pool()).await?;
+pub async fn generate_key(
+    Path((
+        signature_algorithm,
+        crypto_algorithm,
+        certificate_propagation_delay_seconds,
+        dat_issuance_duration_seconds,
+        dat_ttl_seconds,
+    )): Path<(String, String, i64, i64, i64)>,
+    Extension(ip_addr): Extension<IpAddr>
+) -> ApiResult<String> {
+    let (new_cid, delete_count) = cms::generate(
+        signature_algorithm,
+        crypto_algorithm,
+        certificate_propagation_delay_seconds,
+        dat_issuance_duration_seconds,
+        dat_ttl_seconds,
+        db_pool()
+    ).await?;
     tracing::info!("{ip_addr} GENERATE CERTIFICATE [{new_cid:x}] / DELETE {delete_count} CERTIFICATES");
     Ok("OK".to_string())
 }
