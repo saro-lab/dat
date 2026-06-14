@@ -35,6 +35,14 @@ pub async fn get_certificates<C: ConnectionTrait>(verify_only: bool, db: &C) -> 
     Ok((certificates.join("\n"), count))
 }
 
+pub async fn get_certificate<C: ConnectionTrait>(cid: i64, db: &C) -> ApiResult<Vec<dat_cert::Model>> {
+    let now = now_unix_timestamp();
+    dat_cert::Entity::find()
+        .filter(dat_cert::Column::ExpireTime.gte(now))
+        .order_by_id_asc()
+        .all(db).await
+}
+
 pub async fn generate<C: ConnectionTrait>(
     signature: String,
     crypto: String,
