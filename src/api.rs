@@ -28,7 +28,7 @@ pub async fn router() -> Router {
 
 async fn health() -> &'static str { "OK" }
 async fn version() -> &'static str { &ENV.version }
-async fn version_api() -> &'static str { &ENV.version }
+async fn version_api() -> &'static str { API_VERSION }
 
 pub async fn generate_key(
     Path((
