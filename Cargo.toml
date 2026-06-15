@@ -1,6 +1,6 @@
 [package]
 name = "dat-cms"
-version = "4.1.0"
+version = "4.2.0"
 edition = "2024"
 
 [profile.release]
@@ -11,7 +11,7 @@ codegen-units = 1
 [dependencies]
 axum = { version = "0.8.9", features = ["macros", "ws", "json", "multipart"] }
 tower = { version = "0.5.3" }
-tower-http = { version = "0.6.11", features = ["catch-panic"] }
+tower-http = { version = "0.7.0", features = ["catch-panic"] }
 tokio = { version = "1.52.3", features = ["full"] }
 tokio-cron-scheduler = { version = "0.15.1" }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -22,7 +22,8 @@ sea-orm = { version = "2.0.0-rc.40", features = ["sqlx-all", "with-ipnetwork", "
 rand = { version = "0.10.1" }
 regex = { version = "1.12.4" }
 
-dat = { version = "4.1.0" }
+# dat = { version = "4.1.0" }
+dat = { path = "../dat-rust" }
 
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
