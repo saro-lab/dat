@@ -16,6 +16,9 @@ echo "🚀 start..."
 rm -rf target/bin
 mkdir -p target/bin
 
+HOST_TARGET=$(rustc -vV | grep 'host:' | cut -d: -f2 | tr -d ' ')
+echo "💻 Current Host Target: $HOST_TARGET"
+
 for TARGET in "${TARGETS[@]}"; do
 
     if [ -d "target/$TARGET" ]; then
@@ -23,7 +26,7 @@ for TARGET in "${TARGETS[@]}"; do
         rm -rf "target/$TARGET"
     fi
 
-    if [[ "$TARGET" == *"aarch64-apple"* ]]; then
+    if [[ "$TARGET" == "$HOST_TARGET" ]]; then
         echo "📦 build: cargo: $TARGET"
         cargo build --target "$TARGET" --release
     else
