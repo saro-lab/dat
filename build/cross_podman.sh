@@ -18,6 +18,11 @@ mkdir -p target/bin
 
 for TARGET in "${TARGETS[@]}"; do
 
+    if [ -d "target/$TARGET" ]; then
+        echo "🧹 Cleaning previous target cache for $TARGET..."
+        rm -rf "target/$TARGET"
+    fi
+
     if [[ "$TARGET" == *"aarch64-apple"* ]]; then
         echo "📦 build: cargo: $TARGET"
         cargo build --target "$TARGET" --release
