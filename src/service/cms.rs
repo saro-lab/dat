@@ -10,6 +10,7 @@ use std::str::FromStr;
 use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::OnceLock;
 use tokio::sync::RwLock;
+use crate::env::ENV;
 pub(crate) use crate::service::certificates::{Certificates, GetListCmd, RegisterCmd, SerializedCertificate};
 
 pub type NewCid = String;
@@ -17,7 +18,6 @@ pub type DeleteCount = u64;
 
 const DB_DAT_CMS_CERT_RETENTION_SECONDS: u64 = 86400 * 30; // 30 days
 
-const CACHE_SECONDS: u64 = 60; // 1 minute
 static CACHE_EXPIRE: OnceLock<AtomicU64> = OnceLock::new();
 static CACHE_VERSION: OnceLock<AtomicI64> = OnceLock::new();
 static CACHE_CERTIFICATES: OnceLock<RwLock<Vec<SerializedCertificate>>> = OnceLock::new();
@@ -49,7 +49,7 @@ pub async fn list<C: ConnectionTrait>(cmd: GetListCmd, db: &C) -> ApiResult<Cert
             *certs_write = new_certs;
             cache_version.store(new_cache_version, Ordering::Release);
 
-            cache_expire.store(now + CACHE_SECONDS, Ordering::Release);
+            cache_expire.store(now + ENV.server.db_cache_secs, Ordering::Release);
         }
     }
 

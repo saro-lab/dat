@@ -20,6 +20,7 @@ pub struct EnvServer {
     pub hostname: String,
     pub port: u16,
     pub db_uri: String,
+    pub db_cache_secs: u64,
     pub debug: bool,
 }
 
@@ -52,19 +53,28 @@ impl EnvServer {
     pub fn new() -> Self {
         let version = env!("CARGO_PKG_VERSION").to_string();
         println!("DAT Certificate Management Service v{}", version);
+
         let hostname = env_str("HOSTNAME", "localhost");
         println!("hostname: {}", hostname);
+
         let port = env_parse("PORT", 8088);
         println!("port: {}", port);
+
         let db_uri = env_str("DB_URI", "sqlite:./data/data.db");
         println!("db_uri: {}", db_uri);
+
+        let db_cache_secs = env_parse("DB_CACHE_SECS", 30);
+        println!("db_cache_secs: {}", db_uri);
+
         let debug = env_str("DEBUG", if cfg!(debug_assertions) { "1" } else { "0" }) == "1";
         println!("mode: {}", if debug { "debug" } else { "release" });
+
         EnvServer {
             version,
             hostname,
             port,
             db_uri,
+            db_cache_secs,
             debug
         }
     }
