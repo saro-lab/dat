@@ -17,15 +17,12 @@ rm -rf target/bin
 mkdir -p target/bin
 
 for TARGET in "${TARGETS[@]}"; do
-    rustup target add "$TARGET" 2>/dev/null
-done
-
-for TARGET in "${TARGETS[@]}"; do
-    echo "📦 build: $TARGET"
 
     if [[ "$TARGET" == *"aarch64-apple"* ]]; then
+        echo "📦 build: cargo: $TARGET"
         cargo build --target "$TARGET" --release
     else
+        echo "📦 build: cross: $TARGET"
         cross build --target "$TARGET" --release
     fi
 
