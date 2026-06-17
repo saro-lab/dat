@@ -21,6 +21,14 @@ echo "💻 Current Host Target: $HOST_TARGET"
 
 for TARGET in "${TARGETS[@]}"; do
 
+    if ! rustup target list | grep -q "$TARGET (installed)"; then
+        echo "🛠 install️ target '$TARGET'"
+        if ! rustup target add "$TARGET"; then
+            echo "❌ install error: $TARGET"
+            continue
+        fi
+    fi
+
     if [ -d "target/$TARGET" ]; then
         echo "🧹 Cleaning previous target cache for $TARGET..."
         rm -rf "target/$TARGET"
