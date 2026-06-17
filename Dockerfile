@@ -8,7 +8,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY .cargo ./.cargo
 COPY src ./src
 
-RUN cargo build --release --target
+RUN cargo build --release
 RUN cp target/release/dat-cms dat-cms
 
 FROM scratch
