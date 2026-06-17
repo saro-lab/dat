@@ -3,7 +3,8 @@
 TARGET=$1
 
 rustup target add $TARGET
-rm -rf target/$TARGET
+mkdir -p target/bin
+rm -rf target/bin/$TARGET
 cargo build --release --target $TARGET
 cp target/$TARGET/release/dat-cms target/bin/$TEARGET
-echo "$PWD/target/bin$TARGET"
+echo "$PWD/target/bin/$TARGET"
