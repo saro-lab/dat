@@ -4,7 +4,7 @@ curl -X POST http://localhost:8088/v1/cert/HMAC-SHA512-MFS/IV-AES256-GCM/1200/10
 ```
 ## pair key (verify only) test
 ```
-SINGLE_SERVER="ECDSA-P521,IV-AES256-GCM" \
+SINGLE_NODE="ECDSA-P521,IV-AES256-GCM" \
 ./target/debug/dat-cms
 ```
 ## get

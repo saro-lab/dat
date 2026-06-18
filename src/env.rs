@@ -64,7 +64,7 @@ impl EnvServer {
         println!("db_uri: {}", db_uri);
 
         let db_cache_secs = env_parse("DB_CACHE_SECS", 30);
-        println!("db_cache_secs: {}", db_uri);
+        println!("db_cache_secs: {}", db_cache_secs);
 
         let debug = env_str("DEBUG", if cfg!(debug_assertions) { "1" } else { "0" }) == "1";
         println!("mode: {}", if debug { "debug" } else { "release" });
@@ -98,12 +98,12 @@ impl EnvLog {
 
 impl EnvCron {
     fn new(env_server: &EnvServer) -> Option<Self> {
-        let cron = env_str("SINGLE_SERVER", if env_server.debug { "HMAC-SHA512-MFS,IV-AES256-GCM" } else { "" });
+        let cron = env_str("SINGLE_NODE", if env_server.debug { "HMAC-SHA512-MFS,IV-AES256-GCM" } else { "" });
         if cron.is_empty() {
             None
         } else {
             let arg_example = "
-# Example: SINGLE_SERVER=Options
+# Example: SINGLE_NODE=Options
 
 Just Algorithm:
 signature_algorithm, crypto_algorithm
@@ -121,7 +121,7 @@ ex) HMAC-SHA512-MFS, IV-AES256-GCM, 0 0/30 * * * *, 1200, 10800, 600
                 parts.push("600");
             }
             if parts.len() != 6 {
-                panic!("invalid SINGLE_SERVER argument: {cron}\n{}", arg_example);
+                panic!("invalid SINGLE_NODE argument: {cron}\n{}", arg_example);
             }
             DatSignatureAlgorithm::from_str(parts[0]).expect(format!("invalid signature algorithm\n{arg_example}").as_str());
             DatCryptoAlgorithm::from_str(parts[1]).expect(format!("invalid crypto algorithm\n{arg_example}").as_str());
