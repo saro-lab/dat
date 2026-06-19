@@ -152,12 +152,12 @@ impl EnvToken {
 
 fn env_token(key: &str) -> Vec<String> {
     let mut vec = Vec::new();
-    let regex_token = regex::Regex::new("[a-zA-Z0-9]{12,}").expect("regex error");
+    let regex_token = regex::Regex::new("[a-zA-Z0-9]+").expect("regex error");
     let tokens = env_str(key, "");
     if !tokens.is_empty() {
         for token in tokens.split(',') {
             if !regex_token.is_match(token) {
-                panic!("Tokens must be alphanumeric (a-z, A-Z, 0-9) and at least 12 characters long. Multiple tokens can be entered using commas as delimiters.:\n{key}={token}");
+                panic!("Tokens must be alphanumeric (a-z, A-Z, 0-9):\n{key}={token}");
             }
             vec.push(String::from(token));
         }
