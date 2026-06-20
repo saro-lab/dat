@@ -1,6 +1,6 @@
 [package]
 name = "dat-cms"
-version = "4.2.2"
+version = "4.2.3"
 edition = "2024"
 
 [profile.release]
@@ -18,10 +18,10 @@ serde = { version = "1.0.228", features = ["derive"] }
 tracing = { version = "0.1.44" }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json", "time"] }
 tracing-appender = { version = "0.2.5" }
-sea-orm = { version = "2.0.0-rc.40", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-rustls", "macros"]}
+sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-rustls", "macros"]}
 rand = { version = "0.10.1" }
 regex = { version = "1.12.4" }
 anyhow = { version = "1.0.102" }
 thiserror = { version = "2.0.18" }
 
-dat = { version = "4.2.2" }
+dat = { version = "4.2.3" }

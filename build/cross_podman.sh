@@ -56,3 +56,4 @@ for TARGET in "${TARGETS[@]}"; do
 done
 
 echo "🎉 ALL DONE"
+echo "$(pwd)/target/bin"

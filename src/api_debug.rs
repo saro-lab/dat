@@ -55,7 +55,7 @@ async fn issue(body: String) -> ApiResult<String> {
 
 async fn parse(Path(dat): Path<String>) -> ApiResult<String> {
     tracing::info!("GET /debug/dat parse (Debug)");
-    let payload = manager().await?.parse(dat.try_into()?)?.to_string_payload()?;
+    let payload = manager().await?.parse(dat)?.to_string_payload()?;
 
     Ok(format!("{}", payload))
 }

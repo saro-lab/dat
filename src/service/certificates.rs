@@ -1,14 +1,24 @@
+use dat::util::now_unix_timestamp;
 
 #[derive(Debug, Clone)]
 pub struct SerializedCertificate {
     pub version: i64,
     pub full: String,
     pub verify_only: String,
+    pub issuance_start: u64,
+    pub issuance_end: u64,
+}
+
+impl SerializedCertificate {
+    pub fn issuable(&self) -> bool {
+        let now = now_unix_timestamp();
+        self.issuance_start <= now && self.issuance_end > now
+    }
 }
 
 pub struct Certificates {
     pub version: i64,
-    pub list: Vec<String>
+    pub list: Vec<String>,
 }
 
 pub struct GetListCmd {
