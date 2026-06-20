@@ -1,17 +1,17 @@
 # DAT CMS - Certificate Management Service
 
-## Document
+### Document
 
-### [DAT Run Online](https://dat.saro.me)
+- [DAT Run Online](https://dat.saro.me)
+- [What is DAT](https://dat.saro.me/intro)
+- [Quick Start](https://dat.saro.me/svc/docker-saro-lab-dat-cms)
+- [Download](https://github.com/saro-lab/dat-cms/releases)
 
-### [What is DAT](https://dat.saro.me/intro)
-
-### [Quick Start!! Docker, Kubernetes, Binary](https://dat.saro.me/svc/docker-saro-lab-dat-cms)
-
-```
-
-
-```
+### Build
+- Install Rust: https://rust-lang.org/
+- Build: ```cargo build --release```
+- Binary Path: ```target/release/dat-cms```
+- Run: [Example with Options](https://dat.saro.me/svc/docker-saro-lab-dat-cms?binary)
 
 
 ## Support algorithm
@@ -31,15 +31,3 @@
 |------------|-------------------------------|
 | IV-AES128-GCM | (IV=NONCE:96BIT) + AES128 GCM |
 | IV-AES256-GCM | (IV=NONCE:96BIT) + AES256 GCM |
-
-
-## Build
-- list
-```
-./build/list.sh
-
-ex)
-x86_64-unknown-linux-musl
-
-./build/build.sh x86_64-unknown-linux-musl
-```
