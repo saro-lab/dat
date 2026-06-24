@@ -1,6 +1,6 @@
 [package]
 name = "dat-cms"
-version = "4.3.0"
+version = "4.3.1"
 edition = "2024"
 
 [profile.release]
@@ -24,4 +24,4 @@ regex = { version = "1.12.4" }
 anyhow = { version = "1.0.102" }
 thiserror = { version = "2.0.18" }
 
-dat = { version = "4.3.0" }
+dat = { version = "4.3.1" }
