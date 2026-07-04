@@ -56,8 +56,15 @@ pub async fn list<C: ConnectionTrait>(cmd: GetListCmd, db: &C) -> ApiResult<Cert
         }
     }
 
+    // clear invalid version
+    let version = if cache_version.load(Ordering::Relaxed) >= cmd.version {
+        cmd.version
+    } else {
+        0
+    };
+
     let list = certificates.read().await.iter()
-        .filter(|x| x.version > cmd.version)
+        .filter(|x| x.version > version)
         .map(|x| if cmd.verify_only { x.verify_only.clone() } else { x.full.clone() })
         .filter(|x| !x.is_empty())
         .collect::<Vec<String>>();

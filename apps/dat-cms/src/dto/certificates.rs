@@ -1,4 +1,5 @@
 use dat::util::now_unix_timestamp;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
 pub struct SerializedCertificate {
@@ -16,6 +17,7 @@ impl SerializedCertificate {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Certificates {
     pub version: i64,
     pub list: Vec<String>,

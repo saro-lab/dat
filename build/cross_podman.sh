@@ -3,7 +3,7 @@
 export CROSS_CONTAINER_ENGINE=podman
 
 TARGETS=(
-    "aarch64-apple-darwin"
+#    "aarch64-apple-darwin"
 
     "aarch64-unknown-linux-gnu"
     "x86_64-unknown-linux-gnu"
