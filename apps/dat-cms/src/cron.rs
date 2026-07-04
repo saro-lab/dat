@@ -1,13 +1,14 @@
-use crate::env::ENV;
-use crate::middleware::database::db_pool;
-use crate::middleware::error::ApiResult;
-use crate::service::cms;
+use crate::database::db_pool;
+use saro_infra::error::ApiResult;
 use tokio_cron_scheduler::{Job, JobScheduler};
+use crate::env::ENV;
+use crate::service::cms_service;
 
 pub async fn bind() -> ApiResult<()> {
+
     if let Some(cron) = ENV.cron.as_ref() {
         let cmd = &cron.cmd;
-        cms::register(cmd.clone(), db_pool()).await?;
+        cms_service::register(cmd.clone(), db_pool()).await?;
         let sched = JobScheduler::new().await.unwrap();
 
         sched.add(
@@ -15,7 +16,7 @@ pub async fn bind() -> ApiResult<()> {
                 Box::pin(async move {
                     tracing::info!("DatCertificate Generate Cron");
                     if let Some(cron) = ENV.cron.as_ref() {
-                        cms::register(cron.cmd.clone(), db_pool()).await.unwrap();
+                        cms_service::register(cron.cmd.clone(), db_pool()).await.unwrap();
                     }
                 })
             }).unwrap(),

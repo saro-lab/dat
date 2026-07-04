@@ -1,11 +1,11 @@
 use crate::env::ENV;
-use crate::middleware::error::{ApiResult, AppError};
 use axum::body::Body;
 use axum::extract::ConnectInfo;
 use axum::http::{Request, StatusCode};
 use axum::middleware::Next;
 use axum::response::Response;
 use std::net::{IpAddr, SocketAddr};
+use saro_infra::error::{ApiError, ApiResult};
 
 #[derive(Clone, Debug)]
 pub struct Session {
@@ -23,9 +23,6 @@ impl Session {
     pub fn is_cert_verify(&self) -> ApiResult<()> {
         self.is_allow(&ENV.token.cert_verify)
     }
-    pub fn token(&self) -> String {
-        self.token.clone()
-    }
     pub fn ip(&self) -> IpAddr {
         self.ip.clone()
     }
@@ -34,7 +31,7 @@ impl Session {
         if allows.is_empty() || (!self.token.is_empty() && allows.contains(&self.token)) {
             Ok(())
         } else {
-            Err(AppError::Unauthorized(self.token.clone(), self.ip))
+            Err(ApiError::Unauthorized())
         }
     }
 }

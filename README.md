@@ -11,6 +11,7 @@
 - Install Rust: https://rust-lang.org/
 - Build: ```cargo build --release```
 - Binary Path: ```target/release/dat-cms```
+- Run: ```cargo run --package dat-cms --bin dat-cms```
 - Run: [Example with Options](https://dat.saro.me/svc/docker-saro-lab-dat-cms?binary)
 
 

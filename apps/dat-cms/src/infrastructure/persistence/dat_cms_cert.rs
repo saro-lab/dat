@@ -1,5 +1,3 @@
-use crate::middleware::error::ApiResult;
-use crate::service::cms::SerializedCertificate;
 use dat::certificate::DatCertificate;
 use dat::crypto::{DatCrypto, DatCryptoAlgorithm};
 use dat::error::DatError;
@@ -9,6 +7,8 @@ use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::sea_query::StringLen;
 use sea_orm::{ActiveModelBehavior, Set};
 use serde::{Deserialize, Serialize};
+use saro_infra::error::ApiResult;
+use crate::dto::certificates::SerializedCertificate;
 
 // https://www.sea-ql.org/SeaORM/docs/generate-entity/column-types/
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]

@@ -1,12 +1,12 @@
+use crate::dto::certificates::{GetListCmd, RegisterCmd};
 use crate::env::ENV;
-use crate::middleware::database::db_pool;
-use crate::middleware::error::ApiResult;
-use crate::service::cms;
-use crate::service::cms::{GetListCmd, RegisterCmd};
-use crate::middleware::session::Session;
+use crate::infrastructure::session::Session;
+use crate::service::cms_service;
 use axum::extract::{Path, Query};
 use axum::routing::{get, post};
 use axum::{Extension, Router};
+use saro_infra::database::db_pool;
+use saro_infra::error::ApiResult;
 use serde::Deserialize;
 
 pub static API_VERSION: &str = "v1";
@@ -46,7 +46,7 @@ pub async fn generate_certificate(
     Extension(session): Extension<Session>
 ) -> ApiResult<String> {
     session.is_master()?;
-    let (new_cid, delete_count) = cms::register(
+    let (new_cid, delete_count) = cms_service::register(
         RegisterCmd {signature_algorithm, crypto_algorithm, certificate_propagation_delay_seconds, dat_issuance_duration_seconds, dat_ttl_seconds,},
         db_pool()
     ).await?;
@@ -59,7 +59,7 @@ pub async fn generate_certificate(
 // ===============================================================
 pub async fn get_certificate_list(Query(params): Query<GetCertificateQuery>, Extension(session): Extension<Session>) -> ApiResult<String> {
     session.is_cert_full()?;
-    let certs = cms::list(GetListCmd { version: params.version.unwrap_or(0), verify_only: false }, db_pool()).await?;
+    let certs = cms_service::list(GetListCmd { version: params.version.unwrap_or(0), verify_only: false }, db_pool()).await?;
     tracing::info!("{} GET {} CERTIFICATES", session.ip(), certs.size());
     Ok(certs.export(params.version.is_some()))
 }
@@ -69,7 +69,7 @@ pub async fn get_certificate_list(Query(params): Query<GetCertificateQuery>, Ext
 // ===============================================================
 pub async fn get_certificate_verify_only_list(Query(params): Query<GetCertificateQuery>, Extension(session): Extension<Session>) -> ApiResult<String> {
     session.is_cert_verify()?;
-    let certs = cms::list(GetListCmd { version: params.version.unwrap_or(0), verify_only: true }, db_pool()).await?;
+    let certs = cms_service::list(GetListCmd { version: params.version.unwrap_or(0), verify_only: true }, db_pool()).await?;
     tracing::info!("{} GET {} VERIFY CERTIFICATES", session.ip(), certs.size());
     Ok(certs.export(params.version.is_some()))
 }

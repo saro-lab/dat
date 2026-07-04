@@ -1,20 +1,19 @@
-use crate::api;
-use crate::middleware::database::db_pool;
-use crate::middleware::error::AppError::{BadRequest, Unauthorized};
-use crate::middleware::error::ApiResult;
-use crate::service::cms;
-use crate::service::cms::GetListCmd;
-use crate::middleware::session::Session;
-use anyhow::anyhow;
 use axum::extract::Path;
 use axum::routing::{get, post};
 use axum::{Extension, Router};
 use dat::error::DatError;
 use dat::manager::DatManager;
 use sea_orm::DbErr;
+use saro_infra::database::db_pool;
+use saro_infra::error::ApiError::{BadRequest, Unauthorized};
+use saro_infra::error::{ApiError, ApiResult};
+use crate::dto::certificates::GetListCmd;
+use crate::handler;
+use crate::infrastructure::session::Session;
+use crate::service::cms_service;
 
 pub async fn debug_router() -> Router {
-    api::router().await
+    handler::router().await
         .route("/debug/dat", post(issue))
         .route("/debug/dat/{dat}", get(parse))
         .route("/debug/error1", get(error1))
@@ -62,7 +61,7 @@ async fn parse(Path(dat): Path<String>) -> ApiResult<String> {
 
 async fn manager() -> ApiResult<DatManager> {
     let manager: DatManager = DatManager::new();
-    manager.import(&cms::list(GetListCmd { version: 0, verify_only: false }, db_pool()).await?.export(false), true)?;
+    manager.import(&cms_service::list(GetListCmd { version: 0, verify_only: false }, db_pool()).await?.export(false), true)?;
     Ok(manager)
 }
 
@@ -76,7 +75,7 @@ async fn error2() -> ApiResult<()> {
 }
 
 async fn error3() -> ApiResult<()> {
-    Err(anyhow!("any error"))?
+    Err(ApiError::Etc("any error".to_string()))?
 }
 
 async fn error4() -> ApiResult<()> {
@@ -91,6 +90,6 @@ async fn error6() -> ApiResult<()> {
     Err(BadRequest("bad request error".to_string()))?
 }
 
-async fn error7(Extension(session): Extension<Session>) -> ApiResult<()> {
-    Err(Unauthorized(session.token(), session.ip()))?
+async fn error7(Extension(_): Extension<Session>) -> ApiResult<()> {
+    Err(Unauthorized())?
 }

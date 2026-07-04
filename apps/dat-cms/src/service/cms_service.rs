@@ -1,18 +1,17 @@
-use crate::entity::dat_cms_cert;
-use crate::middleware::error::ApiResult;
 use dat::crypto::DatCryptoAlgorithm;
 use dat::error::DatError;
 use dat::signature::DatSignatureAlgorithm;
 use dat::util::now_unix_timestamp;
-use rand::random;
 use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, ExprTrait, QueryFilter, SelectExt};
 use std::str::FromStr;
 use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 use std::sync::OnceLock;
 use sea_orm::prelude::Expr;
 use tokio::sync::RwLock;
+use saro_infra::error::ApiResult;
+use crate::dto::certificates::{Certificates, GetListCmd, RegisterCmd, SerializedCertificate};
 use crate::env::ENV;
-pub(crate) use crate::service::certificates::{Certificates, GetListCmd, RegisterCmd, SerializedCertificate};
+use crate::infrastructure::persistence::dat_cms_cert;
 
 pub type NewCid = String;
 pub type DeleteCount = u64;
@@ -114,7 +113,7 @@ async fn has_issuance_certificates<C: ConnectionTrait>(db: &C) -> ApiResult<bool
 
 async fn generate_cid<C: ConnectionTrait>(db: &C) -> ApiResult<i64> {
     for _ in 0 .. 1000 {
-        let cid = random::<u32>() as i64;
+        let cid = rand::random::<u32>() as i64;
         let exists = dat_cms_cert::Entity::find()
             .filter(dat_cms_cert::Column::Cid.eq(cid))
             .exists(db).await?;

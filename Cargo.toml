@@ -1,14 +1,15 @@
-[package]
-name = "dat-cms"
-version = "4.3.1"
-edition = "2024"
+[workspace]
+members = ["apps/*", "libs/*"]
+resolver = "2"
 
-[profile.release]
-opt-level = 3
-lto = "fat"
-codegen-units = 1
-
-[dependencies]
+[workspace.dependencies]
+saro-infra = { path = "libs/saro-infra" }
+serde_urlencoded = { version = "0.7.1" }
+serde_json = { version = "1.0.150" }
+reqwest = { version = "0.13.4", features = ["json", "query", "native-tls-vendored"] }
+async-trait = { version = "0.1.89" }
+const-str = "1.1.0"
+bytes = { version = "1.12.0" }
 axum = { version = "0.8.9", features = ["macros", "ws", "json", "multipart"] }
 tower = { version = "0.5.3" }
 tower-http = { version = "0.7.0", features = ["catch-panic"] }
@@ -19,9 +20,9 @@ tracing = { version = "0.1.44" }
 tracing-subscriber = { version = "0.3.23", features = ["env-filter", "json", "time"] }
 tracing-appender = { version = "0.2.5" }
 sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-rustls", "macros"]}
-rand = { version = "0.10.1" }
+rand = { version = "0.10.2" }
 regex = { version = "1.12.4" }
-anyhow = { version = "1.0.102" }
+anyhow = { version = "1.0.103" }
 thiserror = { version = "2.0.18" }
 
 dat = { version = "4.3.1" }

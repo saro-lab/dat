@@ -1,10 +1,10 @@
-use crate::service::cms::RegisterCmd;
 use dat::crypto::DatCryptoAlgorithm;
 use dat::signature::DatSignatureAlgorithm;
 use std::env;
 use std::str::FromStr;
 use std::sync::LazyLock;
 use tokio_cron_scheduler::Job;
+use crate::dto::certificates::RegisterCmd;
 
 pub static ENV: LazyLock<Env> = LazyLock::new(|| bind());
 

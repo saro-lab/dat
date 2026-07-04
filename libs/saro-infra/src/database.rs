@@ -1,13 +1,12 @@
-use crate::env::ENV;
-use crate::middleware::error::ApiResult;
-use anyhow::anyhow;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use std::fs;
 use std::fs::File;
 use std::path::Path;
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use std::sync::LazyLock;
 use std::time::Duration;
+use anyhow::anyhow;
 use tokio::sync::OnceCell;
+use crate::error::ApiResult;
 
 static DB_POOL: LazyLock<OnceCell<DatabaseConnection>> = LazyLock::new(|| OnceCell::new());
 
@@ -15,9 +14,7 @@ pub fn db_pool() -> &'static DatabaseConnection {
     DB_POOL.get().unwrap()
 }
 
-pub async fn bind() -> ApiResult<()> {
-    let db_uri = &ENV.server.db_uri;
-
+pub async fn bind(db_uri: &str, debug: bool) -> ApiResult<()> {
     if let Some(file_path) = db_uri.strip_prefix("sqlite:") {
         handle_sqlite_specifics(file_path).await?;
     }
@@ -31,7 +28,7 @@ pub async fn bind() -> ApiResult<()> {
         .acquire_timeout(Duration::from_secs(30))
         .idle_timeout(Duration::from_secs(600))
         .max_lifetime(Duration::from_secs(1800))
-        .sqlx_logging(ENV.server.debug);
+        .sqlx_logging(debug);
 
     DB_POOL.set(Database::connect(opt).await?)
         .map_err(|x| anyhow!(x))?;

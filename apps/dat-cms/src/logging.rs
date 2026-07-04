@@ -1,4 +1,3 @@
-use crate::env::ENV;
 use std::io::stdout;
 use std::panic;
 use tracing::level_filters::LevelFilter;
@@ -7,6 +6,7 @@ use tracing_subscriber::{
     fmt::{self},
     prelude::*,
 };
+use crate::env::ENV;
 
 pub fn bind() {
 
