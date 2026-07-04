@@ -1,2 +1,0 @@
-[build]
-passthrough = ["CARGO_HOME", "RUSTUP_HOME"]

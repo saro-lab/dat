@@ -2,6 +2,11 @@
 members = ["apps/*", "libs/*"]
 resolver = "2"
 
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+
 [workspace.dependencies]
 saro-infra = { path = "libs/saro-infra" }
 serde_urlencoded = { version = "0.7.1" }
@@ -22,7 +27,7 @@ rand = { version = "0.10.2" }
 regex = { version = "1.12.4" }
 anyhow = { version = "1.0.103" }
 thiserror = { version = "2.0.18" }
-reqwest = { version = "0.13.4", features = ["json", "query", "rustls", "native-tls-vendored", "rustls-no-provider"] }
-sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls", "runtime-tokio-rustls"] }
+reqwest = { version = "0.13.4", features = ["json", "query", "rustls", "native-tls-vendored"] }
+sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls"] }
 
 dat = { version = "4.3.1" }

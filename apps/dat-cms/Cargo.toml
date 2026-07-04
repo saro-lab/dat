@@ -3,10 +3,6 @@ name = "dat-cms"
 version = "4.3.2"
 edition = "2024"
 
-[profile.release]
-opt-level = 3
-lto = "fat"
-codegen-units = 1
 
 [env]
 RUST_BACKTRACE = "full"
@@ -27,13 +23,7 @@ tracing-subscriber = { workspace = true }
 tracing-appender = { workspace = true }
 async-trait = { workspace = true }
 rand = { workspace = true }
-dat = { workspace = true }
 regex = { workspace = true }
+sea-orm = { workspace = true }
 
-[target.'cfg(not(target_os = "windows"))'.dependencies]
-sea-orm = { workspace = true, features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls"] }
-
-[target.'cfg(target_os = "windows")'.dependencies]
-sea-orm = { workspace = true, features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-rustls"] }
-
-
+dat = { workspace = true }
