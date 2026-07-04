@@ -21,7 +21,8 @@ WORKDIR /app
 
 COPY Cargo.toml Cargo.lock ./
 COPY .cargo ./.cargo
-COPY src ./src
+COPY libs ./libs
+COPY apps ./apps
 
 RUN RUST_TARGET=$(cat /RUST_TARGET) && \
     RUSTFLAGS="-C target-feature=+crt-static" \
