@@ -13,8 +13,14 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_urlencoded = { workspace = true }
-sea-orm = { workspace = true }
-reqwest = { workspace = true }
 
 dat = { workspace = true }
+
+[target.'cfg(not(target_os = "windows"))'.dependencies]
+reqwest = { workspace = true, features = ["json", "query", "rustls", "native-tls-vendored"] }
+sea-orm = { workspace = true, features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+reqwest = { workspace = true, features = ["json", "query", "rustls", "rustls-no-provider"] }
+sea-orm = { workspace = true, features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-rustls"] }
 

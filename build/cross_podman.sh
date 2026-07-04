@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rustup update
+
 export CROSS_CONTAINER_ENGINE=podman
 
 TARGETS=(

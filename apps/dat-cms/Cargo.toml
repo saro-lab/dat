@@ -29,8 +29,11 @@ async-trait = { workspace = true }
 rand = { workspace = true }
 dat = { workspace = true }
 regex = { workspace = true }
-sea-orm = { workspace = true }
+
+[target.'cfg(not(target_os = "windows"))'.dependencies]
+sea-orm = { workspace = true, features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
-rustls = { workspace = true }
+sea-orm = { workspace = true, features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-rustls"] }
+
 
