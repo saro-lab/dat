@@ -1,29 +1,31 @@
 use crate::database::db_pool;
-use saro_infra::error::ApiResult;
-use tokio_cron_scheduler::{Job, JobScheduler};
 use crate::env::ENV;
-use crate::service::cms_service;
+use crate::error::CmsResult;
+use crate::service::cert_service;
+use tokio_cron_scheduler::{Job, JobScheduler};
 
-pub async fn bind() -> ApiResult<()> {
+pub async fn bind() -> CmsResult<()> {
+    let Some(cron) = ENV.cron.as_ref() else {
+        return Ok(());
+    };
 
-    if let Some(cron) = ENV.cron.as_ref() {
-        let cmd = &cron.cmd;
-        cms_service::register(cmd.clone(), db_pool()).await?;
-        let sched = JobScheduler::new().await.unwrap();
+    cert_service::register(cron.cmd.clone(), db_pool()).await?;
 
-        sched.add(
-            Job::new_async(cron.expression.clone(), |_,_| {
-                Box::pin(async move {
-                    tracing::info!("DatCertificate Generate Cron");
-                    if let Some(cron) = ENV.cron.as_ref() {
-                        cms_service::register(cron.cmd.clone(), db_pool()).await.unwrap();
-                    }
-                })
-            }).unwrap(),
-        ).await.unwrap();
+    let sched = JobScheduler::new().await.expect("Failed to create job scheduler");
 
-        sched.start().await.unwrap();
-    }
+    sched.add(
+        Job::new_async(cron.expression.clone(), |_, _| {
+            Box::pin(async {
+                tracing::info!("DatCertificate Generate Cron");
+                if let Some(cron) = ENV.cron.as_ref()
+                    && let Err(err) = cert_service::register(cron.cmd.clone(), db_pool()).await {
+                    tracing::error!("DatCertificate Generate Cron failed: {:?}", err);
+                }
+            })
+        }).expect("Failed to create cron job"),
+    ).await.expect("Failed to add cron job");
+
+    sched.start().await.expect("Failed to start job scheduler");
 
     Ok(())
 }

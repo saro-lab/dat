@@ -7,8 +7,8 @@ use sea_orm::prelude::async_trait::async_trait;
 use sea_orm::sea_query::StringLen;
 use sea_orm::{ActiveModelBehavior, Set};
 use serde::{Deserialize, Serialize};
-use saro_infra::error::ApiResult;
-use crate::dto::certificates::SerializedCertificate;
+use crate::dto::cert::CachedCertificate;
+use crate::error::CmsResult;
 
 // https://www.sea-ql.org/SeaORM/docs/generate-entity/column-types/
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]
@@ -50,7 +50,7 @@ pub struct Model {
 pub enum Relation {}
 
 impl Model {
-    pub fn serialize_certificate(&self) -> ApiResult<SerializedCertificate> {
+    pub fn serialize_certificate(&self) -> CmsResult<CachedCertificate> {
         let signature_algorithm = self.signature_algorithm.parse::<DatSignatureAlgorithm>()?;
         let signature_key = DatSignature::from_key(signature_algorithm, &self.signature_key)?;
         let crypto_algorithm = self.crypto_algorithm.parse::<DatCryptoAlgorithm>()?;
@@ -63,7 +63,7 @@ impl Model {
             signature_key,
             crypto_key,
         )?;
-        Ok(SerializedCertificate {
+        Ok(CachedCertificate {
             version: self.ver,
             full: certificate.export(false)?,
             verify_only: if certificate.support_verify_only() { certificate.export(true)? } else { "".to_string() },

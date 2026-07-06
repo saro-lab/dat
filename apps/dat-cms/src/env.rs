@@ -1,16 +1,17 @@
+use crate::dto::cert::RegisterCertificateCommand;
 use dat::crypto::DatCryptoAlgorithm;
 use dat::signature::DatSignatureAlgorithm;
+use saro_infra::logging::LogConfig;
 use std::env;
 use std::str::FromStr;
 use std::sync::LazyLock;
 use tokio_cron_scheduler::Job;
-use crate::dto::certificates::RegisterCmd;
 
-pub static ENV: LazyLock<Env> = LazyLock::new(|| bind());
+pub static ENV: LazyLock<Env> = LazyLock::new(bind);
 
 pub struct Env {
     pub server: EnvServer,
-    pub log: EnvLog,
+    pub log: LogConfig,
     pub token: EnvToken,
     pub cron: Option<EnvCron>,
 }
@@ -24,15 +25,9 @@ pub struct EnvServer {
     pub debug: bool,
 }
 
-pub struct EnvLog {
-    pub console: bool,
-    pub file: bool,
-    pub json: bool,
-}
-
 pub struct EnvCron {
     pub expression: String,
-    pub cmd: RegisterCmd,
+    pub cmd: RegisterCertificateCommand,
 }
 
 pub struct EnvToken {
@@ -43,7 +38,7 @@ pub struct EnvToken {
 
 fn bind() -> Env {
     let server = EnvServer::new();
-    let log = EnvLog::new();
+    let log = log_config(&server);
     let cron = EnvCron::new(&server);
     let token = EnvToken::new();
     Env { server, log, cron, token }
@@ -81,18 +76,20 @@ impl EnvServer {
 }
 
 
-impl EnvLog {
-    fn new() -> Self {
-        let log_console = env_str("LOG_CONSOLE", "1") == "1";
-        let log_json = env_str("LOG_FILE", "").to_uppercase() == "JSON";
-        let log_file = log_json || env_str("LOG_FILE", "").to_uppercase() == "TEXT";
-        println!("log console: {}", if log_console { "on" } else { "off" });
-        println!("log file: {}", if log_file { if log_json { "json" } else { "text" } } else { "off" });
-        EnvLog {
-            console: log_console,
-            json: log_json,
-            file: log_file,
-        }
+fn log_config(server: &EnvServer) -> LogConfig {
+    let log_console = env_str("LOG_CONSOLE", "1") == "1";
+    let log_file_type = env_str("LOG_FILE", "").to_uppercase();
+    let log_json = log_file_type == "JSON";
+    let log_file = log_json || log_file_type == "TEXT";
+    println!("log console: {}", if log_console { "on" } else { "off" });
+    println!("log file: {}", if log_file { if log_json { "json" } else { "text" } } else { "off" });
+    LogConfig {
+        console: log_console,
+        json: log_json,
+        file: log_file,
+        file_dir: "./logs".to_string(),
+        file_prefix: format!("dat-{}", server.hostname),
+        debug: server.debug,
     }
 }
 
@@ -123,17 +120,17 @@ ex) HMAC-SHA512-MFS, IV-AES256-GCM, 0 0/30 * * * *, 1200, 10800, 600
             if parts.len() != 6 {
                 panic!("invalid SINGLE_NODE argument: {cron}\n{}", arg_example);
             }
-            DatSignatureAlgorithm::from_str(parts[0]).expect(format!("invalid signature algorithm\n{arg_example}").as_str());
-            DatCryptoAlgorithm::from_str(parts[1]).expect(format!("invalid crypto algorithm\n{arg_example}").as_str());
+            DatSignatureAlgorithm::from_str(parts[0]).unwrap_or_else(|_| panic!("invalid signature algorithm\n{arg_example}"));
+            DatCryptoAlgorithm::from_str(parts[1]).unwrap_or_else(|_| panic!("invalid crypto algorithm\n{arg_example}"));
 
             Some(EnvCron {
-                expression: Job::schedule_to_cron(parts[2]).expect(format!("invalid cron expression\n{arg_example}").as_str()),
-                cmd: RegisterCmd {
+                expression: Job::schedule_to_cron(parts[2]).unwrap_or_else(|_| panic!("invalid cron expression\n{arg_example}")),
+                cmd: RegisterCertificateCommand {
                     signature_algorithm: parts[0].to_string(),
                     crypto_algorithm: parts[1].to_string(),
-                    certificate_propagation_delay_seconds: parts[3].parse::<i64>().expect(format!("invalid certificate propagation delay seconds\n{arg_example}").as_str()),
-                    dat_issuance_duration_seconds: parts[4].parse::<i64>().expect(format!("invalid dat issuance duration seconds\n{arg_example}").as_str()),
-                    dat_ttl_seconds: parts[5].parse::<i64>().expect(format!("invalid dat ttl seconds\n{arg_example}").as_str()),
+                    certificate_propagation_delay_seconds: parts[3].parse::<i64>().unwrap_or_else(|_| panic!("invalid certificate propagation delay seconds\n{arg_example}")),
+                    dat_issuance_duration_seconds: parts[4].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat issuance duration seconds\n{arg_example}")),
+                    dat_ttl_seconds: parts[5].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat ttl seconds\n{arg_example}")),
                 }
             })
         }
@@ -179,7 +176,7 @@ where
     <F as FromStr>::Err: std::fmt::Debug
 {
     if let Ok(v) = env::var(key) && !v.is_empty() {
-        v.parse::<F>().expect(&format!("invalid argument {}: {}", key, v))
+        v.parse::<F>().unwrap_or_else(|_| panic!("invalid argument {}: {}", key, v))
     } else {
         default_value
     }

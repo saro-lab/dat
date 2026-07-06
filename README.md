@@ -15,8 +15,8 @@
 - [Python](https://github.com/saro-lab/dat-pypi)
 - [Go](https://github.com/saro-lab/dat-go)
 - [Ruby](https://github.com/saro-lab/dat-ruby)
-- [C/C++ (vcpkg)](https://github.com/saro-lab/dat-vcpkg)
-- [Cert(key) server (docker)](https://github.com/saro-lab/dat-cms)
+- [C/C++ (Vcpkg)](https://github.com/saro-lab/dat-vcpkg)
+- [Cert(key) Server (Docker)](https://github.com/saro-lab/dat-cms)
 
 ### Build
 - Install Rust: https://rust-lang.org/

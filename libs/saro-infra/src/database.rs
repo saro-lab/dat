@@ -1,22 +1,21 @@
+use crate::error::ApiResult;
+use anyhow::anyhow;
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use std::fs;
 use std::fs::File;
 use std::path::Path;
-use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
-use std::sync::LazyLock;
 use std::time::Duration;
-use anyhow::anyhow;
 use tokio::sync::OnceCell;
-use crate::error::ApiResult;
 
-static DB_POOL: LazyLock<OnceCell<DatabaseConnection>> = LazyLock::new(|| OnceCell::new());
+static DB_POOL: OnceCell<DatabaseConnection> = OnceCell::const_new();
 
 pub fn db_pool() -> &'static DatabaseConnection {
-    DB_POOL.get().unwrap()
+    DB_POOL.get().expect("database::bind() must be called before db_pool()")
 }
 
-pub async fn bind(db_uri: &str, debug: bool) -> ApiResult<()> {
+pub async fn bind(db_uri: &str, sqlx_logging: bool) -> ApiResult<()> {
     if let Some(file_path) = db_uri.strip_prefix("sqlite:") {
-        handle_sqlite_specifics(file_path).await?;
+        prepare_sqlite_file(file_path)?;
     }
 
     let mut opt = ConnectOptions::new(db_uri);
@@ -28,22 +27,24 @@ pub async fn bind(db_uri: &str, debug: bool) -> ApiResult<()> {
         .acquire_timeout(Duration::from_secs(30))
         .idle_timeout(Duration::from_secs(600))
         .max_lifetime(Duration::from_secs(1800))
-        .sqlx_logging(debug);
+        .sqlx_logging(sqlx_logging);
 
     DB_POOL.set(Database::connect(opt).await?)
         .map_err(|x| anyhow!(x))?;
     Ok(())
 }
 
-async fn handle_sqlite_specifics(file_path: &str) -> Result<(), DbErr> {
-    if let Some(parent) = Path::new(file_path).parent() {
+fn prepare_sqlite_file(file_path: &str) -> Result<(), DbErr> {
+    let path = Path::new(file_path);
+    if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|x| {
             DbErr::Custom(format!("Failed to create directory: {}", x))
         })?;
     }
-    let path = Path::new(file_path);
     if !path.exists() {
-        File::create(file_path).expect("Unable to create file");
+        File::create(path).map_err(|x| {
+            DbErr::Custom(format!("Failed to create database file: {}", x))
+        })?;
     }
     Ok(())
 }

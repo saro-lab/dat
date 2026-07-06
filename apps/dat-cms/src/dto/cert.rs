@@ -2,7 +2,7 @@ use dat::util::now_unix_timestamp;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone)]
-pub struct SerializedCertificate {
+pub struct CachedCertificate {
     pub version: i64,
     pub full: String,
     pub verify_only: String,
@@ -10,7 +10,7 @@ pub struct SerializedCertificate {
     pub issuance_end: u64,
 }
 
-impl SerializedCertificate {
+impl CachedCertificate {
     pub fn issuable(&self) -> bool {
         let now = now_unix_timestamp();
         self.issuance_start <= now && self.issuance_end > now
@@ -18,18 +18,18 @@ impl SerializedCertificate {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Certificates {
+pub struct CertificateList {
     pub version: i64,
     pub list: Vec<String>,
 }
 
-pub struct GetListCmd {
+pub struct ListCertificatesQuery {
     pub version: i64,
     pub verify_only: bool,
 }
 
 #[derive(Clone)]
-pub struct RegisterCmd {
+pub struct RegisterCertificateCommand {
     pub signature_algorithm: String,
     pub crypto_algorithm: String,
     pub certificate_propagation_delay_seconds: i64,
@@ -37,7 +37,7 @@ pub struct RegisterCmd {
     pub dat_ttl_seconds: i64,
 }
 
-impl Certificates {
+impl CertificateList {
     pub fn size(&self) -> usize {
         self.list.len()
     }

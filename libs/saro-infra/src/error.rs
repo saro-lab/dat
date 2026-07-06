@@ -8,16 +8,11 @@ pub type ApiResult<T> = Result<T, ApiError>;
 
 #[derive(Error, Debug)]
 pub enum ApiError {
-    #[error("InvalidEmail")]
-    InvalidEmail(),
-
     // error - lv 1
     #[error("Internal")]
     Internal(#[from] anyhow::Error),
     #[error("Database")]
     Database(#[from] sea_orm::error::DbErr),
-    #[error("Http")]
-    Http(#[from] reqwest::Error),
 
     // error - lv 2
     #[allow(unused)]
@@ -31,14 +26,6 @@ pub enum ApiError {
     Code(String),
     #[error("CodeMessage")]
     CodeMessage(String, String),
-    #[error("serdeUrlSer")]
-    ErrSerdeUrlSer(#[from] serde_urlencoded::ser::Error),
-    #[error("serdeUrlDe")]
-    ErrSerdeUrlDe(#[from] serde_urlencoded::de::Error),
-    #[error("Null")]
-    Null(),
-    #[error("Dat")]
-    Dat(#[from] dat::error::DatError),
 
     // etc
     #[error("Etc")]
@@ -57,11 +44,6 @@ impl IntoResponse for ApiError {
                 (StatusCode::INTERNAL_SERVER_ERROR, code("error"))
             }
 
-            ApiError::InvalidEmail() => {
-                tracing::error!("Invalid Email");
-                (StatusCode::UNAUTHORIZED, code("invalid_email"))
-            },
-
             // basic
             ApiError::Unauthorized() => {
                 (StatusCode::UNAUTHORIZED, code("401"))
@@ -73,10 +55,10 @@ impl IntoResponse for ApiError {
 
             // custom
             ApiError::Code(_code) => {
-                (StatusCode::BAD_REQUEST, code(&_code))
+                (StatusCode::BAD_REQUEST, code(_code))
             },
             ApiError::CodeMessage(code, message) => {
-                (StatusCode::BAD_REQUEST, code_message(&code, &message))
+                (StatusCode::BAD_REQUEST, code_message(code, message))
             },
 
             // etc
@@ -94,16 +76,14 @@ impl IntoResponse for ApiError {
     }
 }
 
-#[allow(unused)]
 fn code(code: &str) -> String {
     let mut rv = String::with_capacity(code.len() + 16);
     rv.push_str(r#"{"code":""#);
-    rv.push_str(code);
+    escape_json_into(code, &mut rv);
     rv.push_str(r#""}"#);
     rv
 }
 
-#[allow(unused)]
 fn code_message(code: &str, message: &str) -> String {
     let mut rv = String::with_capacity(code.len() + message.len() + 32);
     rv.push_str(r#"{"code":""#);

@@ -9,13 +9,7 @@ codegen-units = 1
 
 [workspace.dependencies]
 saro-infra = { path = "libs/saro-infra" }
-serde_urlencoded = { version = "0.7.1" }
-serde_json = { version = "1.0.150" }
-async-trait = { version = "0.1.89" }
-const-str = "1.1.0"
-bytes = { version = "1.12.0" }
-axum = { version = "0.8.9", features = ["macros", "ws", "json", "multipart"] }
-tower = { version = "0.5.3" }
+axum = { version = "0.8.9", features = ["macros", "json"] }
 tower-http = { version = "0.7.0", features = ["catch-panic"] }
 tokio = { version = "1.52.3", features = ["full"] }
 tokio-cron-scheduler = { version = "0.15.1" }
@@ -27,7 +21,6 @@ rand = { version = "0.10.2" }
 regex = { version = "1.12.4" }
 anyhow = { version = "1.0.103" }
 thiserror = { version = "2.0.18" }
-reqwest = { version = "0.13.4", features = ["json", "query", "rustls", "native-tls-vendored"] }
-sea-orm = { version = "2.0.0-rc.41", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls"] }
+sea-orm = { version = "2.0.0-rc.42", features = ["sqlx-all", "with-ipnetwork", "runtime-tokio-native-tls"] }
 
-dat = { version = "4.3.1" }
+dat = { version = "4.3.3" }

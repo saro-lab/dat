@@ -1,27 +1,17 @@
 [package]
 name = "dat-cms"
-version = "4.3.2"
+version = "4.3.3"
 edition = "2024"
-
-
-[env]
-RUST_BACKTRACE = "full"
-
-[build-dependencies]
-saro-infra = { workspace = true }
 
 [dependencies]
 saro-infra = { workspace = true }
 axum = { workspace = true }
-tower = { workspace = true }
 tower-http = { workspace = true }
 tokio = { workspace = true }
 tokio-cron-scheduler = { workspace = true }
 serde = { workspace = true }
+thiserror = { workspace = true }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-tracing-appender = { workspace = true }
-async-trait = { workspace = true }
 rand = { workspace = true }
 regex = { workspace = true }
 sea-orm = { workspace = true }

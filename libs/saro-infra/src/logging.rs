@@ -6,19 +6,26 @@ use tracing_subscriber::{
     fmt::{self},
     prelude::*,
 };
-use crate::env::ENV;
 
-pub fn bind() {
+pub struct LogConfig {
+    pub console: bool,
+    pub file: bool,
+    pub json: bool,
+    pub file_dir: String,
+    pub file_prefix: String,
+    pub debug: bool,
+}
 
-    let file = if ENV.log.file {
+pub fn bind(config: &LogConfig) {
+    let file = if config.file {
         let file_appender = RollingFileAppender::builder()
-        .rotation(Rotation::DAILY)
-        .filename_prefix(format!("dat-{}", ENV.server.hostname))
-        .filename_suffix("log")
-        .build("./logs")
-        .expect("Failed to create file appender");
+            .rotation(Rotation::DAILY)
+            .filename_prefix(&config.file_prefix)
+            .filename_suffix("log")
+            .build(&config.file_dir)
+            .expect("Failed to create file appender");
 
-        if ENV.log.json {
+        if config.json {
             Some(fmt::layer().json()
                 .with_span_list(false)
                 .with_target(true)
@@ -38,14 +45,14 @@ pub fn bind() {
         None
     };
 
-    let console = if ENV.log.console {
+    let console = if config.console {
         Some(fmt::layer()
             .with_level(true)
-             .with_target(true)
-             .with_thread_ids(true)
-             .with_line_number(true)
-             .with_writer(stdout) // 출력을 표준 출력(화면)으로 보냄
-             .with_filter(if ENV.server.debug { LevelFilter::DEBUG } else { LevelFilter::INFO })
+            .with_target(true)
+            .with_thread_ids(true)
+            .with_line_number(true)
+            .with_writer(stdout)
+            .with_filter(if config.debug { LevelFilter::DEBUG } else { LevelFilter::INFO })
         )
     } else {
         None
@@ -62,15 +69,17 @@ pub fn bind() {
 fn setup_panic_hook() {
     panic::set_hook(Box::new(move |panic_info| {
         let payload = panic_info.payload().downcast_ref::<&str>()
-            .map(|s| *s)
+            .copied()
             .or_else(|| panic_info.payload().downcast_ref::<String>().map(|s| s.as_str()))
             .unwrap_or("Unknown error");
 
-        let location = panic_info.location().unwrap();
+        let location = panic_info.location()
+            .map(|x| format!("{}:{}", x.file(), x.line()))
+            .unwrap_or_else(|| "unknown".to_string());
 
         tracing::error!(
             message = payload,
-            location = format!("{}:{}", location.file(), location.line()),
+            location = location,
         );
     }));
 }
