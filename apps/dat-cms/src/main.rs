@@ -6,7 +6,6 @@ mod cron;
 mod dto;
 mod entity;
 mod env;
-mod error;
 mod request_context;
 mod routes;
 mod schema;

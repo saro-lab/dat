@@ -1,8 +1,8 @@
 use crate::entity::dat_cms_cert;
-use crate::error::CmsResult;
+use saro_core::error::ApiResult;
 use sea_orm::{ConnectionTrait, DatabaseConnection, Schema};
 
-pub async fn sync(db: &DatabaseConnection) -> CmsResult<()> {
+pub async fn sync(db: &DatabaseConnection) -> ApiResult<()> {
     let be = db.get_database_backend();
 
     db.execute(

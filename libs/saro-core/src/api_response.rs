@@ -44,7 +44,7 @@ impl<T> ApiResponse<T> {
         {
             return Ok(data);
         }
-        Err(ApiError::Null())
+        Err(ApiError::Null)
     }
 
     pub fn map<U>(self, f: impl FnOnce(T) -> Option<U>) -> ApiResponse<U> {

@@ -1,11 +1,10 @@
 use crate::env::ENV;
-use crate::error::CmsResult;
 use axum::body::Body;
 use axum::extract::ConnectInfo;
 use axum::http::Request;
 use axum::middleware::Next;
 use axum::response::Response;
-use saro_core::error::ApiError;
+use saro_core::error::{ApiError, ApiResult};
 use saro_infra::client_ip::client_ip;
 use std::net::{IpAddr, SocketAddr};
 
@@ -16,24 +15,24 @@ pub struct RequestContext {
 }
 
 impl RequestContext {
-    pub fn is_master(&self) -> CmsResult<()> {
+    pub fn is_master(&self) -> ApiResult<()> {
         self.is_allow(&ENV.token.master)
     }
-    pub fn is_cert_full(&self) -> CmsResult<()> {
+    pub fn is_cert_full(&self) -> ApiResult<()> {
         self.is_allow(&ENV.token.cert_full)
     }
-    pub fn is_cert_verify(&self) -> CmsResult<()> {
+    pub fn is_cert_verify(&self) -> ApiResult<()> {
         self.is_allow(&ENV.token.cert_verify)
     }
     pub fn ip(&self) -> IpAddr {
         self.ip
     }
 
-    fn is_allow(&self, allows: &[String]) -> CmsResult<()> {
+    fn is_allow(&self, allows: &[String]) -> ApiResult<()> {
         if allows.is_empty() || (!self.token.is_empty() && allows.contains(&self.token)) {
             Ok(())
         } else {
-            Err(ApiError::Unauthorized().into())
+            Err(ApiError::Unauthorized)
         }
     }
 }

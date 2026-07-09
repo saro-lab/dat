@@ -27,10 +27,6 @@ async fn handle_error_404(
     uri: axum::http::Uri,
     Extension(ctx): Extension<RequestContext>,
 ) -> Response {
-    ApiError::NotFound(
-        method.to_string(),
-        uri.path().to_string(),
-        ctx.ip().to_string(),
-    )
-    .into_response()
+    tracing::error!("404: {} {} {}", method, uri.path(), ctx.ip());
+    ApiError::NotFound.into_response()
 }

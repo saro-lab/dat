@@ -1,6 +1,6 @@
 use crate::dto::cert::{CertificateList, ListCertificatesQuery, RegisterCertificateCommand};
 use crate::env::ENV;
-use crate::error::CmsResult;
+use saro_core::error::ApiResult;
 use crate::request_context::RequestContext;
 use crate::services::cert_service;
 use axum::extract::{Path, Query};
@@ -46,7 +46,7 @@ async fn version_api() -> &'static str {
 // ===============================================================
 // - master api
 // ===============================================================
-async fn version(Extension(ctx): Extension<RequestContext>) -> CmsResult<&'static str> {
+async fn version(Extension(ctx): Extension<RequestContext>) -> ApiResult<&'static str> {
     ctx.is_master()?;
     Ok(&ENV.server.version)
 }
@@ -60,7 +60,7 @@ pub async fn generate_certificate(
         dat_ttl_seconds,
     )): Path<(String, String, i64, i64, i64)>,
     Extension(ctx): Extension<RequestContext>,
-) -> CmsResult<String> {
+) -> ApiResult<String> {
     ctx.is_master()?;
     let (new_cid, delete_count) = cert_service::register(
         RegisterCertificateCommand {
@@ -86,7 +86,7 @@ pub async fn generate_certificate(
 pub async fn get_certificate_list(
     Query(params): Query<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
-) -> CmsResult<String> {
+) -> ApiResult<String> {
     ctx.is_cert_full()?;
     let certs = cert_service::list(
         ListCertificatesQuery {
@@ -103,7 +103,7 @@ pub async fn get_certificate_list(
 pub async fn get_certificate_list_json(
     Query(params): Query<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
-) -> CmsResult<ApiResponse<CertificateList>> {
+) -> ApiResult<ApiResponse<CertificateList>> {
     ctx.is_cert_full()?;
     let certs = cert_service::list(
         ListCertificatesQuery {
@@ -123,7 +123,7 @@ pub async fn get_certificate_list_json(
 pub async fn get_certificate_verify_only_list(
     Query(params): Query<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
-) -> CmsResult<String> {
+) -> ApiResult<String> {
     ctx.is_cert_verify()?;
     let certs = cert_service::list(
         ListCertificatesQuery {
@@ -140,7 +140,7 @@ pub async fn get_certificate_verify_only_list(
 pub async fn get_certificate_verify_only_list_json(
     Query(params): Query<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
-) -> CmsResult<ApiResponse<CertificateList>> {
+) -> ApiResult<ApiResponse<CertificateList>> {
     ctx.is_cert_verify()?;
     let certs = cert_service::list(
         ListCertificatesQuery {

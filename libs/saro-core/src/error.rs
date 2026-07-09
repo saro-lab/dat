@@ -15,15 +15,15 @@ pub enum ApiError {
     #[error("Database")]
     Database(#[from] sea_orm::error::DbErr),
     #[error("Null")]
-    Null(),
+    Null,
 
     #[allow(unused)]
     #[error("BadRequest")]
-    BadRequest(),
+    BadRequest,
     #[error("Unauthorized")]
-    Unauthorized(),
+    Unauthorized,
     #[error("NotFound")]
-    NotFound(String, String, String),
+    NotFound,
 
     #[allow(unused)]
     #[error("Code")]
@@ -36,12 +36,9 @@ pub enum ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, body) = match self {
-            ApiError::BadRequest() => (StatusCode::BAD_REQUEST, code(codes::BAD_REQUEST)),
-            ApiError::Unauthorized() => (StatusCode::UNAUTHORIZED, code(codes::UNAUTHORIZED)),
-            ApiError::NotFound(method, path, ip) => {
-                tracing::error!("404: {} {} {}", method, path, ip);
-                (StatusCode::NOT_FOUND, code(codes::NOT_FOUND))
-            }
+            ApiError::BadRequest => (StatusCode::BAD_REQUEST, code(codes::BAD_REQUEST)),
+            ApiError::Unauthorized => (StatusCode::UNAUTHORIZED, code(codes::UNAUTHORIZED)),
+            ApiError::NotFound => (StatusCode::NOT_FOUND, code(codes::NOT_FOUND)),
 
             ApiError::Code(c) => (StatusCode::BAD_REQUEST, code(c)),
             ApiError::CodeMessage(c, message) => {
@@ -55,6 +52,21 @@ impl IntoResponse for ApiError {
         };
 
         (status, body).into_response()
+    }
+}
+
+/// Converts any foreign error into an [`ApiError::Internal`] (HTTP 500).
+///
+/// The orphan rule forbids `impl From<ForeignError> for ApiError` outside this
+/// crate, so downstream crates funnel their own error types through
+/// `some_result.err_map()?` instead of maintaining per-crate error enums.
+pub trait ErrMap<T> {
+    fn err_map(self) -> ApiResult<T>;
+}
+
+impl<T, E: Into<anyhow::Error>> ErrMap<T> for Result<T, E> {
+    fn err_map(self) -> ApiResult<T> {
+        self.map_err(|e| ApiError::Internal(e.into()))
     }
 }
 

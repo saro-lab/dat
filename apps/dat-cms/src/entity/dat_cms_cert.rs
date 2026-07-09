@@ -8,7 +8,7 @@ use sea_orm::sea_query::StringLen;
 use sea_orm::{ActiveModelBehavior, Set};
 use serde::{Deserialize, Serialize};
 use crate::dto::cert::CachedCertificate;
-use crate::error::CmsResult;
+use saro_core::error::{ApiResult, ErrMap};
 
 // https://www.sea-ql.org/SeaORM/docs/generate-entity/column-types/
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]
@@ -50,11 +50,11 @@ pub struct Model {
 pub enum Relation {}
 
 impl Model {
-    pub fn serialize_certificate(&self) -> CmsResult<CachedCertificate> {
-        let signature_algorithm = self.signature_algorithm.parse::<DatSignatureAlgorithm>()?;
-        let signature_key = DatSignature::from_key(signature_algorithm, &self.signature_key)?;
-        let crypto_algorithm = self.crypto_algorithm.parse::<DatCryptoAlgorithm>()?;
-        let crypto_key = DatCrypto::from_key(crypto_algorithm, &self.crypto_key)?;
+    pub fn serialize_certificate(&self) -> ApiResult<CachedCertificate> {
+        let signature_algorithm = self.signature_algorithm.parse::<DatSignatureAlgorithm>().err_map()?;
+        let signature_key = DatSignature::from_key(signature_algorithm, &self.signature_key).err_map()?;
+        let crypto_algorithm = self.crypto_algorithm.parse::<DatCryptoAlgorithm>().err_map()?;
+        let crypto_key = DatCrypto::from_key(crypto_algorithm, &self.crypto_key).err_map()?;
         let certificate = DatCertificate::from(
             self.cid as u64,
             self.issuance_start as u64,
@@ -62,11 +62,11 @@ impl Model {
             self.dat_ttl as u64,
             signature_key,
             crypto_key,
-        )?;
+        ).err_map()?;
         Ok(CachedCertificate {
             version: self.ver,
-            full: certificate.export(false)?,
-            verify_only: if certificate.support_verify_only() { certificate.export(true)? } else { "".to_string() },
+            full: certificate.export(false).err_map()?,
+            verify_only: if certificate.support_verify_only() { certificate.export(true).err_map()? } else { "".to_string() },
             issuance_start: self.issuance_start as u64,
             issuance_end: self.issuance_start as u64 + self.issuance_duration as u64,
         })

@@ -1,7 +1,7 @@
 use crate::dto::cert::{CertificateList, ListCertificatesQuery, RegisterCertificateCommand, CachedCertificate};
 use crate::env::ENV;
-use crate::error::CmsResult;
 use crate::entity::dat_cms_cert;
+use saro_core::error::{ApiResult, ErrMap};
 use dat::crypto::DatCryptoAlgorithm;
 use dat::error::DatError;
 use dat::signature::DatSignatureAlgorithm;
@@ -22,7 +22,7 @@ static CACHE_EXPIRE: AtomicU64 = AtomicU64::new(0);
 static CACHE_VERSION: AtomicI64 = AtomicI64::new(0);
 static CACHE_CERTIFICATES: LazyLock<RwLock<Vec<CachedCertificate>>> = LazyLock::new(|| RwLock::new(Vec::new()));
 
-pub async fn list<C: ConnectionTrait>(cmd: ListCertificatesQuery, db: &C) -> CmsResult<CertificateList> {
+pub async fn list<C: ConnectionTrait>(cmd: ListCertificatesQuery, db: &C) -> ApiResult<CertificateList> {
     let now = now_unix_timestamp();
 
     if CACHE_EXPIRE.load(Ordering::Acquire) < now {
@@ -34,7 +34,7 @@ pub async fn list<C: ConnectionTrait>(cmd: ListCertificatesQuery, db: &C) -> Cms
                 .all(db).await?
                 .iter()
                 .map(|x| x.serialize_certificate())
-                .collect::<CmsResult<Vec<CachedCertificate>>>()?;
+                .collect::<ApiResult<Vec<CachedCertificate>>>()?;
 
             let new_cache_version = new_certs.last().map(|x| x.version).unwrap_or(0);
             let issuable = new_certs.iter().any(|x| x.issuable());
@@ -71,7 +71,7 @@ pub async fn list<C: ConnectionTrait>(cmd: ListCertificatesQuery, db: &C) -> Cms
 pub async fn register<C: ConnectionTrait>(
     cmd: RegisterCertificateCommand,
     db: &C
-) -> CmsResult<(NewCid, DeleteCount)> {
+) -> ApiResult<(NewCid, DeleteCount)> {
     let now = now_unix_timestamp() as i64;
     let delete_count = cleanup(db).await?;
     let cid = generate_cid(db).await?;
@@ -86,19 +86,19 @@ pub async fn register<C: ConnectionTrait>(
         start,
         dur,
         cmd.dat_ttl_seconds,
-        DatSignatureAlgorithm::from_str(&cmd.signature_algorithm)?,
-        DatCryptoAlgorithm::from_str(&cmd.crypto_algorithm)?,
-    )?
+        DatSignatureAlgorithm::from_str(&cmd.signature_algorithm).err_map()?,
+        DatCryptoAlgorithm::from_str(&cmd.crypto_algorithm).err_map()?,
+    ).err_map()?
         .save(db).await?.cid.unwrap();
     Ok((format!("{cid:x}"), delete_count))
 }
 
-async fn cleanup<C: ConnectionTrait>(db: &C) -> CmsResult<u64> {
+async fn cleanup<C: ConnectionTrait>(db: &C) -> ApiResult<u64> {
     let clean_date = now_unix_timestamp() - DB_DAT_CMS_CERT_RETENTION_SECONDS;
     Ok(dat_cms_cert::Entity::delete_many().filter(dat_cms_cert::Column::Expire.lt(clean_date)).exec(db).await?.rows_affected)
 }
 
-async fn has_issuance_certificates<C: ConnectionTrait>(db: &C) -> CmsResult<bool> {
+async fn has_issuance_certificates<C: ConnectionTrait>(db: &C) -> ApiResult<bool> {
     let now = now_unix_timestamp();
     let has = dat_cms_cert::Entity::find()
         .filter(dat_cms_cert::Column::IssuanceStart.lte(now))
@@ -111,7 +111,7 @@ async fn has_issuance_certificates<C: ConnectionTrait>(db: &C) -> CmsResult<bool
     Ok(has)
 }
 
-async fn generate_cid<C: ConnectionTrait>(db: &C) -> CmsResult<i64> {
+async fn generate_cid<C: ConnectionTrait>(db: &C) -> ApiResult<i64> {
     for _ in 0 .. 1000 {
         let cid = rand::random::<u32>() as i64;
         let exists = dat_cms_cert::Entity::find()
@@ -121,5 +121,5 @@ async fn generate_cid<C: ConnectionTrait>(db: &C) -> CmsResult<i64> {
             return Ok(cid);
         }
     }
-    Err(DatError::EtcError("Fail Generate Cid"))?
+    Err(DatError::EtcError("Fail Generate Cid")).err_map()
 }

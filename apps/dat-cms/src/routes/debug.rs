@@ -1,5 +1,4 @@
 use crate::dto::cert::ListCertificatesQuery;
-use crate::error::CmsResult;
 use crate::request_context::RequestContext;
 use crate::services::cert_service;
 use anyhow::anyhow;
@@ -8,7 +7,7 @@ use axum::routing::{get, post};
 use axum::{Extension, Router};
 use dat::error::DatError;
 use dat::manager::DatManager;
-use saro_core::error::ApiError;
+use saro_core::error::{ApiError, ApiResult, ErrMap};
 use saro_infra::database::db;
 use sea_orm::DbErr;
 
@@ -25,7 +24,7 @@ pub fn router() -> Router {
         .route("/debug/error7", get(error7))
 }
 
-async fn issue(body: String) -> CmsResult<String> {
+async fn issue(body: String) -> ApiResult<String> {
     tracing::info!("POST /debug/dat issue (Debug)");
 
     let lines = body
@@ -40,17 +39,17 @@ async fn issue(body: String) -> CmsResult<String> {
         _ => return Ok("ERROR: usage:\nplain\nsecure".to_string()),
     };
 
-    Ok(manager().await?.issue(plain, secret)?)
+    manager().await?.issue(plain, secret).err_map()
 }
 
-async fn parse(Path(dat): Path<String>) -> CmsResult<String> {
+async fn parse(Path(dat): Path<String>) -> ApiResult<String> {
     tracing::info!("GET /debug/dat parse (Debug)");
-    let payload = manager().await?.parse(dat)?;
+    let payload = manager().await?.parse(dat).err_map()?;
 
-    Ok(format!("{}\n{}", payload.plain_text()?, payload.secure_text()?))
+    Ok(format!("{}\n{}", payload.plain_text().err_map()?, payload.secure_text().err_map()?))
 }
 
-async fn manager() -> CmsResult<DatManager> {
+async fn manager() -> ApiResult<DatManager> {
     let manager: DatManager = DatManager::new();
     let certs = cert_service::list(
         ListCertificatesQuery {
@@ -60,35 +59,35 @@ async fn manager() -> CmsResult<DatManager> {
         db(),
     )
     .await?;
-    manager.import(&certs.export(false), true)?;
+    manager.import(&certs.export(false), true).err_map()?;
     Ok(manager)
 }
 
-async fn error1() -> CmsResult<()> {
+async fn error1() -> ApiResult<()> {
     panic!("panic error")
 }
 
-async fn error2() -> CmsResult<()> {
+async fn error2() -> ApiResult<()> {
     let _ = 1 / 0;
     Ok(())
 }
 
-async fn error3() -> CmsResult<()> {
-    Err(ApiError::Internal(anyhow!("any error")))?
+async fn error3() -> ApiResult<()> {
+    Err(ApiError::Internal(anyhow!("any error")))
 }
 
-async fn error4() -> CmsResult<()> {
+async fn error4() -> ApiResult<()> {
     Err(DbErr::Custom("custom db error".to_string()))?
 }
 
-async fn error5() -> CmsResult<()> {
-    Err(DatError::EtcError("dat error"))?
+async fn error5() -> ApiResult<()> {
+    Err(DatError::EtcError("dat error")).err_map()
 }
 
-async fn error6() -> CmsResult<()> {
-    Err(ApiError::BadRequest())?
+async fn error6() -> ApiResult<()> {
+    Err(ApiError::BadRequest)
 }
 
-async fn error7(Extension(_): Extension<RequestContext>) -> CmsResult<()> {
-    Err(ApiError::Unauthorized())?
+async fn error7(Extension(_): Extension<RequestContext>) -> ApiResult<()> {
+    Err(ApiError::Unauthorized)
 }

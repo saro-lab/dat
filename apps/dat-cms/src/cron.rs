@@ -1,11 +1,11 @@
 use crate::env::ENV;
-use crate::error::CmsResult;
 use crate::services::cert_service;
+use saro_core::error::ApiResult;
 use saro_infra::database::db;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
 // SINGLE_NODE 설정이 있으면 즉시 1회 인증서를 등록하고, 주기 등록 cron을 시작한다.
-pub async fn start() -> CmsResult<()> {
+pub async fn start() -> ApiResult<()> {
     let Some(cron) = ENV.cron.as_ref() else {
         return Ok(());
     };
