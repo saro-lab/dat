@@ -14,7 +14,7 @@
 - [Go](https://github.com/saro-lab/dat/tree/master/clients/dat-go)
 - [Ruby](https://github.com/saro-lab/dat/tree/master/clients/dat-ruby)
 - [C/C++ (Vcpkg)](https://github.com/saro-lab/dat/tree/master/clients/dat-vcpkg)
-- [Cert(key) Server (Docker)](https://github.com/saro-lab/dat)
+- [Cert(Key) Server (Docker)](https://github.com/saro-lab/dat)
 
 ## Support algorithm
 ### Signature
