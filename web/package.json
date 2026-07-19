@@ -1,0 +1,28 @@
+{
+  "scripts": {
+    "dev": "vitepress dev docs --host 0.0.0.0",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "deploy": "pnpm run docs:build && wrangler deploy",
+    "preview": "pnpm run docs:build && wrangler dev"
+  },
+  "dependencies": {
+    "@shikijs/themes": "^4.3.1",
+    "cron-parser": "^5.6.2",
+    "crypto-js": "^4.2.0",
+    "infinite-unixtime": "^1.1.4",
+    "minisearch": "^7.2.0",
+    "saro-dat": "4.3.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.2",
+    "@types/node": "^26.1.1",
+    "markdown-it-include": "^2.0.0",
+    "tailwindcss": "^4.3.2",
+    "typescript": "^7.0.2",
+    "vitepress": "^2.0.0-alpha.18",
+    "vue": "^3.5.39",
+    "wrangler": "^4.110.0"
+  }
+}

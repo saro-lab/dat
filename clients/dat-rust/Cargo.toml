@@ -1,0 +1,45 @@
+[package]
+name = "dat"
+version = "4.3.3"
+edition = "2024"
+authors = ["marker <j@saro.me>"]
+description = "DAT - Distributed Access Token"
+repository = "https://github.com/saro-lab/dat-rust"
+keywords = ["dat", "distributed", "access", "token", "session"]
+homepage = "https://dat.saro.me/"
+documentation = "https://dat.saro.me/libs/cargo-dat"
+license = "MIT"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = 'abort'
+
+[features]
+default = []
+full = ["dat_cms", "tracing"]
+dat_cms = ["dep:tokio", "dep:reqwest"]
+tracing = ["dep:tracing"]
+
+[dependencies]
+itoa = { version = "1.0.18" }
+aes-gcm = { version = "0.11.0"}
+base64 = { version = "0.22.1", features = ["alloc", "std"] }
+itertools = { version = "0.15.0" }
+thiserror = { version = "2.0.19" }
+tokio = { version = "1.53.0", optional = true, default-features = false, features = ["time"] }
+reqwest = { version = "0.13.4", optional = true, default-features = false, features = ["native-tls-vendored", "query"] }
+tracing = { version = "0.1.44", optional = true }
+
+[target.'cfg(windows)'.dependencies]
+aws-lc-rs = { version = "1.17.3", features = ["prebuilt-nasm"] }
+
+[target.'cfg(not(windows))'.dependencies]
+aws-lc-rs = { version = "1.17.3" }
+
+[dev-dependencies]
+tokio = { version = "1.53.0", features = ["full"] }
+ring = { version = "0.17.14" }
+rand = { version = "0.10.2" }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }

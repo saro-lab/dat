@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>saro-dat</PackageId>
+        <Version>4.3.2</Version>
+        <Authors>Marker Seoul</Authors>
+        <Company>SARO</Company>
+
+        <PackageTags>dat;distributed;access;token;jwt;security;authentication</PackageTags>
+
+        <PackageProjectUrl>https://dat.saro.me</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/saro-lab/dat-nuget</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <Description>Distributed Access Token</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/saro-lab/dat-nuget</PackageProjectUrl>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="README.md" Pack="true" PackagePath="/" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+        <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+            <_Parameter1>Saro.Dat.Tests</_Parameter1> </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.9" />
+    </ItemGroup>
+
+</Project>

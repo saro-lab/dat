@@ -1,0 +1,53 @@
+{
+  "name": "saro-dat",
+  "version": "4.3.3",
+  "description": "Distributed Access Token",
+  "keywords": [
+    "dat",
+    "distributed",
+    "access",
+    "token",
+    "web",
+    "session"
+  ],
+  "author": "marker",
+  "license": "MIT",
+  "homepage": "https://dat.saro.me/",
+  "bugs": {
+    "url": "https://github.com/saro-lab/dat-npm/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saro-lab/dat-npm.git"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && tsc -p tsconfig.json",
+    "test": "vitest run",
+    "bench": "cross-env BENCH=TEST vitest run bench.test.ts --reporter=dot",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "infinite-unixtime": "^1.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.0-beta.6",
+    "cross-env": "^10.1.0",
+    "@types/p-limit": "^2.2.0"
+  }
+}

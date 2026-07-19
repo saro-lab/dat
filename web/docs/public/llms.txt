@@ -1,0 +1,65 @@
+# DAT — Distributed Access Token
+
+> DAT is a lightweight, high-performance token specification designed as a safer and faster alternative to JWT. Security and key rotation are enforced at the system level, not left as optional choices.
+
+## Documentation
+
+https://dat.saro.me
+
+Available in 14 languages: English, 한국어, 日本語, 中文, Deutsch, Français, Español, العربية, Indonesia, Português, हिन्दी, Русский, বাংলা, اردو
+
+## Why DAT?
+
+JWT has structural limitations in production:
+1. Encryption (JWE) is optional — many implementations skip it, creating security vulnerabilities
+2. Key rotation (rolling) is not enforced — static keys are commonly used for years, leading to full system compromise when leaked
+3. JSON parsing overhead — every request requires JSON deserialization, a CPU bottleneck in high-throughput systems
+
+DAT solves all three with mandatory enforcement at the specification level.
+
+## Data Structure
+
+expire.cid.plain.secure.signature
+
+- expire: Token expiration time
+- cid: Certificate ID (which key signed/encrypted this token)
+- plain: Unencrypted data region (readable by anyone with the token)
+- secure: AES-GCM encrypted data region (only readable with the private key)
+- signature: P256 digital signature
+
+## Key Features
+
+- Enforced encryption: plain and encrypted data are physically separated; sensitive data MUST go in the secure region
+- Enforced key rolling: DatKey manages the full key lifecycle — keys rotate automatically on schedule
+- High performance: raw bytes with fixed offsets eliminate all JSON parsing overhead
+- Distributed verification: no central server needed for token validation
+
+## Comparison: DAT vs JWT vs Session
+
+| | DAT | JWT | Session |
+|---|---|---|---|
+| Authentication | Distributed | Distributed | Centralized |
+| Data Structure | Raw Bytes (fixed offset) | JSON (key-value text) | Serialized Object |
+| Parsing | Immediate byte mapping | JSON parsing + type casting | Object deserialization + I/O |
+| Performance | Highest | Moderate | Low |
+| Encryption | Built-in, mandatory (AES-GCM) | Optional JWE (complex to implement) | N/A |
+| Key Management | Enforced rolling (system-level) | Manual (admin neglect risk) | N/A |
+| Key Validity | Enforced in key spec | Optional (permanent if unmanaged) | Managed by central server |
+
+## Libraries
+
+DAT is available for 8 languages/platforms:
+
+- **Rust** (Cargo): `dat = { version = "4.3.3" }`
+- **Java/Kotlin** (Maven/Gradle): `me.saro:dat:4.3.4`
+- **JavaScript/TypeScript** (npm/yarn/pnpm): `saro-dat@4.3.2`
+- **Python** (PyPI): `pip install "saro-dat~=4.4.0"`
+- **C#** (NuGet): `saro-dat 4.3.1`
+- **Go**: `go get github.com/saro-lab/dat-go/v4@v4.3.1`
+- **C/C++** (vcpkg): `dat 4.3.0`
+- **Ruby** (Gems): `gem install saro-dat --version "~> 4.3.2"`
+
+## Service
+
+- DAT Certificate Management Service: Docker image `sarolab/dat-cms:4.3.3` (amd64, arm64)
+  - Manages DAT certificate lifecycle, key generation, and rotation schedules

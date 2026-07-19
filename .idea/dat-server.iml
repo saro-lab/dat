@@ -5,6 +5,9 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/dat-cms/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/infra/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/clients/dat-rust/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/clients/dat-rust/tests" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/clients/dat-rust/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

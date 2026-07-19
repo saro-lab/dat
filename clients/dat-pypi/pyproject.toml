@@ -1,0 +1,24 @@
+[project]
+name = "saro-dat"
+version = "4.4.1"
+description = "Distributed Access Token"
+keywords = ["dat", "distributed", "access", "token", "jwt", "security", "authentication"]
+readme = "README.md"
+authors = [{name = "Marker Seoul", email = "j@saro.me"}]
+requires-python = ">=3.9"
+dependencies = [
+    "cryptography>=47.0.0",
+]
+
+[project.urls]
+"Homepage" = "https://dat.saro.me"
+"Repository" = "https://github.com/saro-lab/dat-pypi"
+"Documentation" = "https://dat.saro.me/ko/libs/pypi-saro-dat"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/saro_dat"]

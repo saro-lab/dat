@@ -1,0 +1,35 @@
+name: CI
+
+# Validate that the site builds on every pull request and non-default branch
+# push. Move this file to `.github/workflows/` to activate it.
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [master]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run docs:build

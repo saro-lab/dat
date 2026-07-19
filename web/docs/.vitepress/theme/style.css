@@ -1,0 +1,715 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
+@import "tailwindcss";
+@custom-variant light (&:where(html.light *));
+@custom-variant dark (&:where(html.dark *));
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --breakpoint-xs: 32rem;
+}
+
+:root {
+    --font-serif: "Noto Serif", "AppleMyungjo", "NanumMyeongjo", "나눔명조", "Batang", "바탕", "Noto Color Emoji";
+    --font-sans-serif: "Noto Sans", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", "Noto Color Emoji";
+}
+html, pre, .font-book {
+    font-family: var(--font-sans-serif), sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+::placeholder {
+    font-family: var(--font-serif), serif;
+}
+.font-book {
+    font-family: var(--font-serif), serif;
+    table, ul, blockquote, a {
+        font-family: var(--font-sans-serif), sans-serif;
+    }
+}
+
+
+.material-symbols-outlined {
+    font-size:inherit;
+    vertical-align: top;
+    line-height: normal;
+}
+
+body {
+    container-name: body;
+}
+
+a { transition: color 0.2s; }
+html:not(.dark) {
+    --c-text-1: #1e293b;
+    --c-text-2: color-mix(in srgb, var(--c-text-1) 90%, #fff);
+	--c-link-1: #41619e;
+    --c-link-2: #6086cd;
+    
+}
+html.dark {
+    --c-text-1: #f8fafc;
+    --c-text-2: color-mix(in srgb, var(--c-text-1) 90%, #000);
+    --c-link-1: #8cb6a6;
+    --c-link-2: #628f7e;
+
+}
+.doc a, .md a, .g-link {
+    cursor: pointer;
+    color: var(--c-link-1);
+    &:hover { color: var(--c-link-2); }
+}
+.g-link-hover:hover {
+    cursor: pointer;
+    color: var(--c-link-2);
+}
+
+
+
+html {
+    background-attachment: fixed;
+    &:not(.dark) {
+        color: var(--c-text-1);
+        background-color: #ffffff;
+        background-image:
+                radial-gradient(at 20% 10%, rgba(45, 212, 191, 0.45) 0px, transparent 65%),
+                radial-gradient(at 15% 60%, rgba(79, 70, 229, 0.35) 0px, transparent 70%),
+                radial-gradient(at 45% 85%, rgba(6, 182, 212, 0.4) 0px, transparent 65%),
+                radial-gradient(at 80% 20%, rgba(219, 39, 119, 0.4) 0px, transparent 60%),
+                radial-gradient(at 85% 75%, rgba(132, 204, 22, 0.35) 0px, transparent 65%);
+    }
+    &.dark {
+        color: var(--c-text-1);
+        background-color: #020506;
+        background-image:
+                radial-gradient(at 20% 40%, rgba(20, 184, 166, 0.18) 0px, transparent 60%),
+                radial-gradient(at 85% 25%, rgba(59, 130, 246, 0.12) 0px, transparent 55%),
+                radial-gradient(at 45% 80%, rgba(6, 182, 212, 0.15) 0px, transparent 65%);
+        background-color: #0d1319;
+        background-image:
+                radial-gradient(at 20% 40%, rgba(0, 240, 210, 0.13) 0px, transparent 70%),
+                radial-gradient(at 85% 25%, rgba(10, 105, 255, 0.11) 0px, transparent 65%),
+                radial-gradient(at 45% 80%, rgba(0, 225, 255, 0.12) 0px, transparent 75%);
+
+    }
+}
+
+/* ==========================================
+   1. 라이트 모드 (html에 .dark 클래스가 없을 때)
+   ========================================== */
+.g-glass:not(.drop-none) {
+    backdrop-filter: blur(16px);
+}
+
+html:not(.dark) .g-glass {
+    /* 살짝 불투명한 흰색 배경 (유리 표면 느낌) */
+    background-color: rgba(255, 255, 255, 0.50);
+
+
+    /* 유리의 하이라이트 테두리 선 표현 */
+
+    border: 0 solid rgba(255, 255, 255, 0.5);
+
+
+    /* 부드러운 그림자로 공중에 뜬 느낌 주기 */
+    box-shadow:
+            0 4px 30px rgba(0, 0, 0, 0.03),
+            0 10px 50px rgba(0, 0, 0, 0.05);
+
+
+
+    /* 박스 안의 텍스트가 깨지지 않게 부드럽게 처리 (하얀 잔상) */
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+
+
+}
+
+/* ==========================================
+   2. 다크 모드 (html에 .dark 클래스가 있을 때)
+   ========================================== */
+html.dark .g-glass {
+    /* 딥시티 다크 배경과 어우러지는 반투명 다크 틴트 유리 */
+    background-color: rgba(0, 0, 0, 0.45);
+
+
+    /* 어둠 속에서 유리의 에지를 살려줄 미세한 화이트 테두리 */
+    border: 0 solid rgba(255, 255, 255, 0.06);
+
+    /* 어두운 배경이므로 그림자는 더 깊고 묵직하게 깔아서 입체감 부여 */
+    box-shadow:
+            0 4px 30px rgba(0, 0, 0, 0.2),
+            0 10px 50px rgba(0, 0, 0, 0.4);
+
+
+
+    /* 다크모드 가독성 치트키: 글자 뒤에 미세한 블랙 음영을 주어
+       배경의 화려한 네온 컬러에 글자가 묻히는 것을 완벽 방지 */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+}
+
+
+
+
+.g-frame {
+    @apply mx-auto;
+    @variant max-[46rem] {
+        @apply max-w-[100%]
+    }
+    @variant min-[46rem] {
+        @apply max-w-[46rem]
+    }
+    &.g-frame-full {
+        @variant min-[60rem] {
+            @apply max-w-[60rem]
+        }
+    }
+}
+
+
+
+
+
+
+.g-glass {
+    &.box {
+        @apply border! ;
+    }
+    &.rd-box {
+        @apply mx-auto p-3;
+        @variant min-sm {
+            @apply px-4.5;
+        }
+        @variant min-md {
+            @apply border! rounded-xl p-5;
+        }
+    }
+}
+
+.g-glass.md {
+    word-break: break-word;
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700;
+        letter-spacing: -0.025em;
+    }
+
+    h1 {
+        html.dark & {
+            color: #5c9754;
+        }
+        html:not(.dark) & {
+            color: #6086cd;
+        }
+        @apply p-0 m-0 text-base;
+    }
+
+    h2 {
+        @apply p-0 my-4 text-2xl;
+    }
+    h3 {
+        @apply p-0 my-4 text-xl;
+    }
+    h4 {
+        @apply p-0 my-3 text-lg;
+    }
+    h5 {
+        @apply p-0 my-2.5 text-base;
+    }
+
+    p {
+        @apply mx-1 text-(--c-text-2);
+    }
+
+
+
+    /* --- 인라인 코드 (Inline Code) --- */
+
+
+
+    /* --- 인용구 (Blockquote) --- */
+
+    blockquote {
+        margin: 1.25rem 0;
+        padding: 0.5rem 1rem 0.5rem 1.25rem;
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        html.dark & {
+            border-left: 4px solid #326a43;
+            background-color: rgba(0, 0, 0, 0.25);
+        }
+        html:not(.dark) & {
+            border-left: 4px solid #64c8c1;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+    }
+
+    /* --- 테이블 (Table) --- */
+
+    table {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+
+        overflow-x: auto;
+
+        table-layout: fixed;
+        word-break: break-word;
+
+        margin: 1.5rem 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        border-radius: 0.5rem;
+
+        th, td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        th {
+            html.dark & {
+                background-color: rgba(34, 211, 238, 0.05);
+            }
+            html:not(.dark) & {
+                background-color: rgba(6, 214, 160, 0.15);
+            }
+            font-weight: 600;
+            text-align: left;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr td:last-child, tr th:last-child {
+            border-right: none;
+        }
+
+        /* 테이블 줄무늬(Zebra) 효과도 투명도로 은은하게 처리 */
+
+        tr:nth-child(even) {
+            html.dark & {
+                background-color: rgba(79, 70, 229, 0.05);
+            }
+            html:not(.dark) & {
+                background-color: rgba(6, 214, 160, 0.08);
+            }
+        }
+    }
+
+    /* --- 리스트 (Lists) --- */
+
+    ul, ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+        color: var(--c-text-2);
+
+        li {
+            margin-top: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+    }
+
+    ul {
+        list-style-type: disc;
+    }
+
+    ol {
+        list-style-type: decimal;
+    }
+
+    /* --- 구분선 (Horizontal Rule) --- */
+
+    hr {
+        border: none;
+        height: 1px;
+        @apply my-6;
+        html.dark & {
+            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.01));
+        }
+        html:not(.dark) & {
+            background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.07));
+        }
+    }
+}
+
+
+div[class*="language-"] {
+    position: relative;
+    max-width:100%;
+    .lang {
+        @apply absolute top-0.5 right-1.5 z-[2] text-xs font-medium;
+        transition: color 0.4s, opacity 0.4s;
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    .lang:hover {
+        opacity: 1;
+    }
+    pre {
+        position: relative;
+    }
+    &:hover {
+        .lang {
+            opacity: 0; /* 평소에 보이던 언어 라벨은 숨기고 */
+        }
+        .copy {
+            opacity: 1; /* 복사 버튼을 짜잔 등장시킴 */
+        }
+    }
+}
+.copy {
+    @apply absolute top-0 right-0 z-[3] w-8 h-8;
+    opacity: 0;     /* 평소에는 숨김 */
+    cursor: pointer;
+    background-position: center;
+    background-size: 1.25rem;
+    background-repeat: no-repeat;
+    background-image: url("/img/copy.svg");
+
+    &::after {
+        text-wrap: nowrap !important;
+        content: "Copied!";
+        position: absolute;
+        top: 0.33rem; /* 버튼 위쪽 배치 */
+        right: 0.3rem;
+        @apply bg-[#558996] text-white text-xs font-bold px-1.5 py-0.5 rounded;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        pointer-events: none;
+    }
+
+    &.copied {
+        opacity: 1 !important;
+
+        &::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+pre {
+    @apply overflow-x-scroll text-xs font-mono px-2.5 py-2 rounded-lg text-shadow-none;
+    html:not(.dark) & {
+        background-color: #ffffff77;
+        span {
+            color: var(--shiki-light);
+        }
+    }
+    html.dark & {
+        background-color: #ffffff0a;
+        span {
+            color: var(--shiki-dark);
+        }
+    }
+}
+:not(pre) > code, .g-code-box {
+    @apply px-1.5 font-bold rounded-sm inline-block;
+    html:not(.dark) & {
+        background-color: #ffffff77;
+    }
+    html.dark & {
+        background-color: #ffffff0a;
+    }
+}
+
+
+
+.scroll-container, pre, textarea, input {
+    overflow-x: scroll;
+
+    &::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+        display: block !important;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: #55555577;
+        border-radius: 10px;
+    }
+    &::-webkit-scrollbar-thumb:hover {
+        background: #555555;
+    }
+}
+
+.g-radio-group {
+    @apply flex flex-wrap max-w-full;
+    html:not(.dark) & {
+        input[type="radio"] {
+            @apply absolute w-0 h-0 opacity-0 overflow-hidden;
+            &:checked + label {
+                color: rgba(15, 118, 110, 1);
+                background-color: rgba(20, 184, 166, 0.08);
+                border-color: rgba(20, 184, 166, 0.35);
+                text-shadow: none;
+            }
+            &:focus-visible + label {
+                outline: 2px solid rgba(20, 184, 166, 0.3);
+                outline-offset: 1px;
+            }
+        }
+        label {
+            @apply inline-flex items-center justify-center cursor-pointer px-2 py-1.5 pb-[0.3rem]
+            font-mono text-xs rounded-sm mr-2 mt-2 text-(--c-text-1)/60
+            select-none transition-colors duration-200 ease-in-out
+            ;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+            &:hover {
+                color: rgba(15, 118, 110, 0.85);
+                background-color: rgba(255, 255, 255, 0.85);
+                border-color: rgba(20, 184, 166, 0.2);
+            }
+        }
+    }
+    html.dark & {
+        input[type="radio"] {
+            @apply absolute w-0 h-0 opacity-0 overflow-hidden;
+            &:checked + label {
+                color: rgba(255, 255, 255, 1);
+                background-color: rgba(255, 255, 255, 0.12);
+                border-color: rgba(255, 255, 255, 0.4);
+                text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
+            }
+            &:focus-visible + label {
+                outline: 2px solid rgba(255, 255, 255, 0.5);
+                outline-offset: 1px;
+            }
+        }
+        label {
+            @apply inline-flex items-center justify-center cursor-pointer px-2 py-1.5 pb-[0.3rem]
+            font-mono text-xs rounded-sm mr-2 mt-2 text-(--c-text-1)/70
+            select-none transition-colors duration-200 ease-in-out
+            ;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            &:hover {
+                color: rgba(255, 255, 255, 0.85);
+                background-color: rgba(255, 255, 255, 0.06);
+                border-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+    }
+}
+html:not(.dark) {
+    /* 공통 입력창 스타일 (Input & Textarea) */
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    textarea {
+        @apply px-3 py-2 font-mono text-sm rounded-sm
+        select-none transition-all duration-200 ease-in-out;
+
+        color: var(--c-text-1);
+        background-color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    /* 마우스 호버 상태 */
+    input[type="text"]:hover,
+    input[type="password"]:hover,
+    input[type="email"]:hover,
+    input[type="number"]:hover,
+    textarea:hover {
+        background-color: rgba(255, 255, 255, 0.85);
+        border-color: rgba(20, 184, 166, 0.2);
+    }
+
+    /* 포커스 상태 (클릭하여 입력 중일 때) */
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="email"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+        outline: none;
+        color: rgba(15, 118, 110, 1);
+        background-color: rgba(255, 255, 255, 0.95);
+        border-color: rgba(20, 184, 166, 0.35);
+        box-shadow: 0 0 8px rgba(20, 184, 166, 0.08);
+    }
+
+    /* 플레이스홀더(힌트 텍스트) 스타일 */
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--c-text-1);
+        opacity: 0.35;
+    }
+
+    /* 텍스트에어리어 전용 */
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    /* 기본 버튼 스타일 */
+    button.btn,
+    input[type="button"],
+    input[type="submit"] {
+        @apply inline-flex items-center justify-center px-4 py-2 font-mono text-sm rounded-sm
+        cursor-pointer select-none transition-all duration-200 ease-in-out;
+
+        color: var(--c-text-1);
+        background-color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(15, 23, 42, 0.06);
+    }
+
+    /* 마우스 호버 상태 */
+    button.btn:hover,
+    input[type="button"]:hover,
+    input[type="submit"]:hover {
+        color: rgba(15, 118, 110, 0.85);
+        background-color: rgba(255, 255, 255, 0.85);
+        border-color: rgba(20, 184, 166, 0.2);
+    }
+
+    /* 마우스 클릭 상태 (Active) */
+    button.btn:active,
+    input[type="button"]:active,
+    input[type="submit"]:active {
+        color: rgba(15, 118, 110, 1);
+        background-color: rgba(20, 184, 166, 0.08);
+        border-color: rgba(20, 184, 166, 0.35);
+        box-shadow: 0 0 8px rgba(20, 184, 166, 0.08);
+    }
+
+    /* 키보드 접근성 */
+    button.btn:focus-visible,
+    input[type="button"]:focus-visible,
+    input[type="submit"]:focus-visible {
+        outline: 2px solid rgba(20, 184, 166, 0.3);
+        outline-offset: 1px;
+    }
+}
+html.dark {
+    input[type="text"],
+    input[type="password"],
+    input[type="email"],
+    input[type="number"],
+    textarea {
+        @apply px-3 py-2 font-mono text-sm rounded-sm
+        select-none transition-all duration-200 ease-in-out;
+
+        color: var(--c-text-1);
+        background-color: rgba(255, 255, 255, 0.015);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    /* 마우스 호버 상태 */
+    input[type="text"]:hover,
+    input[type="password"]:hover,
+    input[type="email"]:hover,
+    input[type="number"]:hover,
+    textarea:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* 포커스 상태 (클릭하여 입력 중일 때) */
+    input[type="text"]:focus,
+    input[type="password"]:focus,
+    input[type="email"]:focus,
+    input[type="number"]:focus,
+    textarea:focus {
+        outline: none;
+        color: rgba(255, 255, 255, 1);
+        background-color: rgba(255, 255, 255, 0.04);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+    }
+
+    /* 플레이스홀더(힌트 텍스트) 스타일 */
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--c-text-1);
+        opacity: 0.35;
+    }
+
+    /* 텍스트에어리어 전용 */
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    /* 기본 버튼 스타일 */
+    button.btn,
+    input[type="button"],
+    input[type="submit"] {
+        @apply inline-flex items-center justify-center px-4 py-2 font-mono text-sm rounded-sm
+        cursor-pointer select-none transition-all duration-200 ease-in-out;
+
+        color: rgba(255, 255, 255, 0.85);
+        background-color: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* 마우스 호버 상태 */
+    button.btn:hover,
+    input[type="button"]:hover,
+    input[type="submit"]:hover {
+        color: rgba(255, 255, 255, 1);
+        background-color: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    /* 마우스 클릭 상태 (Active) */
+    button.btn:active,
+    input[type="button"]:active,
+    input[type="submit"]:active {
+        background-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+    }
+
+    /* 키보드 접근성 */
+    button.btn:focus-visible,
+    input[type="button"]:focus-visible,
+    input[type="submit"]:focus-visible {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 1px;
+    }
+}
+input, button, textarea, ::placeholder {
+    @apply outline-none font-mono!;
+}
+textarea {
+    white-space: pre !important;
+    overflow: auto !important;
+}
+
+.g-check-group {
+    label {
+        @apply inline-flex items-center text-sm gap-1 cursor-pointer select-none;
+
+        &:hover input[type="checkbox"], input[type="checkbox"]:focus {
+            @apply appearance-none border-(--c-link-2)!;
+        }
+
+        input[type="checkbox"] {
+            @apply appearance-none w-4 h-4 overflow-hidden border rounded-[0.3rem] relative m-0 transition duration-300;
+
+            html:not(.dark) & {
+                @apply bg-[#ffffff22] border-[#00000033];
+            }
+            html.dark & {
+                @apply bg-[#00000022] border-[#ffffff33];
+            }
+
+            &::after {
+                content: '';
+                @apply rounded-[0.15rem] bg-transparent w-2.5 h-2.5 absolute top-0.5 left-0.5;
+            }
+            &:checked {
+                @apply border-(--c-link-1)!;
+                &::after {
+                    @apply bg-(--c-link-2);
+                }
+            }
+        }
+    }
+}
