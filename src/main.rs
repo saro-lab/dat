@@ -1,5 +1,4 @@
 use crate::env::ENV;
-use infra::database;
 use std::time::Duration;
 
 mod cron;
@@ -11,11 +10,20 @@ mod routes;
 mod schema;
 mod services;
 
+pub mod api;
+pub mod codes;
+
+pub mod client_ip;
+pub mod database;
+pub mod logging;
+pub mod server;
+
+
 const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(30);
 
 #[tokio::main]
 async fn main() {
-    infra::logging::init(&ENV.log);
+    logging::init(&ENV.log);
     database::connect(&ENV.server.db_uri, ENV.server.debug)
         .await
         .unwrap();
@@ -23,5 +31,5 @@ async fn main() {
     cron::start().await.unwrap();
 
     let server_host = format!("0.0.0.0:{}", ENV.server.port);
-    infra::server::serve(routes::router(), &server_host, SHUTDOWN_TIMEOUT).await;
+    server::serve(routes::router(), &server_host, SHUTDOWN_TIMEOUT).await;
 }

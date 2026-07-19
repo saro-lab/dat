@@ -6,7 +6,7 @@ WORKDIR /work
 
 COPY Cargo.toml Cargo.lock ./
 COPY .cargo ./.cargo
-COPY crates ./crates
+COPY src ./src
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry,id=global-registry \
     --mount=type=cache,target=/usr/local/cargo/git,id=global-git \

@@ -2,7 +2,7 @@
 root = true
 
 [*]
-# 전체 파일 공통 설정
+# 전체 파일 기본 설정 (4칸 스페이스 기반)
 indent_style = space
 indent_size = 4
 end_of_line = lf
@@ -10,9 +10,70 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
+# -----------------------------------------------------------
+# 1. 공백 4칸(4 Spaces)이 표준인 언어 및 플랫폼
+# -----------------------------------------------------------
+
 [*.rs]
+# Rust (cargo): 공식 rustfmt 기준은 공백 4칸입니다.
 indent_style = space
 indent_size = 4
 
-[*.toml]
+[*.java]
+# Java (maven): 오라클 및 구글 자바 스타일 가이드 모두 공백 4칸을 기본으로 합니다.
+indent_style = space
+indent_size = 4
+
+[*.{py,pyw}]
+# Python (pypi): PEP 8 공식 가이드에 따라 무조건 공백 4칸입니다.
+indent_style = space
+indent_size = 4
+
+[*.cs]
+# C# (nuget): 마이크로소프트 공식 코딩 규칙에 따라 공백 4칸을 사용합니다.
+indent_style = space
+indent_size = 4
+
+[*.{c,h,cpp,hpp,cc,hh}]
+# C/C++ (vcpkg): 커뮤니티마다 다르지만, 일반적으로 4칸 스페이스가 가장 널리 쓰입니다.
+indent_style = space
+indent_size = 4
+
+# -----------------------------------------------------------
+# 2. 예외: 공백 2칸(2 Spaces)을 사용하는 언어 및 설정 파일
+# -----------------------------------------------------------
+
+[*.{js,jsx,ts,tsx,json,jsonc}]
+# Javascript (npm): 에어비앤비, 구글 스타일 가이드 및 npm 생태계 표준인 2칸 스페이스입니다.
+indent_style = space
 indent_size = 2
+
+[*.{rb,gemspec,Gemfile}]
+# Ruby (gems): 루비 커뮤니티 공식 가이드의 정석인 2칸 스페이스입니다.
+indent_style = space
+indent_size = 2
+
+[*.toml]
+# TOML (Cargo.toml 등): 관례적으로 2칸 들여쓰기를 주로 사용합니다.
+indent_style = space
+indent_size = 2
+
+[*.{yml,yaml}]
+# YAML: 문법 특성상 탭을 쓸 수 없고, 보통 2칸 스페이스가 표준입니다.
+indent_style = space
+indent_size = 2
+
+# -----------------------------------------------------------
+# 3. 예외: 탭(Tab)을 사용하는 언어
+# -----------------------------------------------------------
+
+[*.go]
+# Go: gofmt 공식 포맷터 기준에 맞춰 하드 탭(Tab)을 사용합니다.
+# tab_width는 에디터에서 탭이 몇 칸 크기로 보일지 정하는 옵션입니다.
+indent_style = tab
+tab_width = 4
+
+[Makefile]
+# Makefile: 빌드 도구 특성상 무조건 탭을 사용해야 에러가 나지 않습니다.
+indent_style = tab
+tab_width = 4

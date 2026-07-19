@@ -17,3 +17,8 @@ podman manifest push --all docker.io/sarolab/dat-cms:latest docker.io/sarolab/da
 # cargo install cargo-edit
 cargo upgrade
 ```
+## docker build test
+```
+podman build -t dat-cms:test .
+podman run -d --name dat-cms-test -p 8089:80 dat-cms:test
+```

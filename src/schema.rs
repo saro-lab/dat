@@ -1,5 +1,5 @@
+use crate::api::ApiResult;
 use crate::entity::dat_cms_cert;
-use infra::api::ApiResult;
 use sea_orm::{ConnectionTrait, DatabaseConnection, Schema};
 
 pub async fn sync(db: &DatabaseConnection) -> ApiResult<()> {
