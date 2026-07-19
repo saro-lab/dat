@@ -39,7 +39,7 @@
 # Performance
 - random plain and secure test
 - mac mini m4 2024 basic (10 core)
-- [bench.test.ts](src/bench.test.ts)
+- [bench.test.ts](https://github.com/saro-lab/dat/tree/master/clients/dat-npm/src/bench.test.ts)
 ```
 plain: nuvfRFY3cVmbERcxnVpe8OD6YnKrerwSfUWiBJUFxBewb6lfX79vNLTXIgSDuRyX35EtkMYvtQYL2rwT7S2TFTyJMw5RyXBnThOz
 secure: TR2B0C1T5yZSkc0iehwSGheDpP8F4otQm2kIJaCFLDp8f3yf0cmPq8UgXeU0JEz0VBVeGXHX7DJM39UEUO3q2P6lFXyJzI7l19M0

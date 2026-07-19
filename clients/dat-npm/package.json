@@ -1,6 +1,6 @@
 {
   "name": "saro-dat",
-  "version": "4.3.3",
+  "version": "4.3.4",
   "description": "Distributed Access Token",
   "keywords": [
     "dat",
@@ -14,11 +14,11 @@
   "license": "MIT",
   "homepage": "https://dat.saro.me/",
   "bugs": {
-    "url": "https://github.com/saro-lab/dat-npm/issues"
+    "url": "https://github.com/saro-lab/dat/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saro-lab/dat-npm.git"
+    "url": "git+https://github.com/saro-lab/dat.git"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -45,9 +45,9 @@
   },
   "devDependencies": {
     "@types/node": "^26.1.1",
-    "typescript": "^7.0.2",
-    "vitest": "^5.0.0-beta.6",
+    "@types/p-limit": "^2.2.0",
     "cross-env": "^10.1.0",
-    "@types/p-limit": "^2.2.0"
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
   }
 }
