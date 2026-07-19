@@ -13,8 +13,8 @@
 - [Python](https://github.com/saro-lab/dat/tree/master/clients/dat-pypi)
 - [Go](https://github.com/saro-lab/dat/tree/master/clients/dat-go)
 - [Ruby](https://github.com/saro-lab/dat/tree/master/clients/dat-ruby)
-- [C/C++ (Vcpkg)](https://github.com/saro-lab/dat-vcpkg)
-- [Cert(Key) Server (Docker)](https://github.com/saro-lab/dat-cms)
+- [C/C++ (Vcpkg)](https://github.com/saro-lab/dat/tree/master/clients/dat-vcpkg)
+- [Cert(Key) Server (Docker)](https://github.com/saro-lab/dat)
 
 ## Support algorithm
 ### Signature

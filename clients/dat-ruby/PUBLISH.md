@@ -9,7 +9,7 @@ bundle install
 ```
 gem build saro-dat.gemspec
 gem signin
-gem push saro-dat-4.3.3.gem
+gem push saro-dat-4.3.4.gem
 ```
 
 ## install

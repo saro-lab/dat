@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "saro-dat"
-  spec.version       = "4.3.3"
+  spec.version       = "4.3.4"
   spec.authors       = ["marker"]
   spec.email         = ["j@saro.me"]
 
@@ -13,8 +13,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 2.7.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
-  spec.metadata["source_code_uri"] = "https://github.com/saro-lab/dat-ruby"
-  spec.metadata["changelog_uri"] = "https://github.com/saro-lab/dat-ruby/blob/main/CHANGELOG.md"
+  spec.metadata["source_code_uri"] = "https://github.com/saro-lab/dat"
 
   spec.metadata["keywords"] = "dat, distributed, access, token, web, session, security, authentication"
 

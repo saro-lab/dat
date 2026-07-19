@@ -9,7 +9,7 @@ export const libList: Library[] = [
     _nuget('saro-dat', '4.3.3', '/libs/nuget-saro-dat'),
     _go('github.com/saro-lab/dat/clients/dat-go/v4', 'v4.3.3', '/libs/go-saro-dat'),
     _vcpkg('dat', '4.3.0', '/libs/vcpkg-dat', true),
-    _ruby('saro-dat', '4.3.3', '/libs/gems-saro-dat'),
+    _ruby('saro-dat', '4.3.4', '/libs/gems-saro-dat'),
 
     // services
     _docker('sarolab/dat-cms', '4.3.6', '/svc/docker-saro-lab-dat-cms', [
