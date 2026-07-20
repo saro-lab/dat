@@ -123,7 +123,7 @@ publishing {
                 scm {
                     connection.set("scm:git:git://github.com/saro-lab/dat.git")
                     developerConnection.set("scm:git:git@github.com:saro-lab/dat.git")
-                    url.set("https://github.com/saro-lab/dat/tree/master/dat-maven")
+                    url.set("https://github.com/saro-lab/dat")
                 }
             }
         }
