@@ -17,9 +17,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="3c88e585-beb5-4891-92df-1b934d6b52b7" name="Changes" comment="Integrate Project&#10;&#10;- layout">
-      <change beforePath="$PROJECT_DIR$/clients/dat-rust/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-rust/.idea/vcs.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dat-maven/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-maven/build.gradle.kts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dat-rust/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-rust/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -227,7 +225,7 @@
       <workItem from="1784482646029" duration="10034000" />
       <workItem from="1784523397717" duration="39000" />
       <workItem from="1784524567119" duration="291000" />
-      <workItem from="1784524872177" duration="11794000" />
+      <workItem from="1784524872177" duration="14453000" />
     </task>
     <task id="LOCAL-00001" summary="Integrate Project">
       <option name="closed" value="true" />
@@ -349,7 +347,15 @@
       <option name="project" value="LOCAL" />
       <updated>1784550326849</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="Integrate Project&#10;&#10;- layout">
+      <option name="closed" value="true" />
+      <created>1784558750892</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1784558750892</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
