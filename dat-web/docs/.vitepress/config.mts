@@ -52,8 +52,18 @@ export default defineConfig({
   ],
   sitemap: {
     hostname: SITE_HOST,
+    /* docs/404.md는 탭 제목을 중립으로 두려고 둔 껍데기일 뿐 색인 대상이 아니다. */
+    transformItems: (items) => items.filter((item) => item.url !== '404'),
   },
   transformPageData(pageData) {
+    /* 404.html은 진짜 없는 페이지 말고도, 로케일 접두사가 없는 경로가 잠깐 거쳐 가는
+       착륙 지점이다. 제목을 '404'로 두면 그 찰나에 탭 제목이 "404 | DAT"로 번쩍인다.
+       어차피 마운트 후 'DAT'로 덮어쓰므로 정적 제목도 처음부터 중립으로 둔다. */
+    if (pageData.relativePath === '404.md') {
+      pageData.title = 'DAT'
+      pageData.titleTemplate = false
+    }
+
     const relativePath = pageData.relativePath.replace(/\.md$/, '')
     const parts = relativePath.split('/')
     const firstPart = parts[0]

@@ -59,18 +59,29 @@ export function getLanguage(): string {
   return isLocaleCode(code) ? code : ''
 }
 
-export function applyLanguage(force: string = ''): void {
-  let path = location?.pathname
+/**
+ * Sends the visitor to the language-prefixed twin of the current path, picking
+ * the language from `force`, then the saved cookie, then the browser's own
+ * preference list. Returns whether a navigation was actually started, so the
+ * layout can hold off painting a page that is about to be replaced.
+ */
+export function applyLanguage(force: string = ''): boolean {
+  let path = location.pathname
 
   // Legacy paths were prefixed with `/--/` — strip it.
   if (path.startsWith('/--/')) {
-    path = path.replace('/--/', '/')
+    path = path.slice('/--'.length)
   }
 
-  let lang = getLanguage()
+  /* The locale is split off as a whole path segment. Matching on `/ko/` instead
+     left the prefix in place for a bare `/ko`, and re-prefixing produced
+     `/ko/ko` — a redirect into a genuine 404. */
+  const [, first = '', ...rest] = path.split('/')
+  let lang = isLocaleCode(first) ? first : ''
   if (lang) {
-    path = path.replace(`/${lang}/`, `/`)
+    path = `/${rest.join('/')}`
   }
+
   if (force) {
     lang = force
   }
@@ -78,12 +89,23 @@ export function applyLanguage(force: string = ''): void {
     lang = getDefaultLanguage()
   }
 
-  path = `/${lang}${path}`
+  const target = `/${lang}${path}`
   writeCookie('lang', lang)
 
-  if (location?.pathname != path) {
-    location.href = path + location.search
+  if (location.pathname === target) {
+    return false
   }
+
+  const url = target + location.search + location.hash
+  /* An automatic redirect replaces the entry it came from, so Back does not
+     land on the un-prefixed path and bounce forward again. An explicit switch
+     from the language menu is a real navigation and keeps its history entry. */
+  if (force) {
+    location.assign(url)
+  } else {
+    location.replace(url)
+  }
+  return true
 }
 
 function t(lang: string, key: string): string {

@@ -1,6 +1,10 @@
 <template>
   <div class="mb-16 @container/layout">
-    <template v-if="localeIndex !== 'root'">
+    <!-- 로케일 경로로 넘어가는 중에는 아무것도 그리지 않는다. 곧 사라질 화면이고,
+         무엇보다 404가 아닌데 404 화면이 스쳐 보이면 안 된다. -->
+    <template v-if="redirecting"></template>
+
+    <template v-else-if="localeIndex !== 'root'">
       <header class="g-glass drop-none @min-md:border-b! absolute w-full z-50 text-[0.9rem]">
         <div class="g-frame g-frame-full">
           <div class="header-content select-none flex items-center h-[3rem] gap-1 px-1.5 @max-[46rem]:px-2">
@@ -52,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { Content, useData, useRouter } from 'vitepress'
+import { Content, inBrowser, useData, useRouter } from 'vitepress'
 import { computed, onMounted, ref } from 'vue'
 
 import Menu from '../ui/Menu.vue'
@@ -75,6 +79,12 @@ const hasMenu = computed(() => hasPage.value && frontmatter.value?.layout !== 'h
 
 const onMenu = ref(false)
 
+/* Run during setup rather than from `onMounted`: the redirect has to be under
+   way before the first paint, otherwise the fallback markup below flashes on
+   its way out. The visitor's language still comes from cookie → browser
+   preference → default, exactly as before. */
+const redirecting = ref(inBrowser && applyLanguage())
+
 useRouter().onBeforeRouteChange = () => {
   onMenu.value = false
 }
@@ -83,7 +93,6 @@ onMounted(() => {
   if (page.value.isNotFound) {
     document.title = 'DAT'
   }
-  applyLanguage()
 })
 </script>
 

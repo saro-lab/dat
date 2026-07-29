@@ -85,9 +85,13 @@ html {
    면의 틴트는 감지 한계 수준(+2~3)까지만. 글자는 #eceeed — 순백의 광량 없이
    대비는 유지. */
 html.dark {
-    --c-bg: #0b0b0d;
+    /* 배경(캔버스 + 워시)은 이 사이트가 원래 쓰던 값 그대로 되돌렸다. 패널·코드·
+       컨트롤은 뉴트럴 검정 계열로 남아 있어, 색은 패널 밖 여백에서만 돈다. */
+    --c-bg: #0d1319;
     --c-text-1: #eceeed;
-    --c-text-2: color-mix(in srgb, var(--c-text-1) 80%, transparent);
+    /* 본문은 알파로 눌러 두는데, 다크에서 20%를 빼면 워시가 비치는 패널 위에서
+       획이 뭉개진다. 라이트를 88→93%로 올린 것과 같은 이유로 12%만 뺀다. */
+    --c-text-2: color-mix(in srgb, var(--c-text-1) 88%, transparent);
     /* 그린은 민트가 아니라 옥(jade)으로 — 명도와 채도를 함께 내리고 회색을
        섞어야 보석 톤이 된다. 옅고 쨍한 민트(#a9d0b4, L74)는 형광에 가깝게
        읽혀서 L65/S20의 그레이드-제이드로 낮췄다. */
@@ -96,26 +100,27 @@ html.dark {
     --c-heading: #a6c5b2;  /* 링크와 같은 결, 반 단계 위 */
     --c-accent-1: #2fa87e; /* 딥 에메랄드 — 필드 띠 등 보조 강조 */
     --c-accent-2: #8aa86f; /* 딥 올리브 — 에메랄드와 교대되는 짝 */
-    --c-muted: #757b77;
+    --c-muted: #8b938f;    /* 캡션은 작고 대문자라 4:1에서 5.5:1로 올렸다 */
 
-    /* 워시는 로즈골드판과 같은 급의 저채도·저투명 — 초록임을 알아채기보다
-       "검정이 살아 있다"는 인상이 먼저 오는 수준으로 */
     --bg-image:
-        radial-gradient(at 18% 12%, rgba(110, 170, 135, 0.07) 0px, transparent 60%),
-        radial-gradient(at 80% 22%, rgba(110, 130, 118, 0.05) 0px, transparent 60%),
-        radial-gradient(at 25% 82%, rgba(115, 160, 130, 0.05) 0px, transparent 65%),
-        radial-gradient(at 82% 78%, rgba(130, 175, 145, 0.04) 0px, transparent 60%);
+        radial-gradient(at 20% 40%, rgba(0, 240, 210, 0.13) 0px, transparent 70%),
+        radial-gradient(at 85% 25%, rgba(10, 105, 255, 0.11) 0px, transparent 65%),
+        radial-gradient(at 45% 80%, rgba(0, 225, 255, 0.12) 0px, transparent 75%);
 
-    --glass-bg: rgba(28, 31, 29, 0.55);
+    /* 글자가 앉는 면 — 라이트에서 흰 패널을 0.72까지 올린 것과 같은 처방을 반대
+       방향으로. 0.55에서는 아쿠아·블루 워시가 패널을 뚫고 올라와 본문 대비를
+       갉아먹었다. 0.78로 올리고 색조도 캔버스 쪽(네이비)으로 맞춰, 워시는 패널
+       밖 여백에서만 돌고 글자 밑은 깊은 남색으로 가라앉는다. */
+    --glass-bg: rgba(13, 19, 25, 0.78);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-shadow: 0 10px 32px -14px rgba(0, 0, 0, 0.6), 0 28px 70px -24px rgba(0, 0, 0, 0.8),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --glass-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 
     /* 코드 박스 — 패널보다 한 톤 가라앉힌 에디터 인셋 + 미세 보더 */
-    --code-bg: rgba(5, 7, 6, 0.5);
+    --code-bg: rgba(4, 8, 12, 0.62);
     --code-border: rgba(255, 255, 255, 0.07);
-    --quote-bg: rgba(5, 7, 6, 0.32);
+    --quote-bg: rgba(4, 8, 12, 0.42);
     --quote-border: #55876a;
     --rule: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01));
 
@@ -123,8 +128,8 @@ html.dark {
     --ctrl-fg-hover: rgba(236, 239, 237, 1);
     --ctrl-fg-on: #b9d6c4;
     --ctrl-bg: rgba(170, 182, 174, 0.06);
-    --ctrl-bg-hover: rgba(38, 43, 40, 0.85);
-    --ctrl-bg-focus: rgba(38, 43, 40, 0.85);
+    --ctrl-bg-hover: rgba(24, 33, 42, 0.9);
+    --ctrl-bg-focus: rgba(24, 33, 42, 0.95);
     --ctrl-bg-on: rgba(147, 183, 161, 0.12);
     --ctrl-border: rgba(255, 255, 255, 0.09);
     --ctrl-border-hover: rgba(255, 255, 255, 0.15);
