@@ -403,9 +403,7 @@ async function doParseDat() {
 
 <style scoped>
 @reference 'tailwindcss';
-@custom-variant light (&:where(html.light *));
-@custom-variant dark (&:where(html.dark *));
-@variant dark (&:where(.dark, .dark *));
+
 .click-here-bg {
   animation: blink-red 0.3s ease-in-out 2;
 }
@@ -422,9 +420,10 @@ async function doParseDat() {
       @apply text-[#e74c3c] font-bold;
     }
   }
+  /* 선택된 인증서 — 칩·라디오와 같은 "켜짐" 면을 쓴다 (라이트/다크는 토큰이 갈라준다) */
   .sel {
-    @apply border-[#3377ff33] bg-[#3377ff11]
-    dark:border-[#00ff7733] dark:bg-[#00ff7711];
+    background-color: var(--ctrl-bg-on);
+    border-color: var(--ctrl-border-on);
   }
 }
 

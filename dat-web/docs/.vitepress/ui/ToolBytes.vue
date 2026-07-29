@@ -116,16 +116,15 @@
 </template>
 
 <script setup lang="ts">
-import {ref, nextTick, onMounted, computed} from "vue";
-const { site, frontmatter, page, isDark, lang, localeIndex } = useData();
-const root = computed(() => `/${localeIndex.value}`.replace(/^\/root/, ''));
+import {ref, nextTick, onMounted} from "vue";
 import CryptoJS from "crypto-js";
 import {
   DatUint8Array,
 } from "saro-dat";
 import {doCopyToClipboard, fromBase64, fromHex, toUtf8} from "../src/comm";
-import {useData} from "vitepress";
-import {useTranslate} from "../src/langs";
+import {useRoot, useTranslate} from "../src/langs";
+
+const root = useRoot();
 
 const {t} = useTranslate();
 const hex = ref('');
@@ -323,9 +322,6 @@ onMounted(() => doHash(new Uint8Array()))
 
 <style scoped>
 @reference 'tailwindcss';
-@custom-variant light (&:where(html.light *));
-@custom-variant dark (&:where(html.dark *));
-@variant dark (&:where(.dark, .dark *));
 
 textarea {
   white-space: pre-wrap !important; /* 무조건 줄바꿈을 허용하도록 강제 */

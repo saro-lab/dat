@@ -1,4 +1,5 @@
 import { useData } from 'vitepress'
+import { computed, type ComputedRef } from 'vue'
 import {
   DEFAULT_LOCALE,
   localeCodes,
@@ -23,8 +24,23 @@ export function languageRandom(): [string, string][] {
   return [...Object.entries(localeNames)].sort(() => Math.random() - 0.5)
 }
 
-async function getDefaultLanguage(): Promise<LocaleCode> {
-  const saved = (await cookieStore.get('lang'))?.value || ''
+/** The current locale's path prefix, e.g. `/ko` — empty string at the site root. */
+export function useRoot(): ComputedRef<string> {
+  const { localeIndex } = useData()
+  return computed(() => `/${localeIndex.value}`.replace(/^\/root/, ''))
+}
+
+function readCookie(name: string): string {
+  const match = document.cookie.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`))
+  return match ? decodeURIComponent(match[1]) : ''
+}
+
+function writeCookie(name: string, value: string): void {
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`
+}
+
+function getDefaultLanguage(): LocaleCode {
+  const saved = readCookie('lang')
   if (isLocaleCode(saved)) {
     return saved
   }
@@ -43,7 +59,7 @@ export function getLanguage(): string {
   return isLocaleCode(code) ? code : ''
 }
 
-export async function applyLanguage(force: string = '') {
+export function applyLanguage(force: string = ''): void {
   let path = location?.pathname
 
   // Legacy paths were prefixed with `/--/` — strip it.
@@ -59,11 +75,11 @@ export async function applyLanguage(force: string = '') {
     lang = force
   }
   if (!lang) {
-    lang = await getDefaultLanguage()
+    lang = getDefaultLanguage()
   }
 
   path = `/${lang}${path}`
-  await cookieStore.set('lang', lang)
+  writeCookie('lang', lang)
 
   if (location?.pathname != path) {
     location.href = path + location.search

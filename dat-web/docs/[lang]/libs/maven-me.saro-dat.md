@@ -1,5 +1,5 @@
 # DAT Java, Kotlin Library
-- [Github](https://github.com/saro-lab/dat/tree/master/dat-maven)
+<GithubBadge label="GitHub" />
 - [Java Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/java/test/java)
 - [Kotlin Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt)
 
@@ -133,6 +133,7 @@ assert(secure == newPayload.secure)
 
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
+import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Maven', 'me.saro:dat');
 import {useTranslate} from "../../.vitepress/src/langs";

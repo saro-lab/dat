@@ -1,177 +1,262 @@
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=block');
-@import "tailwindcss";
-@custom-variant light (&:where(html.light *));
-@custom-variant dark (&:where(html.dark *));
-@variant dark (&:where(.dark, .dark *));
+/* Utility classes only ever occur in component templates: every class a markdown
+   page uses is a named one defined further down. Scanning the 300+ content files
+   as well made a one-character doc edit rebuild this entire stylesheet, so the
+   sources are listed explicitly instead of auto-detected.
+
+   Keep content directories out of these globs. `docs/` holds the dynamic-route
+   folder `[lang]/`, and a glob that expands into it feeds square brackets — glob
+   character-class syntax — back to the scanner, which then silently matches
+   nothing at all and emits a stylesheet with no utilities in it. */
+@import "tailwindcss" source(none);
+@source "../ui/*.vue";
+@source "../theme/*.vue";
 
 @theme {
-    --breakpoint-xs: 32rem;
+    --font-sans: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo",
+        "Malgun Gothic", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
 }
 
-:root {
-    --font-serif: "Noto Serif", "AppleMyungjo", "NanumMyeongjo", "나눔명조", "Batang", "바탕", "Noto Color Emoji";
-    --font-sans-serif: "Noto Sans", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", "Noto Color Emoji";
+/* ── design tokens ─────────────────────────────────────────────────────────
+   Every surface below is themed only through these, so light and dark differ
+   by one block of values instead of two copies of every rule. */
+/* 라이트 — 원래 dat-web이 쓰던 무지개빛 워시를 캔버스로 되살렸다. 흰 캔버스 위에
+   틸·인디고·시안·핑크·라임 다섯 방울이 화면 모서리에서 번지는 구성이라, 배경이
+   이미 색을 갖고 있다. 그래서 콘텐츠 쪽 색은 한 계열(틸)로 좁혀 워시와 경쟁하지
+   않게 한다 — 링크·제목·컨트롤이 전부 같은 틸이면 무지개 위에서도 위계가 선다.
+   틸은 워시의 지배색이면서 DAT 로고(#373)의 그린과도 이웃한 색이다. */
+html {
+    --c-bg: #ffffff;
+    --c-text-1: #1e293b;
+    --c-text-2: color-mix(in srgb, var(--c-text-1) 93%, #fff);
+    --c-link-1: #0f766e;   /* 딥 틸 — 흰 바탕에서도 대비가 남는 명도 */
+    --c-link-2: #16988c;   /* hover — 밝아지는 방향 */
+    --c-heading: #12837a;  /* 링크와 같은 계열, 반 단계 위 */
+    --c-accent-1: #4f46e5; /* 워시의 인디고 — 필드 띠 등 보조 강조 */
+    --c-accent-2: #c23b82; /* 워시의 핑크 — 인디고와 교대되는 짝 */
+    --c-muted: #64748b;    /* 캡션 등 중립 요소 */
+
+    /* 페이지 뒤에 깔리는 고정 그라디언트 워시 (body::before) — 이 팔레트의 주인공.
+       원본(0.35~0.45)에서 채도감은 남기고 한 단계 눌렀다(×0.7). 색은 패널 밖
+       여백에서 내고, 본문 영역은 아래 --glass-bg가 흰색으로 눌러 가독성을 지킨다. */
+    --bg-image:
+        radial-gradient(at 20% 10%, rgba(45, 212, 191, 0.32) 0px, transparent 65%),
+        radial-gradient(at 15% 60%, rgba(79, 70, 229, 0.24) 0px, transparent 70%),
+        radial-gradient(at 45% 85%, rgba(6, 182, 212, 0.28) 0px, transparent 65%),
+        radial-gradient(at 80% 20%, rgba(219, 39, 119, 0.28) 0px, transparent 60%),
+        radial-gradient(at 85% 75%, rgba(132, 204, 22, 0.24) 0px, transparent 65%);
+
+    --divider: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+
+    /* 글자가 앉는 면 — 워시가 파스텔 이상으로 비치지 않도록 패널을 충분히
+       희게(0.72) 올린다. 유리 질감은 blur와 테두리 하이라이트가 이미 내고 있어
+       투명도를 더 잃을 필요가 없다. */
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    /* 마지막 inset은 유리 상단에 맺히는 하이라이트 — 패널의 유리 질감 */
+    --glass-shadow: 0 4px 30px rgba(9, 42, 48, 0.05), 0 10px 50px rgba(9, 42, 48, 0.07),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    --glass-text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+
+    --code-bg: rgba(255, 255, 255, 0.78);
+    --code-border: rgba(9, 58, 62, 0.1);
+    --quote-bg: rgba(255, 255, 255, 0.55);
+    --quote-border: #64c8c1;
+    --rule: linear-gradient(90deg, rgba(9, 42, 48, 0.06), rgba(9, 42, 48, 0.09));
+
+    --ctrl-fg: var(--c-text-1);
+    --ctrl-fg-hover: rgba(15, 118, 110, 0.85);
+    --ctrl-fg-on: rgba(15, 118, 110, 1);
+    --ctrl-bg: rgba(255, 255, 255, 0.65);
+    --ctrl-bg-hover: rgba(255, 255, 255, 0.88);
+    --ctrl-bg-focus: rgba(255, 255, 255, 0.96);
+    --ctrl-bg-on: rgba(20, 184, 166, 0.1);
+    --ctrl-border: rgba(15, 23, 42, 0.08);
+    --ctrl-border-hover: rgba(20, 184, 166, 0.24);
+    --ctrl-border-on: rgba(20, 184, 166, 0.4);
+    --ctrl-glow: 0 0 8px rgba(20, 184, 166, 0.12);
+    --ctrl-ring: rgba(20, 184, 166, 0.35);
+    --ctrl-text-shadow-on: none;
 }
-html, pre, .font-book {
-    font-family: var(--font-sans-serif), sans-serif;
+
+/* 다크 — 로즈골드 이식판의 공식을 그대로 따른다: 고급스러움은 색이 아니라
+   "거의 검정"에서 나온다. 캔버스·패널·코드·컨트롤 같은 면(surface)은 전부
+   무채색에 가까운 그라파이트로 두고, 그린은 링크·제목·선택 상태 같은 콘텐츠
+   액센트에만 아껴 쓴다. 면에 초록 물을 들이면 화면 전체가 초록으로 읽히므로
+   면의 틴트는 감지 한계 수준(+2~3)까지만. 글자는 #eceeed — 순백의 광량 없이
+   대비는 유지. */
+html.dark {
+    --c-bg: #0b0b0d;
+    --c-text-1: #eceeed;
+    --c-text-2: color-mix(in srgb, var(--c-text-1) 80%, transparent);
+    /* 그린은 민트가 아니라 옥(jade)으로 — 명도와 채도를 함께 내리고 회색을
+       섞어야 보석 톤이 된다. 옅고 쨍한 민트(#a9d0b4, L74)는 형광에 가깝게
+       읽혀서 L65/S20의 그레이드-제이드로 낮췄다. */
+    --c-link-1: #93b7a1;   /* 뮤트 제이드 */
+    --c-link-2: #b9d6c4;   /* hover — 라이트 모드처럼 밝아지는 방향 */
+    --c-heading: #a6c5b2;  /* 링크와 같은 결, 반 단계 위 */
+    --c-accent-1: #2fa87e; /* 딥 에메랄드 — 필드 띠 등 보조 강조 */
+    --c-accent-2: #8aa86f; /* 딥 올리브 — 에메랄드와 교대되는 짝 */
+    --c-muted: #757b77;
+
+    /* 워시는 로즈골드판과 같은 급의 저채도·저투명 — 초록임을 알아채기보다
+       "검정이 살아 있다"는 인상이 먼저 오는 수준으로 */
+    --bg-image:
+        radial-gradient(at 18% 12%, rgba(110, 170, 135, 0.07) 0px, transparent 60%),
+        radial-gradient(at 80% 22%, rgba(110, 130, 118, 0.05) 0px, transparent 60%),
+        radial-gradient(at 25% 82%, rgba(115, 160, 130, 0.05) 0px, transparent 65%),
+        radial-gradient(at 82% 78%, rgba(130, 175, 145, 0.04) 0px, transparent 60%);
+
+    --glass-bg: rgba(28, 31, 29, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.09);
+    --glass-shadow: 0 10px 32px -14px rgba(0, 0, 0, 0.6), 0 28px 70px -24px rgba(0, 0, 0, 0.8),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --glass-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+
+    /* 코드 박스 — 패널보다 한 톤 가라앉힌 에디터 인셋 + 미세 보더 */
+    --code-bg: rgba(5, 7, 6, 0.5);
+    --code-border: rgba(255, 255, 255, 0.07);
+    --quote-bg: rgba(5, 7, 6, 0.32);
+    --quote-border: #55876a;
+    --rule: linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01));
+
+    --ctrl-fg: rgba(236, 239, 237, 0.85);
+    --ctrl-fg-hover: rgba(236, 239, 237, 1);
+    --ctrl-fg-on: #b9d6c4;
+    --ctrl-bg: rgba(170, 182, 174, 0.06);
+    --ctrl-bg-hover: rgba(38, 43, 40, 0.85);
+    --ctrl-bg-focus: rgba(38, 43, 40, 0.85);
+    --ctrl-bg-on: rgba(147, 183, 161, 0.12);
+    --ctrl-border: rgba(255, 255, 255, 0.09);
+    --ctrl-border-hover: rgba(255, 255, 255, 0.15);
+    --ctrl-border-on: rgba(147, 183, 161, 0.5);
+    --ctrl-glow: 0 0 0 3px rgba(147, 183, 161, 0.16);
+    --ctrl-ring: rgba(147, 183, 161, 0.5);
+    --ctrl-text-shadow-on: 0 0 1px rgba(185, 214, 196, 0.4);
+}
+
+/* ── ARCHIVED: 웜톤 라이트 팔레트 (ticketing-web 이식판) ───────────────────
+   무지개 워시를 되살리며 교체된 라이트 값들. 다크는 지금도 이 계열을 쓰고
+   있으므로, 라이트를 웜톤으로 되돌리고 싶을 때 여기서 꺼내면 된다.
+
+   html {
+       --c-bg: #f4f3f2;
+       --c-text-1: #322a28;
+       --c-link-1: #9c5a44;  --c-link-2: #b5705a;  --c-heading: #9a5a42;
+       --c-accent-1: #178f6e;  --c-accent-2: #a8763c;  --c-muted: #8a7d78;
+       --bg-image:
+           radial-gradient(at 18% 12%, rgba(134, 128, 124, 0.14) 0px, transparent 60%),
+           radial-gradient(at 80% 22%, rgba(128, 126, 126, 0.1) 0px, transparent 60%),
+           radial-gradient(at 25% 82%, rgba(136, 128, 128, 0.1) 0px, transparent 65%),
+           radial-gradient(at 82% 78%, rgba(144, 136, 128, 0.09) 0px, transparent 60%);
+       --glass-bg: rgba(255, 253, 251, 0.6);  --glass-border: rgba(255, 255, 255, 0.68);
+       --code-bg: rgba(255, 253, 251, 0.74);  --code-border: rgba(74, 48, 38, 0.09);
+       --quote-bg: rgba(255, 253, 251, 0.42);  --quote-border: #c98a72;
+       ctrl 계열: rgba(156, 90, 68, …) / rgba(181, 112, 90, …) 조합.
+   }
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* ── page canvas ───────────────────────────────────────────────────────── */
+html {
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-}
-::placeholder {
-    font-family: var(--font-serif), serif;
-}
-.font-book {
-    font-family: var(--font-serif), serif;
-    table, ul, blockquote, a {
-        font-family: var(--font-sans-serif), sans-serif;
-    }
+    color: var(--c-text-1);
+    background-color: var(--c-bg);
 }
 
+/* The gradient wash lives on its own fixed layer rather than on a
+   `background-attachment: fixed` root background. As a root background the
+   browser had to re-rasterise all the gradients on every scroll frame, and
+   because `.g-glass` sits above it with a `backdrop-filter`, each of those
+   repaints forced the blur behind every glass panel to be recomputed too. As
+   an out-of-flow layer it is painted once and merely composited afterwards. */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: var(--bg-image);
+}
 
 .material-symbols-outlined {
-    font-size:inherit;
+    font-size: inherit;
     vertical-align: top;
     line-height: normal;
 }
 
-body {
-    container-name: body;
+::selection {
+    background: color-mix(in srgb, var(--c-link-1) 28%, transparent);
 }
 
-a { transition: color 0.2s; }
-html:not(.dark) {
-    --c-text-1: #1e293b;
-    --c-text-2: color-mix(in srgb, var(--c-text-1) 90%, #fff);
-	--c-link-1: #41619e;
-    --c-link-2: #6086cd;
-    
+/* ── links ─────────────────────────────────────────────────────────────── */
+a {
+    transition: color 0.2s;
 }
-html.dark {
-    --c-text-1: #f8fafc;
-    --c-text-2: color-mix(in srgb, var(--c-text-1) 90%, #000);
-    --c-link-1: #8cb6a6;
-    --c-link-2: #628f7e;
 
-}
-.doc a, .md a, .g-link {
+.md a,
+.g-link {
     cursor: pointer;
     color: var(--c-link-1);
-    &:hover { color: var(--c-link-2); }
+    &:hover {
+        color: var(--c-link-2);
+    }
 }
+
+/* 본문 링크만 — hover에서 은은한 밑줄로 링크임을 드러낸다 */
+.md a {
+    text-underline-offset: 3px;
+    &:hover {
+        text-decoration: underline;
+        text-decoration-color: color-mix(in srgb, var(--c-link-2) 55%, transparent);
+    }
+}
+
 .g-link-hover:hover {
     cursor: pointer;
     color: var(--c-link-2);
 }
 
+/* ── header controls ───────────────────────────────────────────────────────
+   아이콘 글자 크기(≈15px)가 곧 탭 타깃이 되지 않도록, 헤더의 모든 컨트롤에
+   36px 원형 히트 영역을 깐다. hover 배경이 영역을 자연스럽게 드러낸다. */
+.hdr-btn {
+    @apply flex items-center justify-center rounded-full cursor-pointer select-none;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    transition: background-color 0.15s, color 0.2s;
 
-
-html {
-    background-attachment: fixed;
-    &:not(.dark) {
-        color: var(--c-text-1);
-        background-color: #ffffff;
-        background-image:
-                radial-gradient(at 20% 10%, rgba(45, 212, 191, 0.45) 0px, transparent 65%),
-                radial-gradient(at 15% 60%, rgba(79, 70, 229, 0.35) 0px, transparent 70%),
-                radial-gradient(at 45% 85%, rgba(6, 182, 212, 0.4) 0px, transparent 65%),
-                radial-gradient(at 80% 20%, rgba(219, 39, 119, 0.4) 0px, transparent 60%),
-                radial-gradient(at 85% 75%, rgba(132, 204, 22, 0.35) 0px, transparent 65%);
-    }
-    &.dark {
-        color: var(--c-text-1);
-        background-color: #020506;
-        background-image:
-                radial-gradient(at 20% 40%, rgba(20, 184, 166, 0.18) 0px, transparent 60%),
-                radial-gradient(at 85% 25%, rgba(59, 130, 246, 0.12) 0px, transparent 55%),
-                radial-gradient(at 45% 80%, rgba(6, 182, 212, 0.15) 0px, transparent 65%);
-        background-color: #0d1319;
-        background-image:
-                radial-gradient(at 20% 40%, rgba(0, 240, 210, 0.13) 0px, transparent 70%),
-                radial-gradient(at 85% 25%, rgba(10, 105, 255, 0.11) 0px, transparent 65%),
-                radial-gradient(at 45% 80%, rgba(0, 225, 255, 0.12) 0px, transparent 75%);
-
+    &:hover {
+        background-color: color-mix(in srgb, currentColor 8%, transparent);
     }
 }
 
-/* ==========================================
-   1. 라이트 모드 (html에 .dark 클래스가 없을 때)
-   ========================================== */
-.g-glass:not(.drop-none) {
-    backdrop-filter: blur(16px);
-}
-
-html:not(.dark) .g-glass {
-    /* 살짝 불투명한 흰색 배경 (유리 표면 느낌) */
-    background-color: rgba(255, 255, 255, 0.50);
-
-
-    /* 유리의 하이라이트 테두리 선 표현 */
-
-    border: 0 solid rgba(255, 255, 255, 0.5);
-
-
-    /* 부드러운 그림자로 공중에 뜬 느낌 주기 */
-    box-shadow:
-            0 4px 30px rgba(0, 0, 0, 0.03),
-            0 10px 50px rgba(0, 0, 0, 0.05);
-
-
-
-    /* 박스 안의 텍스트가 깨지지 않게 부드럽게 처리 (하얀 잔상) */
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-
-
-}
-
-/* ==========================================
-   2. 다크 모드 (html에 .dark 클래스가 있을 때)
-   ========================================== */
-html.dark .g-glass {
-    /* 딥시티 다크 배경과 어우러지는 반투명 다크 틴트 유리 */
-    background-color: rgba(0, 0, 0, 0.45);
-
-
-    /* 어둠 속에서 유리의 에지를 살려줄 미세한 화이트 테두리 */
-    border: 0 solid rgba(255, 255, 255, 0.06);
-
-    /* 어두운 배경이므로 그림자는 더 깊고 묵직하게 깔아서 입체감 부여 */
-    box-shadow:
-            0 4px 30px rgba(0, 0, 0, 0.2),
-            0 10px 50px rgba(0, 0, 0, 0.4);
-
-
-
-    /* 다크모드 가독성 치트키: 글자 뒤에 미세한 블랙 음영을 주어
-       배경의 화려한 네온 컬러에 글자가 묻히는 것을 완벽 방지 */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-
-}
-
-
-
-
+/* ── layout frames ─────────────────────────────────────────────────────── */
 .g-frame {
     @apply mx-auto;
     @variant max-[46rem] {
-        @apply max-w-[100%]
+        @apply max-w-[100%];
     }
     @variant min-[46rem] {
-        @apply max-w-[46rem]
+        @apply max-w-[46rem];
     }
     &.g-frame-full {
         @variant min-[60rem] {
-            @apply max-w-[60rem]
+            @apply max-w-[60rem];
         }
     }
 }
 
-
-
-
-
-
 .g-glass {
+    background-color: var(--glass-bg);
+    border: 0 solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    text-shadow: var(--glass-text-shadow);
+
+    &:not(.drop-none) {
+        backdrop-filter: blur(16px);
+    }
     &.box {
-        @apply border! ;
+        @apply border!;
     }
     &.rd-box {
         @apply mx-auto p-3;
@@ -184,184 +269,157 @@ html.dark .g-glass {
     }
 }
 
-.g-glass.md {
+/* ── rendered markdown ─────────────────────────────────────────────────── */
+.md {
     word-break: break-word;
 
-    h1, h2, h3, h4, h5, h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         font-weight: 700;
         letter-spacing: -0.025em;
     }
-
+    /* 위계: h1 1.6 > h2 1.25 > h3 1.125 > h4 1 — 섹션 위는 넉넉히, 아래는 좁게 */
     h1 {
-        html.dark & {
-            color: #5c9754;
-        }
-        html:not(.dark) & {
-            color: #6086cd;
-        }
-        @apply p-0 m-0 text-base;
+        @apply p-0 mt-0 mb-4 text-[1.6rem] leading-snug;
+        color: var(--c-heading);
     }
-
     h2 {
-        @apply p-0 my-4 text-2xl;
+        @apply p-0 mt-8 mb-3.5 pb-1.5 text-xl;
+        border-bottom: var(--divider);
     }
     h3 {
-        @apply p-0 my-4 text-xl;
+        @apply p-0 mt-6 mb-3 text-lg;
     }
     h4 {
-        @apply p-0 my-3 text-lg;
+        @apply p-0 mt-5 mb-2.5 text-base;
     }
-    h5 {
-        @apply p-0 my-2.5 text-base;
+    h5,
+    h6 {
+        @apply p-0 mt-4 mb-2 text-sm;
     }
 
     p {
-        @apply mx-1 text-(--c-text-2);
+        @apply my-3.5 mx-0.5 leading-[1.8] text-(--c-text-2);
     }
 
-
-
-    /* --- 인라인 코드 (Inline Code) --- */
-
-
-
-    /* --- 인용구 (Blockquote) --- */
+    div[class*="language-"] {
+        @apply my-3.5;
+    }
 
     blockquote {
         margin: 1.25rem 0;
         padding: 0.5rem 1rem 0.5rem 1.25rem;
+        border-left: 3px solid var(--quote-border);
+        border-radius: 0 0.5rem 0.5rem 0;
+        background-color: var(--quote-bg);
 
+        p:first-child {
+            margin-top: 0;
+        }
         p:last-child {
             margin-bottom: 0;
         }
-
-        html.dark & {
-            border-left: 4px solid #326a43;
-            background-color: rgba(0, 0, 0, 0.25);
-        }
-        html:not(.dark) & {
-            border-left: 4px solid #64c8c1;
-            background-color: rgba(255, 255, 255, 0.25);
-        }
     }
-
-    /* --- 테이블 (Table) --- */
 
     table {
         display: block;
-        width: 100%;
+        width: fit-content;
         max-width: 100%;
-
         overflow-x: auto;
-
-        table-layout: fixed;
         word-break: break-word;
-
         margin: 1.5rem 0;
         border-collapse: separate;
         border-spacing: 0;
         border-radius: 0.5rem;
+        border: 1px solid color-mix(in srgb, currentColor 14%, transparent);
 
-        th, td {
-            padding: 0.75rem 1rem;
+        th,
+        td {
+            padding: 0.6rem 1rem;
             font-size: 0.875rem;
         }
-
         th {
-            html.dark & {
-                background-color: rgba(34, 211, 238, 0.05);
-            }
-            html:not(.dark) & {
-                background-color: rgba(6, 214, 160, 0.15);
-            }
+            background-color: color-mix(in srgb, currentColor 6%, transparent);
             font-weight: 600;
+            font-size: 0.78rem;
+            letter-spacing: 0.03em;
             text-align: left;
+            white-space: nowrap;
+            color: color-mix(in srgb, var(--c-text-1) 88%, transparent);
         }
-
-        tr:last-child td {
-            border-bottom: none;
+        td {
+            color: var(--c-text-2);
+            line-height: 1.65;
+            border-top: 1px solid color-mix(in srgb, currentColor 8%, transparent);
         }
+        tbody tr {
+            transition: background-color 0.15s;
 
-        tr td:last-child, tr th:last-child {
-            border-right: none;
-        }
-
-        /* 테이블 줄무늬(Zebra) 효과도 투명도로 은은하게 처리 */
-
-        tr:nth-child(even) {
-            html.dark & {
-                background-color: rgba(79, 70, 229, 0.05);
-            }
-            html:not(.dark) & {
-                background-color: rgba(6, 214, 160, 0.08);
+            &:hover {
+                background-color: color-mix(in srgb, var(--c-link-1) 7%, transparent);
             }
         }
     }
 
-    /* --- 리스트 (Lists) --- */
-
-    ul, ol {
+    ul,
+    ol {
+        margin-top: 1rem;
         margin-bottom: 1rem;
         padding-left: 1.5rem;
         color: var(--c-text-2);
 
         li {
-            margin-top: 0.25rem;
-            margin-bottom: 0.25rem;
+            margin-top: 0.3rem;
+            margin-bottom: 0.3rem;
+            line-height: 1.75;
         }
     }
-
     ul {
         list-style-type: disc;
     }
-
     ol {
         list-style-type: decimal;
     }
 
-    /* --- 구분선 (Horizontal Rule) --- */
-
     hr {
         border: none;
         height: 1px;
+        background: var(--rule);
         @apply my-6;
-        html.dark & {
-            background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.01));
-        }
-        html:not(.dark) & {
-            background: linear-gradient(90deg, rgba(0,0,0,0.05), rgba(0,0,0,0.07));
-        }
     }
 }
 
-
+/* ── code blocks ───────────────────────────────────────────────────────── */
 div[class*="language-"] {
     position: relative;
-    max-width:100%;
-    .lang {
-        @apply absolute top-0.5 right-1.5 z-[2] text-xs font-medium;
-        transition: color 0.4s, opacity 0.4s;
-        opacity: 0.6;
-        pointer-events: none;
-    }
-    .lang:hover {
-        opacity: 1;
-    }
+    max-width: 100%;
+
     pre {
         position: relative;
     }
+    .lang {
+        @apply absolute top-0.5 right-1.5 z-[2] text-xs font-medium;
+        opacity: 0.6;
+        transition: opacity 0.4s;
+        pointer-events: none;
+    }
     &:hover {
         .lang {
-            opacity: 0; /* 평소에 보이던 언어 라벨은 숨기고 */
+            opacity: 0;
         }
         .copy {
-            opacity: 1; /* 복사 버튼을 짜잔 등장시킴 */
+            opacity: 1;
         }
     }
 }
+
 .copy {
     @apply absolute top-0 right-0 z-[3] w-8 h-8;
-    opacity: 0;     /* 평소에는 숨김 */
+    opacity: 0;
     cursor: pointer;
     background-position: center;
     background-size: 1.25rem;
@@ -369,20 +427,20 @@ div[class*="language-"] {
     background-image: url("/img/copy.svg");
 
     &::after {
-        text-wrap: nowrap !important;
         content: "Copied!";
         position: absolute;
-        top: 0.33rem; /* 버튼 위쪽 배치 */
+        top: 0.33rem;
         right: 0.3rem;
-        @apply bg-[#558996] text-white text-xs font-bold px-1.5 py-0.5 rounded;
+        text-wrap: nowrap;
         opacity: 0;
         transform: translateY(4px);
         transition: opacity 0.2s ease, transform 0.2s ease;
         pointer-events: none;
+        @apply text-white text-xs font-bold px-1.5 py-0.5 rounded;
+        background-color: var(--c-heading);
     }
-
     &.copied {
-        opacity: 1 !important;
+        opacity: 1;
 
         &::after {
             opacity: 1;
@@ -390,35 +448,37 @@ div[class*="language-"] {
         }
     }
 }
+
 pre {
-    @apply overflow-x-scroll text-xs font-mono px-2.5 py-2 rounded-lg text-shadow-none;
-    html:not(.dark) & {
-        background-color: #ffffff77;
-        span {
-            color: var(--shiki-light);
-        }
+    @apply overflow-x-auto text-[0.8rem] leading-[1.7] font-mono px-3.5 py-3 rounded-lg text-shadow-none;
+    background-color: var(--code-bg);
+    border: 1px solid var(--code-border);
+
+    html:not(.dark) & span {
+        color: var(--shiki-light);
     }
-    html.dark & {
-        background-color: #ffffff0a;
-        span {
-            color: var(--shiki-dark);
-        }
-    }
-}
-:not(pre) > code, .g-code-box {
-    @apply px-1.5 font-bold rounded-sm inline-block;
-    html:not(.dark) & {
-        background-color: #ffffff77;
-    }
-    html.dark & {
-        background-color: #ffffff0a;
+    html.dark & span {
+        color: var(--shiki-dark);
     }
 }
 
+/* 인라인 코드 — em 기준이라 표·헤딩 어디서든 주변 글자에 비례해 줄어든다.
+   inline-block과 bold를 빼서 행높이를 흔들지 않는 차분한 칩으로.
+   `.g-code-box`는 마크업이 <code>가 아닌 곳(예: DatExample의 값 표시)에서
+   같은 칩을 쓰기 위한 별칭이다. */
+:not(pre) > code,
+.g-code-box {
+    @apply font-semibold rounded-[0.3rem];
+    padding: 0.08em 0.35em 0.12em;
+    font-size: 0.86em;
+    background-color: var(--code-bg);
+    border: 1px solid var(--code-border);
+}
 
-
-.scroll-container, pre, textarea, input {
-    overflow-x: scroll;
+pre,
+textarea,
+input {
+    overflow-x: auto;
 
     &::-webkit-scrollbar {
         width: 3px;
@@ -429,287 +489,234 @@ pre {
         background: transparent;
     }
     &::-webkit-scrollbar-thumb {
-        background: #55555577;
+        background: color-mix(in srgb, var(--c-muted) 45%, transparent);
         border-radius: 10px;
     }
     &::-webkit-scrollbar-thumb:hover {
-        background: #555555;
+        background: color-mix(in srgb, var(--c-muted) 75%, transparent);
+    }
+}
+
+/* ── form controls ─────────────────────────────────────────────────────── */
+input,
+button,
+textarea {
+    @apply outline-none font-mono!;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea,
+button.btn,
+input[type="button"],
+input[type="submit"] {
+    @apply px-3 py-2 font-mono text-sm rounded-md select-none transition-all duration-200 ease-in-out;
+    color: var(--ctrl-fg);
+    background-color: var(--ctrl-bg);
+    border: 1px solid var(--ctrl-border);
+
+    &:hover {
+        color: var(--ctrl-fg-hover);
+        background-color: var(--ctrl-bg-hover);
+        border-color: var(--ctrl-border-hover);
+    }
+    &:focus-visible {
+        outline: 2px solid var(--ctrl-ring);
+        outline-offset: 1px;
+    }
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea {
+    &:hover {
+        color: var(--ctrl-fg);
+    }
+    &:focus {
+        outline: none;
+        color: var(--ctrl-fg-on);
+        background-color: var(--ctrl-bg-focus);
+        border-color: var(--ctrl-border-on);
+        box-shadow: var(--ctrl-glow);
+    }
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--c-text-1);
+    opacity: 0.35;
+}
+
+textarea {
+    min-height: 100px;
+    resize: vertical;
+    white-space: pre;
+    overflow: auto;
+}
+
+button.btn,
+input[type="button"],
+input[type="submit"] {
+    @apply inline-flex items-center justify-center px-4 py-2 cursor-pointer;
+
+    &:active {
+        color: var(--ctrl-fg-on);
+        background-color: var(--ctrl-bg-on);
+        border-color: var(--ctrl-border-on);
+        box-shadow: var(--ctrl-glow);
+    }
+}
+
+/* The tag chips on the home page and the radio-group labels are one pill control
+   in two kinds of markup, so its surface and selected state are declared once
+   here rather than copied into each component. */
+.g-chip,
+.g-radio-group label {
+    @apply inline-flex items-center justify-center cursor-pointer select-none
+        font-mono text-xs rounded-md transition-colors duration-200 ease-in-out;
+    color: color-mix(in srgb, var(--ctrl-fg) 70%, transparent);
+    background-color: var(--ctrl-bg);
+    border: 1px solid var(--ctrl-border);
+
+    &:hover {
+        color: var(--ctrl-fg-hover);
+        background-color: var(--ctrl-bg-hover);
+        border-color: var(--ctrl-border-hover);
+    }
+}
+
+.g-chip.on,
+.g-radio-group input[type="radio"]:checked + label {
+    color: var(--ctrl-fg-on);
+    background-color: var(--ctrl-bg-on);
+    border-color: var(--ctrl-border-on);
+    text-shadow: var(--ctrl-text-shadow-on);
+}
+
+.g-chip {
+    @apply px-2 py-1 mr-2 mt-2;
+
+    /* 언어 아이콘과 라벨 사이 — 칩을 쓰는 마크다운이 유틸 클래스를 들고 있지
+       않도록(그래야 콘텐츠 파일을 스캔하지 않아도 된다) 여기서 붙인다 */
+    > span {
+        @apply mr-1;
     }
 }
 
 .g-radio-group {
     @apply flex flex-wrap max-w-full;
-    html:not(.dark) & {
-        input[type="radio"] {
-            @apply absolute w-0 h-0 opacity-0 overflow-hidden;
-            &:checked + label {
-                color: rgba(15, 118, 110, 1);
-                background-color: rgba(20, 184, 166, 0.08);
-                border-color: rgba(20, 184, 166, 0.35);
-                text-shadow: none;
-            }
-            &:focus-visible + label {
-                outline: 2px solid rgba(20, 184, 166, 0.3);
-                outline-offset: 1px;
-            }
-        }
-        label {
-            @apply inline-flex items-center justify-center cursor-pointer px-2 py-1.5 pb-[0.3rem]
-            font-mono text-xs rounded-sm mr-2 mt-2 text-(--c-text-1)/60
-            select-none transition-colors duration-200 ease-in-out
-            ;
-            background-color: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(15, 23, 42, 0.06);
-            &:hover {
-                color: rgba(15, 118, 110, 0.85);
-                background-color: rgba(255, 255, 255, 0.85);
-                border-color: rgba(20, 184, 166, 0.2);
-            }
+
+    input[type="radio"] {
+        @apply absolute w-0 h-0 opacity-0 overflow-hidden;
+
+        &:focus-visible + label {
+            outline: 2px solid var(--ctrl-ring);
+            outline-offset: 1px;
         }
     }
-    html.dark & {
-        input[type="radio"] {
-            @apply absolute w-0 h-0 opacity-0 overflow-hidden;
-            &:checked + label {
-                color: rgba(255, 255, 255, 1);
-                background-color: rgba(255, 255, 255, 0.12);
-                border-color: rgba(255, 255, 255, 0.4);
-                text-shadow: 0 0 1px rgba(255, 255, 255, 0.5);
-            }
-            &:focus-visible + label {
-                outline: 2px solid rgba(255, 255, 255, 0.5);
-                outline-offset: 1px;
-            }
-        }
-        label {
-            @apply inline-flex items-center justify-center cursor-pointer px-2 py-1.5 pb-[0.3rem]
-            font-mono text-xs rounded-sm mr-2 mt-2 text-(--c-text-1)/70
-            select-none transition-colors duration-200 ease-in-out
-            ;
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            &:hover {
-                color: rgba(255, 255, 255, 0.85);
-                background-color: rgba(255, 255, 255, 0.06);
-                border-color: rgba(255, 255, 255, 0.15);
-            }
-        }
-    }
-}
-html:not(.dark) {
-    /* 공통 입력창 스타일 (Input & Textarea) */
-    input[type="text"],
-    input[type="password"],
-    input[type="email"],
-    input[type="number"],
-    textarea {
-        @apply px-3 py-2 font-mono text-sm rounded-sm
-        select-none transition-all duration-200 ease-in-out;
 
-        color: var(--c-text-1);
-        background-color: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(15, 23, 42, 0.06);
-    }
-
-    /* 마우스 호버 상태 */
-    input[type="text"]:hover,
-    input[type="password"]:hover,
-    input[type="email"]:hover,
-    input[type="number"]:hover,
-    textarea:hover {
-        background-color: rgba(255, 255, 255, 0.85);
-        border-color: rgba(20, 184, 166, 0.2);
-    }
-
-    /* 포커스 상태 (클릭하여 입력 중일 때) */
-    input[type="text"]:focus,
-    input[type="password"]:focus,
-    input[type="email"]:focus,
-    input[type="number"]:focus,
-    textarea:focus {
-        outline: none;
-        color: rgba(15, 118, 110, 1);
-        background-color: rgba(255, 255, 255, 0.95);
-        border-color: rgba(20, 184, 166, 0.35);
-        box-shadow: 0 0 8px rgba(20, 184, 166, 0.08);
-    }
-
-    /* 플레이스홀더(힌트 텍스트) 스타일 */
-    input::placeholder,
-    textarea::placeholder {
-        color: var(--c-text-1);
-        opacity: 0.35;
-    }
-
-    /* 텍스트에어리어 전용 */
-    textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    /* 기본 버튼 스타일 */
-    button.btn,
-    input[type="button"],
-    input[type="submit"] {
-        @apply inline-flex items-center justify-center px-4 py-2 font-mono text-sm rounded-sm
-        cursor-pointer select-none transition-all duration-200 ease-in-out;
-
-        color: var(--c-text-1);
-        background-color: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(15, 23, 42, 0.06);
-    }
-
-    /* 마우스 호버 상태 */
-    button.btn:hover,
-    input[type="button"]:hover,
-    input[type="submit"]:hover {
-        color: rgba(15, 118, 110, 0.85);
-        background-color: rgba(255, 255, 255, 0.85);
-        border-color: rgba(20, 184, 166, 0.2);
-    }
-
-    /* 마우스 클릭 상태 (Active) */
-    button.btn:active,
-    input[type="button"]:active,
-    input[type="submit"]:active {
-        color: rgba(15, 118, 110, 1);
-        background-color: rgba(20, 184, 166, 0.08);
-        border-color: rgba(20, 184, 166, 0.35);
-        box-shadow: 0 0 8px rgba(20, 184, 166, 0.08);
-    }
-
-    /* 키보드 접근성 */
-    button.btn:focus-visible,
-    input[type="button"]:focus-visible,
-    input[type="submit"]:focus-visible {
-        outline: 2px solid rgba(20, 184, 166, 0.3);
-        outline-offset: 1px;
-    }
-}
-html.dark {
-    input[type="text"],
-    input[type="password"],
-    input[type="email"],
-    input[type="number"],
-    textarea {
-        @apply px-3 py-2 font-mono text-sm rounded-sm
-        select-none transition-all duration-200 ease-in-out;
-
-        color: var(--c-text-1);
-        background-color: rgba(255, 255, 255, 0.015);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    /* 마우스 호버 상태 */
-    input[type="text"]:hover,
-    input[type="password"]:hover,
-    input[type="email"]:hover,
-    input[type="number"]:hover,
-    textarea:hover {
-        background-color: rgba(255, 255, 255, 0.03);
-        border-color: rgba(255, 255, 255, 0.15);
-    }
-
-    /* 포커스 상태 (클릭하여 입력 중일 때) */
-    input[type="text"]:focus,
-    input[type="password"]:focus,
-    input[type="email"]:focus,
-    input[type="number"]:focus,
-    textarea:focus {
-        outline: none;
-        color: rgba(255, 255, 255, 1);
-        background-color: rgba(255, 255, 255, 0.04);
-        border-color: rgba(255, 255, 255, 0.4);
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
-    }
-
-    /* 플레이스홀더(힌트 텍스트) 스타일 */
-    input::placeholder,
-    textarea::placeholder {
-        color: var(--c-text-1);
-        opacity: 0.35;
-    }
-
-    /* 텍스트에어리어 전용 */
-    textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    /* 기본 버튼 스타일 */
-    button.btn,
-    input[type="button"],
-    input[type="submit"] {
-        @apply inline-flex items-center justify-center px-4 py-2 font-mono text-sm rounded-sm
-        cursor-pointer select-none transition-all duration-200 ease-in-out;
-
-        color: rgba(255, 255, 255, 0.85);
-        background-color: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    /* 마우스 호버 상태 */
-    button.btn:hover,
-    input[type="button"]:hover,
-    input[type="submit"]:hover {
-        color: rgba(255, 255, 255, 1);
-        background-color: rgba(255, 255, 255, 0.06);
-        border-color: rgba(255, 255, 255, 0.2);
-    }
-
-    /* 마우스 클릭 상태 (Active) */
-    button.btn:active,
-    input[type="button"]:active,
-    input[type="submit"]:active {
-        background-color: rgba(255, 255, 255, 0.12);
-        border-color: rgba(255, 255, 255, 0.4);
-        box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
-    }
-
-    /* 키보드 접근성 */
-    button.btn:focus-visible,
-    input[type="button"]:focus-visible,
-    input[type="submit"]:focus-visible {
-        outline: 2px solid rgba(255, 255, 255, 0.5);
-        outline-offset: 1px;
-    }
-}
-input, button, textarea, ::placeholder {
-    @apply outline-none font-mono!;
-}
-textarea {
-    white-space: pre !important;
-    overflow: auto !important;
-}
-
-.g-check-group {
     label {
-        @apply inline-flex items-center text-sm gap-1 cursor-pointer select-none;
+        @apply px-2 py-1.5 pb-[0.3rem] mr-2 mt-2;
+    }
+}
 
-        &:hover input[type="checkbox"], input[type="checkbox"]:focus {
-            @apply appearance-none border-(--c-link-2)!;
+.g-check-group label {
+    @apply inline-flex items-center text-sm gap-1 mr-2 mt-2 cursor-pointer select-none;
+
+    &:hover input[type="checkbox"],
+    input[type="checkbox"]:focus {
+        border-color: var(--c-link-2) !important;
+    }
+
+    input[type="checkbox"] {
+        @apply appearance-none w-4 h-4 overflow-hidden border rounded-[0.3rem] relative m-0 transition duration-300;
+        background-color: var(--ctrl-bg);
+        border-color: var(--ctrl-border);
+
+        &::after {
+            content: "";
+            @apply rounded-[0.15rem] bg-transparent w-2.5 h-2.5 absolute top-0.5 left-0.5;
         }
-
-        input[type="checkbox"] {
-            @apply appearance-none w-4 h-4 overflow-hidden border rounded-[0.3rem] relative m-0 transition duration-300;
-
-            html:not(.dark) & {
-                @apply bg-[#ffffff22] border-[#00000033];
-            }
-            html.dark & {
-                @apply bg-[#00000022] border-[#ffffff33];
-            }
+        &:checked {
+            border-color: var(--c-link-1) !important;
 
             &::after {
-                content: '';
-                @apply rounded-[0.15rem] bg-transparent w-2.5 h-2.5 absolute top-0.5 left-0.5;
-            }
-            &:checked {
-                @apply border-(--c-link-1)!;
-                &::after {
-                    @apply bg-(--c-link-2);
-                }
+                @apply bg-(--c-link-2);
             }
         }
     }
+}
+
+/* ── home page (docs/{locale}/index.md) ───────────────────────────────────
+   Identical markup/classes across every locale's index.md, so the rules live
+   here once instead of in a <style scoped> block copied into each one. */
+.hero-title {
+    @apply text-2xl font-bold;
+    a { color: var(--c-text-1); }
+}
+.hero-sub {
+    @apply text-sm font-semibold mt-1;
+    color: var(--c-text-2);
+}
+.hero-desc {
+    @apply text-sm mt-3 leading-relaxed;
+    color: var(--c-text-2);
+    code { @apply text-xs px-1 rounded-sm; background: color-mix(in srgb, currentColor 10%, transparent); }
+}
+
+.feature-grid {
+    @apply grid grid-cols-1 gap-2.5 mt-5;
+}
+.feature-card {
+    @apply rounded-lg p-3 flex gap-2.5 items-start;
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 6%, transparent);
+}
+.feature-icon {
+    @apply text-xl leading-none;
+}
+.feature-title {
+    @apply text-sm font-bold;
+}
+.feature-desc {
+    @apply text-xs mt-0.5 leading-relaxed;
+    color: var(--c-text-2);
+}
+
+.cta-banner {
+    @apply flex items-center gap-3 rounded-lg p-3.5 mt-5 transition-colors duration-150;
+    background: color-mix(in srgb, var(--c-link-1) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c-link-1) 25%, transparent);
+    &:hover {
+        background: color-mix(in srgb, var(--c-link-1) 18%, transparent);
+    }
+}
+.cta-icon {
+    @apply text-2xl leading-none;
+}
+.cta-text {
+    @apply flex-1 min-w-0;
+}
+.cta-title {
+    @apply text-sm font-bold;
+    color: var(--c-link-1);
+}
+.cta-desc {
+    @apply text-xs mt-0.5 leading-relaxed;
+    color: var(--c-text-2);
+}
+.cta-arrow {
+    @apply text-lg font-bold transition-transform duration-150;
+    color: var(--c-link-1);
+}
+.cta-banner:hover .cta-arrow {
+    transform: translateX(3px);
+}
+
+.section-title {
+    @apply text-sm font-bold mt-6 mb-2;
 }

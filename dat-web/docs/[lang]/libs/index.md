@@ -1,9 +1,11 @@
-# All Libraries
+# {{t('menu_libs_index')}}
 
-<LibUnit v-for="lib in libs" :key="lib.repositories.join(',') + lib.id" :lib="lib" />
+{{t('libs_intro')}}
+
+<LibraryList />
 
 <script setup lang="ts">
-import LibUnit from '../../.vitepress/ui/LibUnit.vue';
-import { getAllLibraries } from '../../.vitepress/src/libs';
-const libs = getAllLibraries();
+import LibraryList from '../../.vitepress/ui/LibraryList.vue';
+import { useTranslate } from '../../.vitepress/src/langs';
+const { t } = useTranslate();
 </script>

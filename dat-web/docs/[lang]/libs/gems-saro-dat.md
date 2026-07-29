@@ -1,5 +1,5 @@
 # DAT Ruby Library
-- [Github](https://github.com/saro-lab/dat/tree/master/dat-ruby) / [Test Code](https://github.com/saro-lab/dat/tree/master/dat-ruby/tree/master/test)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-ruby/tree/master/test)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -79,6 +79,7 @@ puts "secure: #{payload.secure}"
 
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
+import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Gems', 'saro-dat');
 import {useTranslate} from "../../.vitepress/src/langs";

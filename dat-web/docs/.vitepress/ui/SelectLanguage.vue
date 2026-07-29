@@ -1,12 +1,12 @@
 <template>
   <div class="relative select-language">
-    <div class="text-[0.9rem]! g-link-hover font-medium cursor-pointer flex items-center" open-lang-list-btn>
-      <span translate="no" class="material-symbols-outlined text-[0.9rem]! mr-1" open-lang-list-btn>language</span>
+    <div class="hdr-btn px-2 text-[0.9rem]! g-link-hover font-medium" open-lang-list-btn>
+      <span translate="no" class="material-symbols-outlined text-[1.05rem]! mr-1" open-lang-list-btn>language</span>
       <span open-lang-list-btn>{{langName}}</span>
     </div>
-    <div v-if="showLangList" class="absolute top-8 -right-1.5 text-center">
+    <div v-if="showLangList" class="absolute top-10 -right-1.5 text-center">
       <div class="absolute isolate inset-0 -z-1! g-glass rd-box"></div>
-      <div class="text-sm! my-3 px-6 g-link-hover" v-for="lang in languageRandom()" @click="applyLanguage(lang[0])">{{lang[1]}}</div>
+      <div class="text-sm! my-3 px-6 g-link-hover" v-for="[code, name] in languages" :key="code" @click="applyLanguage(code)">{{name}}</div>
     </div>
   </div>
 </template>
@@ -16,9 +16,10 @@ import {useData} from "vitepress";
 import {computed, onBeforeUnmount, onMounted, ref} from "vue";
 import {applyLanguage, languageList, languageRandom} from "../src/langs";
 
-const { site, frontmatter, page, isDark, lang, localeIndex } = useData();
+const { localeIndex } = useData();
 
-const root = computed<string>(() => `/${localeIndex.value}`.replace(/^\/root/, ''));
+/** Randomised once per visit so no single language is permanently listed first. */
+const languages = languageRandom();
 const langName = computed<any>(() => languageList[localeIndex.value] || '-');
 const showLangList = ref(false);
 

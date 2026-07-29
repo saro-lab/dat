@@ -1,0 +1,96 @@
+import { computed, type ComputedRef } from 'vue'
+import { useData } from 'vitepress'
+import type { MessageKey } from '../locales'
+
+/** A documentation page: one sidebar entry and one stop in the reading order. */
+export type NavLink = {
+  /** Locale-agnostic path, e.g. `/spec/dat`. */
+  path: string
+  /** Locale key for the sidebar label. */
+  titleKey?: MessageKey
+  /** Proper noun that needs no translation (e.g. `Go`), used as-is. */
+  title?: string
+  /** Locale key for the prev/next label, when it differs from the sidebar label. */
+  navKey?: MessageKey
+  /** Renders indented under the preceding group heading. */
+  sub?: boolean
+}
+
+/** A non-clickable heading that groups the links after it. */
+export type NavGroup = { labelKey: MessageKey }
+
+export type NavEntry = NavLink | NavGroup
+
+export type NavSection = {
+  titleKey: MessageKey
+  entries: NavEntry[]
+}
+
+export function isGroup(entry: NavEntry): entry is NavGroup {
+  return 'labelKey' in entry
+}
+
+/**
+ * The single source of truth for site navigation: the sidebar (`ui/Menu.vue`)
+ * renders these sections, and the previous/next document nav (`ui/PageNav.vue`)
+ * walks the flattened `pageOrder` below. The home page is intentionally absent —
+ * it is a landing page, not part of the doc flow.
+ */
+export const navSections: NavSection[] = [
+  {
+    titleKey: 'menu_intro',
+    entries: [{ path: '/intro', titleKey: 'menu_intro_index' }],
+  },
+  {
+    titleKey: 'menu_spec',
+    entries: [
+      { path: '/spec/dat', titleKey: 'menu_spec_dat' },
+      { path: '/spec/dat-certificate', titleKey: 'menu_spec_cert' },
+    ],
+  },
+  {
+    titleKey: 'menu_libs',
+    entries: [
+      { path: '/libs/', titleKey: 'menu_libs_index' },
+      { path: '/libs/cargo-dat', title: 'Rust (cargo)' },
+      { path: '/libs/maven-me.saro-dat', title: 'Java (maven)' },
+      { path: '/libs/npm-saro-dat', title: 'Javascript (npm)' },
+      { path: '/libs/pypi-saro-dat', title: 'Python (pypi)' },
+      { path: '/libs/nuget-saro-dat', title: 'C# (nuget)' },
+      { path: '/libs/go-saro-dat', title: 'Go' },
+      { path: '/libs/gems-saro-dat', title: 'Ruby (gems)' },
+      { path: '/libs/vcpkg-dat', title: 'C/C++ (vcpkg)' },
+    ],
+  },
+  {
+    titleKey: 'menu_svc',
+    entries: [{ path: '/svc/docker-saro-lab-dat-cms', titleKey: 'menu_svc_cms' }],
+  },
+  {
+    titleKey: 'menu_tool',
+    entries: [
+      { path: '/tool/bytes', titleKey: 'menu_tool_bytes' },
+      { path: '/tool/time', titleKey: 'menu_tool_time' },
+    ],
+  },
+]
+
+/** Every page in reading order, flattened out of `navSections`. */
+export const pageOrder: NavLink[] = navSections.flatMap(
+  (section) => section.entries.filter((entry) => !isGroup(entry)) as NavLink[],
+)
+
+/**
+ * The page being read as a locale-agnostic nav path, e.g. `ko/libs/index.md` →
+ * `/libs/`, so it can be compared against a `NavLink.path` directly. The first
+ * segment is dropped whether it is a real locale (`ko/…`) or the literal
+ * `[lang]/…` of a dynamic route, so both kinds of page resolve the same way.
+ */
+export function useCurrentPath(): ComputedRef<string> {
+  const { page } = useData()
+  return computed(() => {
+    const [, ...rest] = page.value.relativePath.replace(/\.md$/, '').split('/')
+    const path = `/${rest.join('/')}`
+    return path.endsWith('/index') ? path.slice(0, -'index'.length) : path
+  })
+}

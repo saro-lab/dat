@@ -91,11 +91,10 @@ onMounted(renew);
 
 <style scoped>
 @reference 'tailwindcss';
-@custom-variant light (&:where(html.light *));
-@custom-variant dark (&:where(html.dark *));
-@variant dark (&:where(.dark, .dark *));
 
-
+/* 필드 띠는 인접한 필드를 갈라 보이게 하는 게 목적이라 색 자체에 의미는 없다.
+   테마의 두 액센트를 번갈아 깔고, 지금 훑고 있는 필드만 브랜드색으로 띄운다 —
+   알파가 낮아 라이트/다크 어느 쪽에서도 같은 토큰이 그대로 통한다. */
 .node {
   @apply inline-block;
   &:not(.sel) {
@@ -108,13 +107,13 @@ onMounted(renew);
     @apply px-2 py-1 m-1 rounded-md inline-block font-bold;
   }
   &:nth-child(odd) span {
-    @apply bg-[#3355ff22];
+    background-color: color-mix(in srgb, var(--c-accent-1) 16%, transparent);
   }
   &:nth-child(even) span {
-    @apply bg-[#33ff5522];
+    background-color: color-mix(in srgb, var(--c-accent-2) 16%, transparent);
   }
   &.sel span {
-    @apply bg-[#ffff0077];
+    background-color: color-mix(in srgb, var(--c-link-1) 38%, transparent);
   }
 }
 .node-val {
@@ -126,7 +125,9 @@ onMounted(renew);
     content: '.';
   }
 }
+/* currentColor 기준이라 라이트에서는 어둡게, 다크에서는 밝게 — 한 줄로 양쪽을 덮는다 */
 .help-box {
-  @apply bg-[#ffffff55] dark:bg-[#00000055] rounded-md;
+  @apply rounded-md;
+  background-color: color-mix(in srgb, currentColor 6%, transparent);
 }
 </style>

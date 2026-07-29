@@ -1,5 +1,5 @@
 # DAT C Library
-- [Github](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/tree/master) / [Test Code](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/tree/master/tests)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/tree/master/tests)
 
 ## {{t('repository')}}
 > Until it is officially merged into vcpkg, you will need to manually install and integrate the project using this repository.<br/>
@@ -124,6 +124,7 @@ dat_manager_free(manager);
 
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
+import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Vcpkg', 'dat');
 const ver = lib.version;

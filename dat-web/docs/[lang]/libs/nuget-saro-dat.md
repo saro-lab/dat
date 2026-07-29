@@ -1,5 +1,5 @@
 # DAT C# Library
-- [Github](https://github.com/saro-lab/dat/tree/master/dat-nuget) / [Test Code](https://github.com/saro-lab/dat/tree/master/dat-nuget/tree/master/Saro.Dat.Tests)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-nuget/tree/master/Saro.Dat.Tests)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -82,6 +82,7 @@ TestContext.Progress.WriteLine($"secure: {payload.Secure}");
 
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
+import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Nuget', 'saro-dat');
 import {useTranslate} from "../../.vitepress/src/langs";

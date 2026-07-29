@@ -1,5 +1,5 @@
 # DAT Rust Library
-- [Github](https://github.com/saro-lab/dat/tree/master/dat-rust) / [Test Code](https://github.com/saro-lab/dat/tree/master/dat-rust/blob/master/tests/)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-rust/blob/master/tests/)
 
 
 ## {{t('example')}}: {{t('dat_cms')}}
@@ -92,6 +92,7 @@ println("PASS NEW PAYLOAD " + newPayload.toUnsafeString())
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
 import CodeBox from '../../.vitepress/ui/CodeBox.vue';
+import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Cargo', 'dat');
 const cmsRepo = `# features cms_manager with tracing log

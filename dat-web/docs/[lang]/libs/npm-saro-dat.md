@@ -1,5 +1,5 @@
 # DAT Javascript, Typescript Library
-- [Github](https://github.com/saro-lab/dat/tree/master/dat-npm) / [Test Code](https://github.com/saro-lab/dat/tree/master/dat-npm/tree/master/src)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-npm/tree/master/src)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -68,6 +68,7 @@ console.log("payload secure : " + payloadSecure);
 
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
+import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Npm', 'saro-dat');
 import {useTranslate} from "../../.vitepress/src/langs";

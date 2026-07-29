@@ -1,18 +1,20 @@
+import { localeCodes } from '../locales';
 
+const REPO_BASE = 'https://github.com/saro-lab/dat/tree/master';
 
 export const libList: Library[] = [
     // libraries
-    _cargo('dat', '4.3.6', '/libs/cargo-dat'),
-    _maven('me.saro:dat', '4.3.6', '/libs/maven-me.saro-dat'),
-    _npm('saro-dat', '4.3.4', '/libs/npm-saro-dat', true),
-    _pypi('saro-dat', '4.4.1', '/libs/pypi-saro-dat'),
-    _nuget('saro-dat', '4.3.3', '/libs/nuget-saro-dat'),
-    _go('github.com/saro-lab/dat/dat-go/v4', 'v4.3.3', '/libs/go-saro-dat'),
-    _vcpkg('dat', '4.3.0', '/libs/vcpkg-dat', true),
-    _ruby('saro-dat', '4.3.4', '/libs/gems-saro-dat'),
+    _cargo('dat', '4.3.6', '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
+    _maven('me.saro:dat', '4.3.6', '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
+    _npm('saro-dat', '4.3.4', '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
+    _pypi('saro-dat', '4.4.1', '/libs/pypi-saro-dat', `${REPO_BASE}/dat-pypi`),
+    _nuget('saro-dat', '4.3.3', '/libs/nuget-saro-dat', `${REPO_BASE}/dat-nuget`),
+    _go('github.com/saro-lab/dat/dat-go/v4', 'v4.3.3', '/libs/go-saro-dat', `${REPO_BASE}/dat-go`),
+    _vcpkg('dat', '4.3.0', '/libs/vcpkg-dat', true, `${REPO_BASE}/dat-vcpkg`),
+    _ruby('saro-dat', '4.3.4', '/libs/gems-saro-dat', `${REPO_BASE}/dat-ruby`),
 
     // services
-    _docker('sarolab/dat-cms', '4.3.6', '/svc/docker-saro-lab-dat-cms', [
+    _docker('sarolab/dat-cms', '4.3.6', '/svc/docker-saro-lab-dat-cms', `${REPO_BASE}/dat-cms`, [
         'arch=amd64',
         'arch=arm64',
         'type=link'
@@ -30,6 +32,7 @@ export type Library = {
     id: string;
     version: string;
     link: string;
+    repo: string;
     notes: string[],
 }
 
@@ -44,6 +47,15 @@ export function getAllLibraries(): Library[] {
 
 export function findLibrary(repository: LibraryRepository, id: string): Library | null {
     return libList.find(lib => lib.repositories.includes(repository) && lib.id === id) || null;
+}
+
+/** Resolves a library from a page's relative path (e.g. `en/libs/cargo-dat.md`), locale prefix stripped. */
+export function findLibraryByPath(path: string): Library | null {
+    const segments = path.replace(/\.md$/, '').split('/').filter(Boolean);
+    if (localeCodes.includes(segments[0] as never)) {
+        segments.shift();
+    }
+    return libList.find(lib => lib.link === '/' + segments.join('/')) || null;
 }
 
 export function getExtCode(library: Library): ({ext: string, code: string}[]) {
@@ -133,31 +145,31 @@ export function getLibTags(localePrefix: string): LibTag[] {
     return unique;
 }
 
-export function _cargo(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _cargo(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Cargo'],
         languages: ['Rust'],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _maven(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _maven(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Maven', 'Gradle'],
         languages: ['Java', 'Kotlin'],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _ruby(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _ruby(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Gems'],
         languages: ['Ruby'],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _npm(id: string, version: string, link: string, supportTypescript: boolean, notes: string[] = []): Library {
+export function _npm(id: string, version: string, link: string, supportTypescript: boolean, repo: string, notes: string[] = []): Library {
     let languages: LibraryLanguage[] = ['JavaScript'];
     if (supportTypescript) {
         languages.push('TypeScript');
@@ -165,43 +177,43 @@ export function _npm(id: string, version: string, link: string, supportTypescrip
     return ({
         repositories: ['Npm', 'Yarn', 'Pnpm'],
         languages,
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _nuget(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _nuget(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Nuget'],
         languages: ['C#'],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _pypi(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _pypi(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Pypi'],
         languages: ['Python'],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _docker(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _docker(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Docker'],
         languages: [],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _go(id: string, version: string, link: string, notes: string[] = []): Library {
+export function _go(id: string, version: string, link: string, repo: string, notes: string[] = []): Library {
     return ({
         repositories: ['Go'],
         languages: ['Go'],
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
 
-export function _vcpkg(id: string, version: string, link: string, supportC: boolean, notes: string[] = []): Library {
+export function _vcpkg(id: string, version: string, link: string, supportC: boolean, repo: string, notes: string[] = []): Library {
     let languages: LibraryLanguage[] = ['C++'];
     if (supportC) {
         languages.push('C');
@@ -209,6 +221,6 @@ export function _vcpkg(id: string, version: string, link: string, supportC: bool
     return ({
         repositories: ['Vcpkg'],
         languages,
-        id, version, link, notes
+        id, version, link, repo, notes
     })
 }
