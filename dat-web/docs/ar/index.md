@@ -6,6 +6,8 @@ layout: home
 import {useRoot, useTranslate} from "../.vitepress/src/langs";
 import {getLibTags} from "../.vitepress/src/libs";
 import DatExample from "../.vitepress/ui/DatExample.vue";
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
+import WireFormat from "../.vitepress/ui/WireFormat.vue";
 
 const root = useRoot();
 const {t} = useTranslate();
@@ -27,10 +29,10 @@ function tagIcon(name: string): string {
 }
 
 const features = [
-    {icon: '⚡', title: 'بروتوكول الإطارات الثنائية', desc: 'مصمم من الأساس بحقول ثنائية ثابتة العرض، تُقرأ مباشرة عبر إزاحة البايت دون أي مرحلة تحليل — يتم الإصدار والتحقق بأقل قدر من العبء، دون أي ترميز أو فك ترميز JSON.'},
-    {icon: '🔐', title: 'تدوير إلزامي للمفاتيح', desc: 'تتناوب الشهادات تلقائيًا وفق جدول ثابت، مع بقاء الشهادة التالية جاهزة دائمًا قبل انتهاء صلاحية الحالية — مما يمنع هيكليًا الحادثة الشائعة في JWT حيث يبقى المفتاح دون تغيير لسنوات.'},
-    {icon: '⏱️', title: 'الفصل بين نافذة الإصدار و TTL', desc: 'يتم تتبع نافذة إصدار الشهادة ومدة صلاحية الرمز (TTL) بشكل منفصل، بحيث تستمر الرموز التي تم إصدارها بالفعل في التحقق حتى تنتهي مدة TTL الخاصة بها، حتى بعد توقف الشهادة عن إصدار رموز جديدة.'},
-    {icon: '🌐', title: 'عملاء أصليون للغات الرئيسية', desc: 'عملاء رسميون لـ Rust وJava/Kotlin وJavaScript/TypeScript وPython وGo وC# وRuby وC/C++، كل منها بواجهة برمجية مناسبة للغته.'},
+    {icon: '⚡', title: 'تنسيق إطار ثنائي', desc: 'مصمم بحقول ثنائية ثابتة العرض تُقرأ مباشرةً عبر الإزاحة دون أي مرحلة تحليل. يتم الإصدار والتحقق بأدنى قدر من العبء دون ترميز أو فك ترميز JSON.'},
+    {icon: '🔐', title: 'تدوير إلزامي للمفاتيح', desc: 'تتبدل الشهادات تلقائياً وفق دورة محددة، وتكون الشهادة التالية جاهزة دائماً قبل انتهاء الحالية. وهذا يمنع هيكلياً الحادث التشغيلي المعروف في JWT حيث يبقى المفتاح على حاله مدة طويلة.'},
+    {icon: '⏱️', title: 'الفصل بين نافذة الإصدار و TTL', desc: '"مدة إمكانية إصدار الشهادة" و"مدة صلاحية الرمز الصادر" منفصلتان، ولذلك تظل الرموز التي خرجت بالفعل تُتحقق حتى نهاية مدة TTL الخاصة بها حتى بعد توقف الشهادة عن الإصدار.'},
+    {icon: '🌐', title: 'عملاء أصليون للغات الرئيسية', desc: 'يمكنك استخدام عملاء رسميين مقدَّمين بواجهة برمجية اصطلاحية لكل لغة: Rust وJava/Kotlin وJavaScript/TypeScript وPython وGo وC# وRuby وC/C++.'},
 ];
 </script>
 
@@ -40,15 +42,15 @@ const features = [
 <div class="hero-sub">{{t('description')}}</div>
 
 <div class="hero-desc">
-DAT (Distributed Access Token) هو رمز مصادقة موزع — يحتاج كل خادم يُصدر أو يتحقق من الجلسات إلى الاتفاق على مواصفة
-واحدة فقط. مبني على حقول ثنائية ثابتة العرض، يقرأ ويكتب مباشرة عبر الإزاحة دون أي مرحلة تحليل، والبروتوكول نفسه
-يفصل بين نافذة الإصدار و TTL بحيث يمكن فرض تدوير الشهادات (تدوير المفاتيح) بغض النظر عن اللغة أو التنفيذ.
+DAT (Distributed Access Token) هو رمز مصادقة موزّع يكفي فيه أن تتشارك جميع الخوادم التي تُصدر الجلسات وتتحقق منها
+مواصفةً واحدة فقط. صُمِّم على أساس حقول ثنائية ثابتة العرض فيُقرأ ويُكتب مباشرةً عبر الإزاحة دون تكلفة تحليل، كما
+يفصل البروتوكول نفسه بين نافذة الإصدار و TTL حتى يمكن فرض تبديل الشهادات (تدوير المفاتيح) بمعزل عن اللغة والتنفيذ.
 </div>
 
 <div class="hero-desc">
-تقوم خدمة إدارة شهادات DAT (CMS) بإنشاء الشهادات ونشرها وإنهاء صلاحيتها عبر المجموعة بأكملها وفق مهمة cron مجدولة،
-بحيث يمكن تدوير المفاتيح بأمان دون أن يفشل أي رمز تم إصداره بالفعل في التحقق أثناء مزامنة الخوادم الأخرى مع الشهادة
-الجديدة.
+تتولى خدمة إدارة شهادات DAT (CMS) إنشاء شهادات المجموعة بأكملها ونشرها وإنهاء صلاحيتها تلقائياً وفق جدول مبرمَج (Cron)،
+ولذلك يمكن تدوير المفاتيح بأمان دون وقوع حادث تفشل فيه الرموز الصادرة في التحقق قبل أن تُتم الخوادم المتعددة مزامنة
+الشهادة الجديدة بالكامل.
 </div>
 
 <div class="feature-grid">
@@ -59,11 +61,42 @@ DAT (Distributed Access Token) هو رمز مصادقة موزع — يحتاج 
     </div>
 </div>
 
+<div class="section-title">البنية العامة</div>
+
+<ArchFlow
+    :user="{label: 'المستخدم', icon: 'person'}"
+    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['إنشاء الشهادات حسب مدة الصلاحية', 'إزالة الشهادات المنتهية']}"
+    :service="{servers: [
+        {label: 'خادم تسجيل الدخول', kind: 'issuer', icon: 'login',
+         request: 'طلب تسجيل الدخول', response: 'إصدار DAT بالشهادة', sync: 'مزامنة شهادات الإصدار'},
+        {label: 'خوادم المحتوى', kind: 'verifier', icon: 'apps',
+         request: 'طلب المحتوى بـ DAT', response: 'التحقق من DAT ثم تقديم الخدمة', sync: 'مزامنة شهادات التحقق فقط'},
+    ]}"
+/>
+
+<div class="hero-desc">
+خادم تسجيل الدخول وحده يتلقى شهادات صالحة للإصدار، أما خوادم المحتوى فتتلقى شهادات للتحقق فقط وتفحص بها الـ DAT الوارد.
+يتعامل المستخدم مع خدمة واحدة فقط، ولا يحتاج خادم المحتوى إلى التواصل مع خادم تسجيل الدخول.
+</div>
+
+<div class="section-title">بنية الرمز</div>
+
+<WireFormat
+    hint="مرّر المؤشر فوق كل حقل لعرض شرحه."
+    :segments="[
+        {name: 'expire', type: 'uint64 (عشري)', kind: 'meta', note: 'وقت انتهاء صلاحية الرمز — مفروض في المواصفة.'},
+        {name: 'cid', type: 'uint64 (ست عشري)', kind: 'meta', note: 'معرّف الشهادة المستخدمة في التحقق.'},
+        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'بيانات عامة يمكن لأي جهة قراءتها.'},
+        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'بيانات مشفّرة بـ AES-GCM.'},
+        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'توقيع على الحقول الأربعة السابقة مجتمعة.'},
+    ]"
+/>
+
 <a :href="`${root}/svc/docker-saro-lab-dat-cms`" class="cta-banner">
     <div class="cta-icon">🚀</div>
     <div class="cta-text">
         <div class="cta-title">دليل نشر {{t('dat_cms')}}</div>
-        <div class="cta-desc">Kubernetes (متعدد الحاويات) · Docker · ثنائي (Linux، macOS، Windows) — أنشئ أمر التشغيل الآن</div>
+        <div class="cta-desc">Kubernetes (متعدد الـ Pods) · Docker · ملف ثنائي (Linux، macOS، Windows) — أنشئ أمر التشغيل الآن</div>
     </div>
     <div class="cta-arrow">→</div>
 </a>
@@ -74,8 +107,6 @@ DAT (Distributed Access Token) هو رمز مصادقة موزع — يحتاج 
         <span v-if="tagIcon(tag.name)">{{tagIcon(tag.name)}}</span>{{tag.name}}
     </a>
 </div>
-
-<div class="section-title">{{t('example')}}</div>
 
 </div>
 

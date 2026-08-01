@@ -16,12 +16,165 @@
     </cargoProject>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="3c88e585-beb5-4891-92df-1b934d6b52b7" name="Changes" comment="update web design">
+    <list default="true" id="3c88e585-beb5-4891-92df-1b934d6b52b7" name="Changes" comment="v4.6.0">
+      <change afterPath="$PROJECT_DIR$/dat-pypi/.idea/saro-dat.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/404.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/app.CQlAyBXt.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/chunks/framework.CMDxl4OD.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/chunks/theme.CCOeVKnG.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-cyrillic-ext._dlW9xFb.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-cyrillic.D7dRslh9.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-greek-ext.Ct-Tf2bq.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-greek.DNcpQ8QC.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-latin-ext.DytegdRQ.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-latin.COaG5lWR.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-italic-vietnamese.BI5UxJD-.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-cyrillic-ext.BeNbU08G.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-cyrillic.CD0kT8R4.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-greek-ext.CFAEQ5Ow.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-greek.Dsf7YjP7.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-latin-ext.Dl_ayf4-.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-latin.Cy4MYw_J.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/inter-roman-vietnamese.CpqCnS2H.woff2" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/assets/style.CUPMyUDp.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/hashmap.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/docs/.vitepress/dist/vp-icons.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/bench.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/ArchFlow.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/ArchOverview.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/BenchChart.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/CertTimeline.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/ErrorCode.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/FlowDiagram.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/SupportMatrix.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/WireFormat.vue" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ar/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ar/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/bn/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/bn/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/de/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/de/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/en/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/en/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/es/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/es/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/fr/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/fr/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/hi/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/hi/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/id/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/id/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ja/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ja/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ko/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ko/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/pt/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/pt/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ru/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ru/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ur/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/ur/spec/errors.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/zh/spec/cms.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/dat-web/docs/zh/spec/errors.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/config.mts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/config.mts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/langs.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/langs.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/theme/Layout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/theme/Layout.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-maven/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-maven/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-nuget/.idea/.idea.Dat/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-nuget/.idea/.idea.Dat/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-nuget/Saro.Dat.Tests/Saro.Dat.Tests.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/dat-nuget/Saro.Dat.Tests/Saro.Dat.Tests.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-pypi/.idea/dat-pypi.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-pypi/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-pypi/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-pypi/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-pypi/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-pypi/pyproject.toml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-pypi/pyproject.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-pypi/uv.lock" beforeDir="false" afterPath="$PROJECT_DIR$/dat-pypi/uv.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-ruby/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-ruby/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-vcpkg/.idea/editor.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-vcpkg/.idea/editor.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-vcpkg/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/dat-vcpkg/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ar.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ar.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/bn.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/bn.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/de.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/de.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/en.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/en.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/es.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/es.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/fr.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/fr.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/hi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/hi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/id.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/id.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ja.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ja.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ko.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ko.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/pt.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/pt.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ru.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ru.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ur.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/ur.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/zh.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/locales/zh.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/libs.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/libs.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/nav.ts" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/src/nav.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/theme/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/theme/style.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/Menu.vue" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/Menu.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/PageNav.vue" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/.vitepress/ui/PageNav.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/cargo-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/cargo-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/gems-saro-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/gems-saro-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/go-saro-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/go-saro-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/maven-me.saro-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/maven-me.saro-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/npm-saro-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/npm-saro-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/nuget-saro-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/nuget-saro-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/pypi-saro-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/pypi-saro-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/vcpkg-dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/[lang]/libs/vcpkg-dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ar/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ar/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ar/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ar/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ar/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ar/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ar/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ar/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/bn/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/bn/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/bn/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/bn/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/bn/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/bn/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/bn/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/bn/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/de/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/de/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/de/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/de/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/de/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/de/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/de/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/de/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/en/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/en/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/en/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/en/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/en/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/en/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/en/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/en/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/es/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/es/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/es/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/es/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/es/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/es/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/es/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/es/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/fr/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/fr/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/fr/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/fr/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/fr/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/fr/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/fr/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/fr/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/hi/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/hi/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/hi/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/hi/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/hi/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/hi/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/hi/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/hi/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/id/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/id/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/id/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/id/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/id/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/id/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/id/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/id/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ja/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ja/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ja/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ja/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ja/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ja/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ja/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ja/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ko/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ko/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ko/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ko/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ko/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ko/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ko/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ko/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/pt/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/pt/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/pt/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/pt/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/pt/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/pt/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/pt/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/pt/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/public/llms.txt" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/public/llms.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ru/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ru/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ru/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ru/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ru/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ru/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ru/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ru/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ur/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ur/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ur/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ur/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ur/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ur/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/ur/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/ur/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/zh/index.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/zh/index.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/zh/intro.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/zh/intro.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/zh/spec/dat-certificate.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/zh/spec/dat-certificate.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/docs/zh/spec/dat.md" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/docs/zh/spec/dat.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dat-web/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/dat-web/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,10 +188,10 @@
     </option>
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="481" />
+    <option name="cachedIndexableFilesCount" value="10803" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:release" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="RsBuildProfile:dev" />
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
@@ -56,7 +209,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/saro-lab/dat&quot;,
-    &quot;accountId&quot;: &quot;a0db6303-719a-4c34-bee5-d266ca5d4197&quot;
+    &quot;accountId&quot;: &quot;d4f671f6-aa09-4981-a1fe-b7521431bba4&quot;
   }
 }</component>
   <component name="KubernetesApiPersistence">{}</component>
@@ -72,61 +225,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.5759201690357065E-39" />
-      <entry key="MS500" value="2.7952707265899982E-8" />
-      <entry key="S2" value="0.025900289014488653" />
-      <entry key="S5" value="0.5436138409510335" />
-      <entry key="S10" value="1.6140625365883703" />
-      <entry key="S30" value="3.4138290148688886" />
-      <entry key="S60" value="4.129077125918882" />
-      <entry key="M2" value="4.543062104343056" />
-      <entry key="M5" value="4.822247303470016" />
-      <entry key="M10" value="5.13365999856917" />
-      <entry key="M15" value="5.575934217479862" />
-      <entry key="M30" value="6.782648803153099" />
-      <entry key="H1" value="9.343200394339384" />
-      <entry key="H2" value="20.706127889553603" />
-      <entry key="H4" value="46.68031472198676" />
-      <entry key="D1" value="110.38750009112077" />
-      <entry key="W1" value="129.4754942771264" />
+      <entry key="MS100" value="1.007001457941047" />
+      <entry key="MS500" value="1.4861958461595866" />
+      <entry key="S2" value="2.7036031148964437" />
+      <entry key="S5" value="3.36559372784061" />
+      <entry key="S10" value="3.666227723584324" />
+      <entry key="S30" value="5.0419525109463015" />
+      <entry key="S60" value="9.409910664975166" />
+      <entry key="M2" value="20.057030854224692" />
+      <entry key="M5" value="41.32981209629014" />
+      <entry key="M10" value="55.35423964452869" />
+      <entry key="M15" value="61.35780071060001" />
+      <entry key="M30" value="68.63899915511236" />
+      <entry key="H1" value="83.88867217709189" />
+      <entry key="H2" value="138.46892018449606" />
+      <entry key="H4" value="234.085871847142" />
+      <entry key="D1" value="457.504777226907" />
+      <entry key="W1" value="529.3778136289892" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="1.0" />
-      <entry key="MS500" value="1.0" />
-      <entry key="S2" value="1.0" />
-      <entry key="S5" value="1.0" />
-      <entry key="S10" value="1.0" />
-      <entry key="S30" value="1.0" />
-      <entry key="S60" value="1.0000000000000397" />
-      <entry key="M2" value="1.000000199482658" />
-      <entry key="M5" value="1.0020891136103915" />
-      <entry key="M10" value="1.0457068223615682" />
-      <entry key="M15" value="1.127836249465325" />
-      <entry key="M30" value="1.3575669448491263" />
-      <entry key="H1" value="1.6050006808933015" />
-      <entry key="H2" value="1.891963602926445" />
-      <entry key="H4" value="2.3665057537134477" />
-      <entry key="D1" value="3.5592935900932363" />
-      <entry key="W1" value="3.9308009263365915" />
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="2.1269647820569437E-128" />
+      <entry key="S2" value="1.2076471889529811E-32" />
+      <entry key="S5" value="1.709468855168099E-13" />
+      <entry key="S10" value="4.2713760170119826E-7" />
+      <entry key="S30" value="0.016572164281122174" />
+      <entry key="S60" value="0.3620830417687625" />
+      <entry key="M2" value="2.0293105851953745" />
+      <entry key="M5" value="7.032024819207584" />
+      <entry key="M10" value="11.340739205479544" />
+      <entry key="M15" value="13.411368840918783" />
+      <entry key="M30" value="15.929042370662957" />
+      <entry key="H1" value="17.42406812780077" />
+      <entry key="H2" value="18.510006709889836" />
+      <entry key="H4" value="19.719263181934455" />
+      <entry key="D1" value="22.726512644265174" />
+      <entry key="W1" value="23.793209770936883" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="2.391162835905581E-4" />
-      <entry key="MS500" value="0.1886782738162724" />
-      <entry key="S2" value="0.6849173451976809" />
-      <entry key="S5" value="1.389508588926238" />
-      <entry key="S10" value="2.5332751244705025" />
-      <entry key="S30" value="4.385843121351484" />
-      <entry key="S60" value="5.114925751317574" />
-      <entry key="M2" value="5.5359442472285165" />
-      <entry key="M5" value="5.82147304027956" />
-      <entry key="M10" value="6.177874961765855" />
-      <entry key="M15" value="6.702702198032369" />
-      <entry key="M30" value="8.13957834975569" />
-      <entry key="H1" value="10.947813179716249" />
-      <entry key="H2" value="22.597805628686906" />
-      <entry key="H4" value="49.04657264126103" />
-      <entry key="D1" value="113.9467069490615" />
-      <entry key="W1" value="133.40628080767388" />
+      <entry key="MS100" value="0.9202297181941844" />
+      <entry key="MS500" value="1.4593335461310142" />
+      <entry key="S2" value="2.6887119399346036" />
+      <entry key="S5" value="3.3574486462166497" />
+      <entry key="S10" value="3.6615836690670998" />
+      <entry key="S30" value="5.053069927387054" />
+      <entry key="S60" value="9.757055295383637" />
+      <entry key="M2" value="22.057666974174833" />
+      <entry key="M5" value="48.33098439263775" />
+      <entry key="M10" value="66.67261959567854" />
+      <entry key="M15" value="74.75220266140072" />
+      <entry key="M30" value="84.55835016479539" />
+      <entry key="H1" value="101.3074985222788" />
+      <entry key="H2" value="156.97607452290654" />
+      <entry key="H4" value="253.80353019623394" />
+      <entry key="D1" value="480.23093395830597" />
+      <entry key="W1" value="553.1709677616274" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -136,42 +289,47 @@
   <component name="ProjectId" id="3GjKXxFMCgGVtphvnwAubwjm0oP" />
   <component name="ProjectLevelVcsManager">
     <OptionsSetting value="false" id="Update" />
+    <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Cargo.Run dat-cms.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test bench_test.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Test dat-rust bench_test.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.Tests in 'tests'.executor&quot;: &quot;Run&quot;,
-    &quot;Cargo.test-all.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.rust.reset.selective.auto.import&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/marker/RustroverProjects/dat/dat-cms&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;org.rust.cargo.project.model.PROJECT_DISCOVERY&quot;: &quot;true&quot;,
-    &quot;org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon&quot;: &quot;&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\201610099\\AppData\\Local\\Programs\\RustRover\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Cargo.All Tests.executor": "Run",
+    "Cargo.Run dat-cms.executor": "Run",
+    "Cargo.Test bench_test.executor": "Run",
+    "Cargo.Test dat-rust bench_test.executor": "Run",
+    "Cargo.Test hard_test.executor": "Run",
+    "Cargo.Test test.executor": "Run",
+    "Cargo.Tests in 'tests'.executor": "Run",
+    "Cargo.test-all.executor": "Run",
+    "CidrDebugProfileConversion": "true",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.rust.reset.selective.auto.import": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "master",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/marker/RustroverProjects/dat/dat-cms",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
+    "org.rust.cargo.project.model.impl.CargoExternalSystemProjectAware.subscribe.first.balloon": "",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "C:\\Users\\201610099\\AppData\\Local\\Programs\\RustRover\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/dat-cms" />
@@ -183,11 +341,11 @@
       <recent name="$PROJECT_DIR$/clients/dat-go/v4" />
     </key>
   </component>
-  <component name="RunManager" selected="Cargo.Test dat-rust bench_test">
+  <component name="RunManager" selected="Cargo.Run dat-cms">
     <list>
-      <item itemvalue="Cargo.Run dat-cms" />
-      <item itemvalue="Cargo.Test dat-rust bench_test" />
       <item itemvalue="Cargo.Test dat-rust all" />
+      <item itemvalue="Cargo.Test dat-rust bench_test" />
+      <item itemvalue="Cargo.Run dat-cms" />
     </list>
   </component>
   <component name="RustProjectSettings">
@@ -374,6 +532,9 @@
     <MESSAGE value="Integrate Project&#10;&#10;- layout" />
     <MESSAGE value="test" />
     <MESSAGE value="update web design" />
-    <option name="LAST_COMMIT_MESSAGE" value="update web design" />
+    <MESSAGE value="v4.6.0 - TEST rust" />
+    <MESSAGE value="v4.6.0 - TEST cms" />
+    <MESSAGE value="v4.6.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="v4.6.0" />
   </component>
 </project>

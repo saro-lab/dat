@@ -2,19 +2,26 @@ import { localeCodes } from '../locales';
 
 const REPO_BASE = 'https://github.com/saro-lab/dat/tree/master';
 
+/**
+ * 모든 포트가 같은 프로토콜을 구현하므로 버전도 하나로 묶는다. 이 값이 갈리면
+ * 사용자가 호환 조합을 판단할 근거가 없어진다 — 배포 때 여기 한 줄만 올린다.
+ * (Go 모듈만 `v` 접두가 붙는다.)
+ */
+const DAT_VERSION = '4.6.0';
+
 export const libList: Library[] = [
     // libraries
-    _cargo('dat', '4.3.6', '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
-    _maven('me.saro:dat', '4.3.6', '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
-    _npm('saro-dat', '4.3.4', '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
-    _pypi('saro-dat', '4.4.1', '/libs/pypi-saro-dat', `${REPO_BASE}/dat-pypi`),
-    _nuget('saro-dat', '4.3.3', '/libs/nuget-saro-dat', `${REPO_BASE}/dat-nuget`),
-    _go('github.com/saro-lab/dat/dat-go/v4', 'v4.3.3', '/libs/go-saro-dat', `${REPO_BASE}/dat-go`),
-    _vcpkg('dat', '4.3.0', '/libs/vcpkg-dat', true, `${REPO_BASE}/dat-vcpkg`),
-    _ruby('saro-dat', '4.3.4', '/libs/gems-saro-dat', `${REPO_BASE}/dat-ruby`),
+    _cargo('dat', DAT_VERSION, '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
+    _maven('me.saro:dat', DAT_VERSION, '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
+    _npm('saro-dat', DAT_VERSION, '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
+    _pypi('saro-dat', DAT_VERSION, '/libs/pypi-saro-dat', `${REPO_BASE}/dat-pypi`),
+    _nuget('saro-dat', DAT_VERSION, '/libs/nuget-saro-dat', `${REPO_BASE}/dat-nuget`),
+    _go('github.com/saro-lab/dat/dat-go/v4', `v${DAT_VERSION}`, '/libs/go-saro-dat', `${REPO_BASE}/dat-go`),
+    _vcpkg('dat', DAT_VERSION, '/libs/vcpkg-dat', true, `${REPO_BASE}/dat-vcpkg`),
+    _ruby('saro-dat', DAT_VERSION, '/libs/gems-saro-dat', `${REPO_BASE}/dat-ruby`),
 
     // services
-    _docker('sarolab/dat-cms', '4.3.6', '/svc/docker-saro-lab-dat-cms', `${REPO_BASE}/dat-cms`, [
+    _docker('sarolab/dat-cms', DAT_VERSION, '/svc/docker-saro-lab-dat-cms', `${REPO_BASE}/dat-cms`, [
         'arch=amd64',
         'arch=arm64',
         'type=link'

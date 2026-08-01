@@ -21,15 +21,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoot, useTranslate } from '../src/langs'
-import { pageOrder, useCurrentPath, type NavLink } from '../src/nav'
+import { useCurrentPath, usePageOrder, type NavLink } from '../src/nav'
 
 const { t } = useTranslate()
 const root = useRoot()
 const currentPath = useCurrentPath()
+const pageOrder = usePageOrder()
 
-const index = computed(() => pageOrder.findIndex((entry) => entry.path === currentPath.value))
-const prevItem = computed(() => (index.value > 0 ? pageOrder[index.value - 1] : null))
-const nextItem = computed(() => (index.value < 0 ? null : pageOrder[index.value + 1] || null))
+const index = computed(() => pageOrder.value.findIndex((entry) => entry.path === currentPath.value))
+const prevItem = computed(() => (index.value > 0 ? pageOrder.value[index.value - 1] : null))
+const nextItem = computed(() => (index.value < 0 ? null : pageOrder.value[index.value + 1] || null))
 
 function label(entry: NavLink): string {
   return entry.title || t(entry.navKey || entry.titleKey!)

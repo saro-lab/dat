@@ -4,6 +4,8 @@
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
 
+> **Requires:** Go >= 1.25 (`crypto/ecdsa` raw key parsing replaced the deprecated `elliptic.Marshal` family)
+
 
 ## {{t('example')}}: {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
@@ -13,28 +15,34 @@
 ```go
 // logger example
 opts := &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+    Level: slog.LevelDebug,
 }
-testLogger := slog.New(slog.NewTextHandler(os.Stdout, opts))
+logger := slog.New(slog.NewTextHandler(os.Stdout, opts))
 
-builder, err := NewDatCmsManagerBuilder().
+builder, err := dat.NewDatCmsManagerBuilder().
     Url("http://localhost:8088")
 if err != nil {
-    t.Fatal(err)
+    return err
 }
 
 manager, err := builder.
     // IntervalOff(). // disable auto sync
     Interval(60 * time.Second).
-    Logger(testLogger).
+    Logger(logger).
     Token("12345678901b").
     Build()
 
 if err != nil {
-    t.Fatalf("failed to build manager: %v", err)
+    return err
 }
 
-// manual sync
+// Build() hands back the manager even when the first sync failed, so that a
+// later tick can still recover. Ask for the failure instead of assuming success.
+if syncErr := manager.LastError(); syncErr != nil {
+    logger.Warn("certificates are not being refreshed yet", "code", dat.Code(syncErr))
+}
+
+// manual sync — returns error
 // _ = manager.Sync()
 ```
 #### issue / parse
@@ -65,6 +73,48 @@ fmt.Printf("payload plain: %q\n", payload.PlainText())
 fmt.Printf("payload secure: %q\n", payload.SecureText())
 ```
 
+#### {{t('error_handling')}}
+- [{{t('menu_spec_errors')}}](../spec/errors)
+
+```go
+// needs "errors" in the file imports
+
+// 1. Expiry, forgery and a malformed token each need a different response.
+//    They used to share one sentinel, so callers could not tell them apart.
+payload, err := manager.Parse(datStr)
+switch {
+case err == nil:
+    fmt.Printf("plain: %q\n", payload.PlainText())
+// Normal end of life. Let the caller refresh and try again.
+case errors.Is(err, dat.ErrTokenExpired):
+    fmt.Println("expired: ask the client to re-issue")
+// DAT_SIG_MISMATCH / DAT_CRYPTO_TAG_MISMATCH — direct evidence of tampering.
+case dat.SecurityEvent(err):
+    logger.Warn("drop the session", "code", dat.Code(err))
+// Anything else is simply a bad request.
+default:
+    fmt.Printf("rejected %s: %v\n", dat.Code(err), err)
+}
+
+// 2. Never retry a permanent failure. A wrong token answers 401 forever.
+if err := manager.Sync(); err != nil {
+    switch dat.Retry(err) {
+    case dat.RetryTransient:
+        logger.Info("retrying on the next tick", "code", dat.Code(err))
+    case dat.RetryPermanent:
+        logger.Error("fix the token, url or deployment", "code", dat.Code(err))
+    case dat.RetryState:
+        // not a failure — a sync was already running
+    }
+}
+
+// 3. Sync failures are never returned to the caller of Build(). Poll the
+//    manager to notice a stalled rollout.
+if err := manager.LastError(); err != nil {
+    logger.Error("certificates are not being refreshed", "code", dat.Code(err))
+}
+```
+
 ## {{t('example')}}: {{t('manual_code')}}
 - [{{t('example')}}: manager_test.go](https://github.com/saro-lab/dat/tree/master/dat-go/blob/master/manager_test.go)
 - [{{t('example')}}: manager_example_test.go](https://github.com/saro-lab/dat/tree/master/dat-go/blob/master/manager_example_test.go)
@@ -72,8 +122,9 @@ fmt.Printf("payload secure: %q\n", payload.SecureText())
 ```go
 manager := dat.NewManager()
 
+// (cid, issuanceStart, issuanceDuration, datTtl, signatureAlgorithm, cryptoAlgorithm)
 now := dat.NowUnixTimestamp()
-cert, err := dat.GenerateCertificate(1, now-10, 610, 60, dat.EcdsaP256, dat.IvAes256Gcm)
+cert, err := dat.GenerateCertificate(1, now-10, 3600, 1800, dat.EcdsaP256, dat.IvAes256Gcm)
 if err != nil {
     t.Fatal(err)
 }
@@ -106,6 +157,21 @@ if payload.SecureText() != secure {
 println(datStr)
 println(payload.PlainText())
 println(payload.SecureText())
+```
+
+#### export
+```go
+// ExportCertificates and GenerateCryptoKey both return an error — a failing RNG
+// must never be silently turned into an all-zero key.
+certs, err := manager.ExportCertificates()
+if err != nil {
+    return err
+}
+
+crypto, err := dat.GenerateCryptoKey(dat.IvAes256Gcm)
+if err != nil {
+    return err
+}
 ```
 
 

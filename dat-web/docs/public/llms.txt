@@ -50,16 +50,18 @@ expire.cid.plain.secure.signature
 
 DAT is available for 8 languages/platforms:
 
-- **Rust** (Cargo): `dat = { version = "4.3.3" }`
-- **Java/Kotlin** (Maven/Gradle): `me.saro:dat:4.3.4`
-- **JavaScript/TypeScript** (npm/yarn/pnpm): `saro-dat@4.3.2`
-- **Python** (PyPI): `pip install "saro-dat~=4.4.0"`
-- **C#** (NuGet): `saro-dat 4.3.1`
-- **Go**: `go get github.com/saro-lab/dat-go/v4@v4.3.1`
-- **C/C++** (vcpkg): `dat 4.3.0`
-- **Ruby** (Gems): `gem install saro-dat --version "~> 4.3.2"`
+All ports implement the same protocol and share a single version number.
+
+- **Rust** (Cargo): `dat = { version = "4.6.0" }` — Rust edition 2024
+- **Java/Kotlin** (Maven/Gradle): `me.saro:dat:4.6.0` — JVM >= 17
+- **JavaScript/TypeScript** (npm/yarn/pnpm): `saro-dat@4.6.0` — Node >= 24, ESM only
+- **Python** (PyPI): `pip install "saro-dat~=4.6.0"` — Python >= 3.10
+- **C#** (NuGet): `saro-dat 4.6.0` — net8.0 / net10.0
+- **Go**: `go get github.com/saro-lab/dat/dat-go/v4@v4.6.0` — Go >= 1.25
+- **C/C++** (vcpkg): `dat 4.6.0` — CMake, OpenSSL
+- **Ruby** (Gems): `gem install saro-dat --version "~> 4.6.0"`
 
 ## Service
 
-- DAT Certificate Management Service: Docker image `sarolab/dat-cms:4.3.3` (amd64, arm64)
+- DAT Certificate Management Service: Docker image `sarolab/dat-cms:4.6.0` (amd64, arm64)
   - Manages DAT certificate lifecycle, key generation, and rotation schedules

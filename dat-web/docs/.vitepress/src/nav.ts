@@ -14,6 +14,12 @@ export type NavLink = {
   navKey?: MessageKey
   /** Renders indented under the preceding group heading. */
   sub?: boolean
+  /**
+   * Locale codes this page exists in. Omit once every locale has it — the menu
+   * is shared across all 15 languages, so listing a page that only some of them
+   * carry would hand the rest a link straight into the 404.
+   */
+  locales?: string[]
 }
 
 /** A non-clickable heading that groups the links after it. */
@@ -28,6 +34,36 @@ export type NavSection = {
 
 export function isGroup(entry: NavEntry): entry is NavGroup {
   return 'labelKey' in entry
+}
+
+/** Whether this entry should show up in the given locale. */
+export function inLocale(entry: NavEntry, locale: string): boolean {
+  return isGroup(entry) || !entry.locales || entry.locales.includes(locale)
+}
+
+/** `navSections` with entries the current locale does not carry filtered out. */
+export function useNavSections(): ComputedRef<NavSection[]> {
+  const locale = useLocale()
+  return computed(() =>
+    navSections
+      .map((section) => ({
+        ...section,
+        entries: section.entries.filter((entry) => inLocale(entry, locale.value)),
+      }))
+      .filter((section) => section.entries.some((entry) => !isGroup(entry))),
+  )
+}
+
+/** Reading order for the current locale, so prev/next never points at a 404. */
+export function usePageOrder(): ComputedRef<NavLink[]> {
+  const locale = useLocale()
+  return computed(() => pageOrder.filter((entry) => inLocale(entry, locale.value)))
+}
+
+/** The current locale code, e.g. `ko`. Empty at the un-prefixed site root. */
+function useLocale(): ComputedRef<string> {
+  const { localeIndex } = useData()
+  return computed(() => (localeIndex.value === 'root' ? '' : localeIndex.value))
 }
 
 /**
@@ -46,6 +82,8 @@ export const navSections: NavSection[] = [
     entries: [
       { path: '/spec/dat', titleKey: 'menu_spec_dat' },
       { path: '/spec/dat-certificate', titleKey: 'menu_spec_cert' },
+      { path: '/spec/cms', titleKey: 'menu_spec_cms' },
+      { path: '/spec/errors', titleKey: 'menu_spec_errors' },
     ],
   },
   {

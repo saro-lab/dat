@@ -12,7 +12,7 @@ authors = [{name = "Marker Seoul", email = "j@saro.me"}]
 # 3.10 floor: signature.py imports typing.TypeAlias (PEP 613, added in 3.10).
 requires-python = ">=3.10"
 dependencies = [
-    "cryptography>=47.0.0",
+    "cryptography>=50.0.0",
 ]
 
 [project.urls]
@@ -22,7 +22,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.2",
+    "pytest>=9.1.1",
 ]
 
 [tool.hatch.build.targets.wheel]

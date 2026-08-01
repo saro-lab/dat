@@ -6,6 +6,8 @@ layout: home
 import {useRoot, useTranslate} from "../.vitepress/src/langs";
 import {getLibTags} from "../.vitepress/src/libs";
 import DatExample from "../.vitepress/ui/DatExample.vue";
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
+import WireFormat from "../.vitepress/ui/WireFormat.vue";
 
 const root = useRoot();
 const {t} = useTranslate();
@@ -59,6 +61,37 @@ DAT Certificate Management Service(CMS)가 클러스터 전체의 인증서 생�
     </div>
 </div>
 
+<div class="section-title">전체 구조</div>
+
+<ArchFlow
+    :user="{label: '유저', icon: 'person'}"
+    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['유효 기간별 인증서 생성', '만료 인증서 정리']}"
+    :service="{servers: [
+        {label: '로그인 서버', kind: 'issuer', icon: 'login',
+         request: '로그인 요청', response: '인증서로 DAT 발급', sync: 'DAT 발급 가능 인증서 동기화'},
+        {label: '컨텐츠 서버', kind: 'verifier', icon: 'apps',
+         request: 'DAT로 컨텐츠 요청', response: 'DAT 검증 후 서비스 제공', sync: 'DAT 검증 전용 인증서 동기화'},
+    ]}"
+/>
+
+<div class="hero-desc">
+로그인 서버만 발급 가능한 인증서를 받아 DAT를 발급하고, 컨텐츠 서버는 검증 전용 인증서만 받아 들어온 DAT를 확인합니다.
+유저는 서비스 하나만 상대하면 되고, 컨텐츠 서버는 로그인 서버와 직접 통신할 필요가 없습니다.
+</div>
+
+<div class="section-title">토큰 구조</div>
+
+<WireFormat
+    hint="각 필드에 마우스를 올리면 설명이 표시됩니다."
+    :segments="[
+        {name: 'expire', type: 'uint64 (10진수)', kind: 'meta', note: '토큰 만료 시각 — 규격에 강제되어 있습니다.'},
+        {name: 'cid', type: 'uint64 (16진수)', kind: 'meta', note: '검증에 사용할 인증서 ID.'},
+        {name: 'plain', type: 'Base64Url', kind: 'plain', note: '누구나 읽을 수 있는 공개 데이터.'},
+        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'AES-GCM으로 암호화된 데이터.'},
+        {name: 'signature', type: 'Base64Url', kind: 'sig', note: '앞 네 필드 전체에 대한 서명.'},
+    ]"
+/>
+
 <a :href="`${root}/svc/docker-saro-lab-dat-cms`" class="cta-banner">
     <div class="cta-icon">🚀</div>
     <div class="cta-text">
@@ -74,8 +107,6 @@ DAT Certificate Management Service(CMS)가 클러스터 전체의 인증서 생�
         <span v-if="tagIcon(tag.name)">{{tagIcon(tag.name)}}</span>{{tag.name}}
     </a>
 </div>
-
-<div class="section-title">{{t('example')}}</div>
 
 </div>
 

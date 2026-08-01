@@ -33,7 +33,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import { isGroup, navSections, useCurrentPath } from '../src/nav'
+import { isGroup, useCurrentPath, useNavSections } from '../src/nav'
 import { useRoot, useTranslate } from '../src/langs'
 
 const onMenu = defineModel({
@@ -43,6 +43,7 @@ const onMenu = defineModel({
 
 const { t } = useTranslate()
 const root = useRoot()
+const navSections = useNavSections()
 const currentPath = useCurrentPath()
 
 function onKeydown(event: KeyboardEvent) {
