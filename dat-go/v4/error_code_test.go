@@ -1,6 +1,7 @@
 package dat_test
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 	"testing"
