@@ -13,7 +13,7 @@ plugins {
 
 val datGroupId = "me.saro"
 val datArtifactId = "dat"
-val datVersion = "4.3.6"
+val datVersion = "4.6.0"
 
 group = datGroupId
 version = datVersion
@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.84")
-    compileOnly("org.slf4j:slf4j-api:2.0.18")
+    implementation("org.slf4j:slf4j-api:2.0.18")
 
 	// test
     val junitVer = "6.1.1"

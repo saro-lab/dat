@@ -12,7 +12,8 @@ class TestExample(unittest.TestCase):
 
         # create certificate
         now = int(time.time())
-        cert = DatCertificate(0, DatSignature.generate(DatSignatureAlgorithm.ECDSA_P256), DatCrypto.generate(DatCryptoAlgorithm.IV_AES128_GCM), now - 10, now + 10, 1800)
+        # (cid, issuance_start, issuance_duration, ttl, signature, crypto) — rust order
+        cert = DatCertificate(0, now - 10, 20, 1800, DatSignature.generate(DatSignatureAlgorithm.ECDSA_P256), DatCrypto.generate(DatCryptoAlgorithm.IV_AES128_GCM))
 
         # import certificate
         dat_manager.import_certificates([cert])

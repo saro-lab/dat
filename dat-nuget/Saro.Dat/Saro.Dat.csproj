@@ -1,13 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <!-- net8.0 is the current LTS; net10.0 gets the built-in Base64Url.
+             DatUtils shims Base64Url for net8.0, see DatUtils.cs. -->
+        <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
 
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>saro-dat</PackageId>
-        <Version>4.3.3</Version>
+        <Version>4.6.0</Version>
         <Authors>Marker Seoul</Authors>
         <Company>SARO</Company>
 

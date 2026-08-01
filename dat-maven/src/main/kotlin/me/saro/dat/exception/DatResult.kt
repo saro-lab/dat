@@ -21,7 +21,7 @@ class DatResult<out T> private constructor(
             return if (isSuccess) {
                 val v = onSuccess(value!!)
                 if (v == null) {
-                    failure(DatException.IS_NULL)
+                    failure(DatException(DatErrorCode.INTERNAL_UNKNOWN, "mapped value is null"))
                 } else {
                     success(v)
                 }
@@ -76,7 +76,7 @@ class DatResult<out T> private constructor(
             } else if (success != null) {
                 DatResult(success, null, result)
             } else {
-                DatResult(null, DatException.IS_NULL, result)
+                DatResult(null, DatException(DatErrorCode.INTERNAL_UNKNOWN, "value is null"), result)
             }
         }
         inline fun <R> runCatching(block: () -> R): DatResult<R> {

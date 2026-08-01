@@ -36,34 +36,40 @@ func ParseDat(s string) (*Dat, error) {
 	for i := 0; i < len(s); i++ {
 		if s[i] == '.' {
 			if n == 4 {
-				return nil, ErrInvalidDat
+				return nil, ErrTokenMalformed.With("expected exactly 5 dot-separated fields")
 			}
 			dots[n] = i
 			n++
 		}
 	}
 	if n != 4 {
-		return nil, ErrInvalidDat
+		return nil, ErrTokenMalformed.With("expected exactly 5 dot-separated fields")
 	}
 
+	// 구조가 확정된 뒤에야 값을 본다. 만료와 형식 오류를 갈라 낸다 — 예전에는 둘 다
+	// ErrInvalidDat 하나였고, 그래서 호출부가 "토큰을 갱신하라"와 "세션을 끊어라"를
+	// 구분할 수 없었다.
 	expire, err := strconv.ParseUint(s[:dots[0]], 10, 64)
-	if err != nil || expire <= NowUnixTimestamp() {
-		return nil, ErrInvalidDat
+	if err != nil {
+		return nil, ErrTokenMalformed.With("expire field is not a plain decimal u64")
+	}
+	if expire <= NowUnixTimestamp() {
+		return nil, ErrTokenExpired
 	}
 
 	cid, err := strconv.ParseUint(s[dots[0]+1:dots[1]], 16, 64)
 	if err != nil {
-		return nil, ErrInvalidDat
+		return nil, ErrTokenMalformed.With("cid field is not a plain hex u64")
 	}
 
 	signatureB64 := s[dots[3]+1:]
 	if signatureB64 == "" {
-		return nil, ErrInvalidDat
+		return nil, ErrSigMalformed.With("signature field is empty")
 	}
 
 	signature, err := DecodeBase64URL(signatureB64)
 	if err != nil {
-		return nil, err
+		return nil, ErrSigMalformed.With("signature field is not base64url")
 	}
 
 	return &Dat{

@@ -51,7 +51,10 @@ func TestManager(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	certs := manager.ExportCertificates()
+	certs, err := manager.ExportCertificates()
+	if err != nil {
+		t.Fatal(err)
+	}
 	var dats []string
 	for _, cert := range certs {
 		datStr, err := manager.IssueWithCertificate(cert, plain, secure)

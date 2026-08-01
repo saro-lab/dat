@@ -15,7 +15,7 @@ func EncodeBase64URL(b []byte) string {
 func DecodeBase64URL(b64 string) ([]byte, error) {
 	data, err := base64URL.DecodeString(b64)
 	if err != nil {
-		return nil, ErrInvalidBase64Format
+		return nil, ErrConfigArgumentInvalid.With("not a valid base64url string")
 	}
 	return data, nil
 }

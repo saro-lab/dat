@@ -1,5 +1,8 @@
 package me.saro.dat.crypto
 
+import me.saro.dat.exception.DatErrorCode
+import me.saro.dat.exception.DatException
+
 enum class DatCryptoAlgorithm(val text: String) {
     IV_AES128_GCM("IV-AES128-GCM"),
     IV_AES256_GCM("IV-AES256-GCM");
@@ -12,7 +15,7 @@ enum class DatCryptoAlgorithm(val text: String) {
         @JvmStatic
         fun fromString(s: String): DatCryptoAlgorithm {
             return entries.find { it.text == s }
-                ?: throw IllegalArgumentException("Unknown crypto algorithm: $s")
+                ?: throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "unknown crypto algorithm: $s")
         }
     }
 }

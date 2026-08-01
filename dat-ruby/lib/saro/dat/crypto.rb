@@ -2,6 +2,7 @@
 
 require 'openssl'
 require 'securerandom'
+require_relative 'error'
 require_relative 'util'
 
 module Saro
@@ -23,7 +24,7 @@ module Saro
     def self.get_crypto_config(algorithm)
       config = CRYPTO_CONFIG[algorithm]
       return config if config
-      raise ArgumentError, "Unsupported DAT Crypto Algorithm: #{algorithm}"
+      raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CONFIG_ALG_UNSUPPORTED, "unknown crypto algorithm: #{algorithm}")
     end
 
     class DatCrypto
@@ -31,6 +32,14 @@ module Saro
 
       def initialize(algorithm, key_bytes, config = nil)
         @config = config || Saro::Dat.get_crypto_config(algorithm)
+        # OpenSSL accepts any valid AES length, so a 16-byte key would silently
+        # become AES-128 under an IV-AES256-GCM label without this check.
+        if key_bytes.bytesize != @config[:length]
+          raise Saro::Dat::Error.new(
+            Saro::Dat::ErrorCode::KEY_INVALID,
+            "#{algorithm} key must be #{@config[:length]} bytes, got #{key_bytes.bytesize}"
+          )
+        end
         @algorithm = algorithm
         @key_bytes = key_bytes
       end
@@ -63,20 +72,35 @@ module Saro
         cipher.iv_len = 12
         cipher.iv = nonce
         
-        ciphertext = cipher.update(data) + cipher.final
-        tag = cipher.auth_tag
+        begin
+          ciphertext = cipher.update(data) + cipher.final
+          tag = cipher.auth_tag
+        rescue OpenSSL::Cipher::CipherError => e
+          raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CRYPTO_BACKEND, "aes-gcm encrypt failed", cause: e)
+        end
 
         nonce + ciphertext + tag
       end
 
+      # Decrypts base64url-encoded ciphertext.
+      def decrypt_base64(base64_str)
+        decrypt(Saro::Dat::Util.decode_base64_url(base64_str))
+      end
+
+      # Decrypts raw (already decoded) ciphertext: nonce(12) + ciphertext + tag(16).
+      # Use #decrypt_base64 for encoded input. The branch used to be picked from
+      # the string's encoding tag, so raw ciphertext that merely carried a UTF-8
+      # tag was silently mangled by the base64 decoder.
       def decrypt(data)
-        if data.is_a?(String) && data.encoding != Encoding::BINARY
-          data = Saro::Dat::Util.decode_base64_url(data)
-        end
         return "".b if data.nil? || data.empty?
 
-        if data.length <= 12 + 16 # nonce(12) + tag(16)
-          raise ArgumentError, "Invalid data length"
+        # Slice by bytes, never by characters: String#[] is character-indexed on
+        # a non-binary string, so raw ciphertext carrying a UTF-8 tag would be
+        # split at the wrong offsets.
+        data = data.b if data.is_a?(String) && data.encoding != Encoding::BINARY
+
+        if data.bytesize <= 12 + 16 # nonce(12) + tag(16)
+          raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CRYPTO_DATA_INVALID, "ciphertext is shorter than iv(12) + tag(16)")
         end
 
         nonce = data[0, 12]
@@ -90,7 +114,15 @@ module Saro
         cipher.iv = nonce
         cipher.auth_tag = tag
 
-        res = cipher.update(ciphertext) + cipher.final
+        # cipher.final 에서 나는 실패는 GCM 인증 태그 불일치다 — 변조된 secure 이거나
+        # 잘못된 인증서 키다. 예전에는 OpenSSL::Cipher::CipherError 가 그대로 공개
+        # API 밖으로 새어 나갔다. 서명 검증을 건너뛰는 경로에서는 이것이 유일한
+        # 무결성 검사이므로 백엔드 오류(CRYPTO_BACKEND)와 반드시 구분한다.
+        begin
+          res = cipher.update(ciphertext) + cipher.final
+        rescue OpenSSL::Cipher::CipherError => e
+          raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CRYPTO_TAG_MISMATCH, "gcm authentication tag mismatch", cause: e)
+        end
         res.force_encoding('BINARY')
         res
       end

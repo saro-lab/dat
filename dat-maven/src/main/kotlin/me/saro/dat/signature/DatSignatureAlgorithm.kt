@@ -1,5 +1,8 @@
 package me.saro.dat.signature
 
+import me.saro.dat.exception.DatErrorCode
+import me.saro.dat.exception.DatException
+
 enum class DatSignatureAlgorithm(val text: String) {
     HMAC_SHA256_MFS("HMAC-SHA256-MFS"),
     HMAC_SHA384_MFS("HMAC-SHA384-MFS"),
@@ -16,7 +19,7 @@ enum class DatSignatureAlgorithm(val text: String) {
         @JvmStatic
         fun fromString(s: String): DatSignatureAlgorithm {
             return DatSignatureAlgorithm.entries.find { it.text == s }
-                ?: throw IllegalArgumentException("Unknown signature algorithm: $s")
+                ?: throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "unknown signature algorithm: $s")
         }
     }
 }

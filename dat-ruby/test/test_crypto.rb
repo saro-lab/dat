@@ -20,7 +20,7 @@ class TestDatCrypto < Minitest::Test
     encrypted = Saro::Dat::Util.encode_base64_url_str(gen_key.encrypt(original_text))
     puts "#{tag} Encrypted: #{encrypted}"
 
-    decrypted = copy_key.decrypt(encrypted).force_encoding('utf-8')
+    decrypted = copy_key.decrypt_base64(encrypted).force_encoding('utf-8')
     puts "#{tag} Decrypted: #{decrypted}"
     assert_equal original_text, decrypted
 
@@ -29,7 +29,7 @@ class TestDatCrypto < Minitest::Test
     encrypted_empty = Saro::Dat::Util.encode_base64_url_str(gen_key.encrypt(original_text_empty))
     puts "#{tag} Encrypted: #{encrypted_empty}"
 
-    decrypted_empty = copy_key.decrypt(encrypted_empty).force_encoding('utf-8')
+    decrypted_empty = copy_key.decrypt_base64(encrypted_empty).force_encoding('utf-8')
     puts "#{tag} Decrypted: #{decrypted_empty}"
 
     assert_equal original_text_empty, decrypted_empty

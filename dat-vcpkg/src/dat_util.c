@@ -9,7 +9,7 @@
 dat_error_t sbuf_init(dat_sbuf_t* buf, size_t cap) {
     if (cap == 0) cap = 16;
     buf->data = (char*)malloc(cap + 1);
-    if (!buf->data) return DAT_ERROR_MALLOC_FAILED;
+    if (!buf->data) return DAT_INTERNAL_UNKNOWN;
     buf->len = 0;
     buf->cap = cap;
     buf->data[0] = '\0';
@@ -21,7 +21,7 @@ static dat_error_t sbuf_ensure(dat_sbuf_t* buf, size_t extra) {
     size_t new_cap = buf->cap * 2;
     if (new_cap < buf->len + extra) new_cap = buf->len + extra;
     char* nd = (char*)realloc(buf->data, new_cap + 1);
-    if (!nd) return DAT_ERROR_MALLOC_FAILED;
+    if (!nd) return DAT_INTERNAL_UNKNOWN;
     buf->data = nd;
     buf->cap  = new_cap;
     return DAT_SUCCESS;
@@ -69,7 +69,7 @@ char* sbuf_take(dat_sbuf_t* buf) {
 dat_error_t bbuf_init(dat_bbuf_t* buf, size_t cap) {
     if (cap == 0) cap = 16;
     buf->data = (uint8_t*)malloc(cap);
-    if (!buf->data) return DAT_ERROR_MALLOC_FAILED;
+    if (!buf->data) return DAT_INTERNAL_UNKNOWN;
     buf->len = 0;
     buf->cap = cap;
     return DAT_SUCCESS;
@@ -80,7 +80,7 @@ dat_error_t bbuf_ensure(dat_bbuf_t* buf, size_t extra) {
     size_t new_cap = buf->cap * 2;
     if (new_cap < buf->len + extra) new_cap = buf->len + extra;
     uint8_t* nd = (uint8_t*)realloc(buf->data, new_cap);
-    if (!nd) return DAT_ERROR_MALLOC_FAILED;
+    if (!nd) return DAT_INTERNAL_UNKNOWN;
     buf->data = nd;
     buf->cap  = new_cap;
     return DAT_SUCCESS;
@@ -202,28 +202,28 @@ dat_error_t decode_base64_url_out(const char* b64, size_t b64_len, dat_bbuf_t* o
         while (i < b64_len && b64[i] == '=') i++;
         if (i >= b64_len) break;
         c0 = B64_DEC[(unsigned char)b64[i++]];
-        if (c0 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c0 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
 
         while (i < b64_len && b64[i] == '=') i++;
         if (i >= b64_len) {
             /* only one char left - should not happen in valid base64 */
-            return DAT_ERROR_INVALID_BASE64_FORMAT;
+            return DAT_CONFIG_ARGUMENT_INVALID;
         }
         c1 = B64_DEC[(unsigned char)b64[i++]];
-        if (c1 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c1 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
 
         p[written++] = (uint8_t)((c0 << 2) | (c1 >> 4));
 
         while (i < b64_len && b64[i] == '=') i++;
         if (i >= b64_len) break;
         c2 = B64_DEC[(unsigned char)b64[i++]];
-        if (c2 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c2 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
         p[written++] = (uint8_t)((c1 << 4) | (c2 >> 2));
 
         while (i < b64_len && b64[i] == '=') i++;
         if (i >= b64_len) break;
         c3 = B64_DEC[(unsigned char)b64[i++]];
-        if (c3 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c3 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
         p[written++] = (uint8_t)((c2 << 6) | c3);
     }
     out->len += written;
@@ -252,25 +252,25 @@ dat_error_t decode_base64_url_out_str(const char* b64, size_t b64_len, dat_sbuf_
         while (i < src_len && src[i] == '=') i++;
         if (i >= src_len) break;
         c0 = B64_DEC[(unsigned char)src[i++]];
-        if (c0 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c0 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
 
         while (i < src_len && src[i] == '=') i++;
-        if (i >= src_len) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (i >= src_len) return DAT_CONFIG_ARGUMENT_INVALID;
         c1 = B64_DEC[(unsigned char)src[i++]];
-        if (c1 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c1 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
 
         p[written++] = (uint8_t)((c0 << 2) | (c1 >> 4));
 
         while (i < src_len && src[i] == '=') i++;
         if (i >= src_len) break;
         c2 = B64_DEC[(unsigned char)src[i++]];
-        if (c2 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c2 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
         p[written++] = (uint8_t)((c1 << 4) | (c2 >> 2));
 
         while (i < src_len && src[i] == '=') i++;
         if (i >= src_len) break;
         c3 = B64_DEC[(unsigned char)src[i++]];
-        if (c3 == 255) return DAT_ERROR_INVALID_BASE64_FORMAT;
+        if (c3 == 255) return DAT_CONFIG_ARGUMENT_INVALID;
         p[written++] = (uint8_t)((c2 << 6) | c3);
     }
     out->len += written;
@@ -292,12 +292,13 @@ dat_error_t decode_base64_url(const char* b64, size_t b64_len, uint8_t** out_dat
 
 /* ── to_hex_u64_out ───────────────────────────────────────────────── */
 
-/* Port of Rust's to_hex_u64_out: write digits back-to-front, then shift forward */
-void to_hex_u64_out(uint64_t no, dat_sbuf_t* out) {
+/* Port of Rust's to_hex_u64_out: write digits back-to-front, then shift forward.
+ * 예전에는 void 라서 버퍼 확장 실패가 조용히 사라졌고, 호출부는 잘린 문자열을
+ * 정상으로 취급했다. 이제 할당 실패를 그대로 올린다. */
+dat_error_t to_hex_u64_out(uint64_t no, dat_sbuf_t* out) {
     static const char HEX_LC[16] = "0123456789abcdef";
     if (no == 0) {
-        sbuf_push_char(out, '0');
-        return;
+        return sbuf_push_char(out, '0');
     }
     char tmp[16];
     int cursor = 16;
@@ -305,11 +306,34 @@ void to_hex_u64_out(uint64_t no, dat_sbuf_t* out) {
         tmp[--cursor] = HEX_LC[no & 0xF];
         no >>= 4;
     }
-    sbuf_push_bytes(out, tmp + cursor, (size_t)(16 - cursor));
+    return sbuf_push_bytes(out, tmp + cursor, (size_t)(16 - cursor));
 }
 
 /* ── now_unix_timestamp ───────────────────────────────────────────── */
 
 uint64_t now_unix_timestamp(void) {
     return (uint64_t)time(NULL);
+}
+
+int parse_u64_strict(const char* s, size_t len, int base, uint64_t* out) {
+    if (!s || !out || len == 0) return 0;
+
+    const uint64_t limit = UINT64_MAX / (uint64_t)base;
+    const uint64_t last  = UINT64_MAX % (uint64_t)base;
+    uint64_t acc = 0;
+
+    for (size_t i = 0; i < len; i++) {
+        const char c = s[i];
+        uint64_t d;
+        if (c >= '0' && c <= '9')                    d = (uint64_t)(c - '0');
+        else if (base == 16 && c >= 'a' && c <= 'f') d = (uint64_t)(c - 'a' + 10);
+        else if (base == 16 && c >= 'A' && c <= 'F') d = (uint64_t)(c - 'A' + 10);
+        else return 0;
+        if (d >= (uint64_t)base) return 0;
+        if (acc > limit || (acc == limit && d > last)) return 0; /* overflow */
+        acc = acc * (uint64_t)base + d;
+    }
+
+    *out = acc;
+    return 1;
 }

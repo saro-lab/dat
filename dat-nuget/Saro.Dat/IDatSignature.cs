@@ -18,7 +18,7 @@ public interface IDatSignature : ICloneable
                 => DatSignatureEcdsa.FromKey(algorithm, key),
             DatSignatureAlgorithm.HmacSha256Mfs or DatSignatureAlgorithm.HmacSha384Mfs or DatSignatureAlgorithm.HmacSha512Mfs
                 => DatSignatureHmac.FromKey(algorithm, key),
-            _ => throw new NotSupportedException($"{algorithm} is not supported")
+            _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown signature algorithm: {algorithm}")
         };
     }
 
@@ -30,7 +30,7 @@ public interface IDatSignature : ICloneable
                 => DatSignatureEcdsa.Generate(algorithm),
             DatSignatureAlgorithm.HmacSha256Mfs or DatSignatureAlgorithm.HmacSha384Mfs or DatSignatureAlgorithm.HmacSha512Mfs
                 => DatSignatureHmac.Generate(algorithm),
-            _ => throw new NotSupportedException($"{algorithm} is not supported")
+            _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown signature algorithm: {algorithm}")
         };
     }
 }

@@ -9,6 +9,35 @@
 #include <inttypes.h>
 #include <stdint.h>
 #include <limits.h>
+#include <openssl/crypto.h>
+
+/* H-3: a certificate is immutable once constructed, so clone hands out another
+ * reference to the same object instead of a deep copy. The refcount is the only
+ * mutable state, and several threads touch it (the manager clones under a read
+ * lock while another thread frees), so it has to be atomic. */
+#ifndef __STDC_NO_ATOMICS__
+#  include <stdatomic.h>
+#  define DAT_REFCOUNT_T        atomic_uint
+#  define DAT_REFCOUNT_INIT(p)  atomic_init(&(p), 1u)
+#  define DAT_REFCOUNT_INC(p)   atomic_fetch_add_explicit(&(p), 1u, memory_order_relaxed)
+#  define DAT_REFCOUNT_DEC(p)   atomic_fetch_sub_explicit(&(p), 1u, memory_order_acq_rel)
+#else
+/* Compilers without C11 atomics (older MSVC): fall back to one process-wide
+ * mutex. Refcount updates are rare and O(1), so the contention is irrelevant. */
+#  include <pthread.h>
+static pthread_mutex_t g_refcount_lock = PTHREAD_MUTEX_INITIALIZER;
+static unsigned refcount_add(unsigned* p, int delta) {
+    pthread_mutex_lock(&g_refcount_lock);
+    unsigned prev = *p;
+    *p = (unsigned)((int)prev + delta);
+    pthread_mutex_unlock(&g_refcount_lock);
+    return prev;
+}
+#  define DAT_REFCOUNT_T        unsigned
+#  define DAT_REFCOUNT_INIT(p)  ((p) = 1u)
+#  define DAT_REFCOUNT_INC(p)   refcount_add(&(p), 1)
+#  define DAT_REFCOUNT_DEC(p)   refcount_add(&(p), -1)
+#endif
 
 /* ── Internal struct ─────────────────────────────────────────────────────── */
 
@@ -20,6 +49,7 @@ struct dat_certificate {
     uint64_t         dat_issuance_end_seconds;
     uint64_t         dat_ttl_seconds;
     uint64_t         expire_seconds;
+    DAT_REFCOUNT_T   refcount;
 };
 
 /* ── Package-private accessors ───────────────────────────────────────────── */
@@ -43,19 +73,20 @@ static dat_error_t cert_from(uint64_t cid,
                               uint64_t start, uint64_t duration, uint64_t ttl,
                               dat_signature_t* sig, dat_crypto_t* cryp,
                               dat_certificate_t** out) {
+    /* 시간 산술 오버플로 = 인증서의 시간 값이 비정상이다. */
     if (duration > UINT64_MAX - start) {
         dat_signature_free(sig); dat_crypto_free(cryp);
-        return DAT_ERROR_CERTIFICATE_ERROR;
+        return DAT_CERT_MALFORMED;
     }
     uint64_t end = start + duration;
     if (ttl > UINT64_MAX - end) {
         dat_signature_free(sig); dat_crypto_free(cryp);
-        return DAT_ERROR_CERTIFICATE_ERROR;
+        return DAT_CERT_MALFORMED;
     }
     uint64_t expire = end + ttl;
 
     dat_certificate_t* c = malloc(sizeof(struct dat_certificate));
-    if (!c) { dat_signature_free(sig); dat_crypto_free(cryp); return DAT_ERROR_MALLOC_FAILED; }
+    if (!c) { dat_signature_free(sig); dat_crypto_free(cryp); return DAT_INTERNAL_UNKNOWN; }
     c->cid                        = cid;
     c->signature                  = sig;
     c->crypto                     = cryp;
@@ -63,6 +94,7 @@ static dat_error_t cert_from(uint64_t cid,
     c->dat_issuance_end_seconds   = end;
     c->dat_ttl_seconds            = ttl;
     c->expire_seconds             = expire;
+    DAT_REFCOUNT_INIT(c->refcount);
     *out = c;
     return DAT_SUCCESS;
 }
@@ -86,7 +118,7 @@ dat_error_t dat_certificate_create(uint64_t cid,
 }
 
 dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
-    if (!str || !out) return DAT_ERROR_CERTIFICATE_ERROR;
+    if (!str || !out) return DAT_CONFIG_ARGUMENT_INVALID;
 
     const char* parts[8];
     size_t      lens[8];
@@ -95,7 +127,7 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
     while (count < 8) {
         const char* dot = strchr(p, '.');
         if (!dot) {
-            if (count < 7) return DAT_ERROR_CERTIFICATE_ERROR;
+            if (count < 7) return DAT_CERT_MALFORMED;
             parts[count] = p;
             lens[count]  = strlen(p);
             count++;
@@ -106,21 +138,15 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
         count++;
         p = dot + 1;
     }
-    if (count != 8) return DAT_ERROR_CERTIFICATE_ERROR;
+    if (count != 8) return DAT_CERT_MALFORMED;
     /* Must be exactly 8 parts — no extra dots */
-    if (strchr(parts[7] + lens[7], '.') != NULL) return DAT_ERROR_CERTIFICATE_ERROR;
+    if (strchr(parts[7] + lens[7], '.') != NULL) return DAT_CERT_MALFORMED;
     /* Actually parts[7] ends at its length, check no dot in remaining input */
     /* (Already handled by the loop stopping at count==8) */
 
-    char buf[33];
-    char* endptr;
-
 #define PARSE_FIELD(idx, base, dest) \
     do { \
-        if (lens[idx] == 0 || lens[idx] >= sizeof(buf)) return DAT_ERROR_CERTIFICATE_ERROR; \
-        memcpy(buf, parts[idx], lens[idx]); buf[lens[idx]] = '\0'; \
-        dest = (uint64_t)strtoull(buf, &endptr, base); \
-        if (*endptr != '\0') return DAT_ERROR_CERTIFICATE_ERROR; \
+        if (!parse_u64_strict(parts[idx], lens[idx], base, &dest)) return DAT_CERT_MALFORMED; \
     } while(0)
 
     uint64_t cid, start, duration, ttl;
@@ -131,14 +157,14 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
 #undef PARSE_FIELD
 
     char alg_str[32];
-    if (lens[4] == 0 || lens[4] >= sizeof(alg_str)) return DAT_ERROR_CERTIFICATE_ERROR;
+    if (lens[4] == 0 || lens[4] >= sizeof(alg_str)) return DAT_CERT_MALFORMED;
     memcpy(alg_str, parts[4], lens[4]); alg_str[lens[4]] = '\0';
     dat_signature_alg_t sig_alg;
     dat_error_t err = dat_signature_alg_from_str(alg_str, &sig_alg);
     if (err != DAT_SUCCESS) return err;
 
     char calg_str[32];
-    if (lens[5] == 0 || lens[5] >= sizeof(calg_str)) return DAT_ERROR_CERTIFICATE_ERROR;
+    if (lens[5] == 0 || lens[5] >= sizeof(calg_str)) return DAT_CERT_MALFORMED;
     memcpy(calg_str, parts[5], lens[5]); calg_str[lens[5]] = '\0';
     dat_crypto_alg_t crypto_alg;
     err = dat_crypto_alg_from_str(calg_str, &crypto_alg);
@@ -146,19 +172,22 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
 
     uint8_t* sig_key = NULL;  size_t sig_key_len = 0;
     err = decode_base64_url(parts[6], lens[6], &sig_key, &sig_key_len);
-    if (err != DAT_SUCCESS) return err;
+    if (err != DAT_SUCCESS) return (err == DAT_CONFIG_ARGUMENT_INVALID) ? DAT_CERT_MALFORMED : err;
 
     uint8_t* cryp_key = NULL; size_t cryp_key_len = 0;
     err = decode_base64_url(parts[7], lens[7], &cryp_key, &cryp_key_len);
-    if (err != DAT_SUCCESS) { free(sig_key); return err; }
+    if (err != DAT_SUCCESS) { free(sig_key); return (err == DAT_CONFIG_ARGUMENT_INVALID) ? DAT_CERT_MALFORMED : err; }
 
+    /* D-4: both decoded buffers hold raw key material — wipe, don't just free. */
     dat_signature_t* sig = NULL;
     err = dat_signature_from_key(sig_alg, sig_key, sig_key_len, &sig);
+    OPENSSL_cleanse(sig_key, sig_key_len);
     free(sig_key);
-    if (err != DAT_SUCCESS) { free(cryp_key); return err; }
+    if (err != DAT_SUCCESS) { OPENSSL_cleanse(cryp_key, cryp_key_len); free(cryp_key); return err; }
 
     dat_crypto_t* cryp = NULL;
     err = dat_crypto_from_key(crypto_alg, cryp_key, cryp_key_len, &cryp);
+    OPENSSL_cleanse(cryp_key, cryp_key_len);
     free(cryp_key);
     if (err != DAT_SUCCESS) { dat_signature_free(sig); return err; }
 
@@ -167,7 +196,7 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
 
 dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_only,
                                     char** out) {
-    if (!cert || !out) return DAT_ERROR_CERTIFICATE_ERROR;
+    if (!cert || !out) return DAT_CONFIG_ARGUMENT_INVALID;
 
     uint8_t* sig_key = NULL; size_t sig_key_len = 0;
     dat_error_t err = verify_only
@@ -185,34 +214,61 @@ dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_on
     err = sbuf_init(&v, cap);
     if (err != DAT_SUCCESS) { free(sig_key); free(cryp_key); return err; }
 
-    to_hex_u64_out(cert->cid, &v);
+    /* 예전에는 이 push 들의 반환값을 전부 무시했다. 버퍼 확장이 실패하면 잘린
+     * 인증서 문자열이 정상처럼 반환됐다. PUSH 매크로가 실패를 즉시 올린다. */
+#define PUSH(expr)                                                             \
+    do {                                                                       \
+        dat_error_t _e = (expr);                                               \
+        if (_e != DAT_SUCCESS) {                                               \
+            sbuf_free(&v);                                                     \
+            OPENSSL_cleanse(sig_key, sig_key_len);   free(sig_key);            \
+            OPENSSL_cleanse(cryp_key, cryp_key_len); free(cryp_key);           \
+            return _e;                                                         \
+        }                                                                      \
+    } while (0)
+
+    PUSH(to_hex_u64_out(cert->cid, &v));
 
     char nb[21];
-    sbuf_push_char(&v, '.');
+    PUSH(sbuf_push_char(&v, '.'));
     snprintf(nb, sizeof(nb), "%" PRIu64, cert->dat_issuance_start_seconds);
-    sbuf_push_str(&v, nb);
+    PUSH(sbuf_push_str(&v, nb));
 
-    sbuf_push_char(&v, '.');
+    PUSH(sbuf_push_char(&v, '.'));
     snprintf(nb, sizeof(nb), "%" PRIu64,
              cert->dat_issuance_end_seconds - cert->dat_issuance_start_seconds);
-    sbuf_push_str(&v, nb);
+    PUSH(sbuf_push_str(&v, nb));
 
-    sbuf_push_char(&v, '.');
+    PUSH(sbuf_push_char(&v, '.'));
     snprintf(nb, sizeof(nb), "%" PRIu64, cert->dat_ttl_seconds);
-    sbuf_push_str(&v, nb);
+    PUSH(sbuf_push_str(&v, nb));
 
-    sbuf_push_char(&v, '.');
-    sbuf_push_str(&v, dat_signature_alg_to_str(dat_signature_algorithm(cert->signature)));
-    sbuf_push_char(&v, '.');
-    sbuf_push_str(&v, dat_crypto_alg_to_str(dat_crypto_algorithm(cert->crypto)));
+    PUSH(sbuf_push_char(&v, '.'));
+    PUSH(sbuf_push_str(&v, dat_signature_alg_to_str(dat_signature_algorithm(cert->signature))));
+    PUSH(sbuf_push_char(&v, '.'));
+    PUSH(sbuf_push_str(&v, dat_crypto_alg_to_str(dat_crypto_algorithm(cert->crypto))));
 
-    sbuf_push_char(&v, '.');
+    PUSH(sbuf_push_char(&v, '.'));
+#undef PUSH
     err = encode_base64_url_out(sig_key, sig_key_len, &v);
+    OPENSSL_cleanse(sig_key, sig_key_len);   /* D-4 */
     free(sig_key);
-    if (err != DAT_SUCCESS) { sbuf_free(&v); free(cryp_key); return err; }
+    if (err != DAT_SUCCESS) {
+        sbuf_free(&v);
+        OPENSSL_cleanse(cryp_key, cryp_key_len);
+        free(cryp_key);
+        return err;
+    }
 
-    sbuf_push_char(&v, '.');
+    err = sbuf_push_char(&v, '.');
+    if (err != DAT_SUCCESS) {
+        sbuf_free(&v);
+        OPENSSL_cleanse(cryp_key, cryp_key_len);
+        free(cryp_key);
+        return err;
+    }
     err = encode_base64_url_out(cryp_key, cryp_key_len, &v);
+    OPENSSL_cleanse(cryp_key, cryp_key_len); /* D-4 */
     free(cryp_key);
     if (err != DAT_SUCCESS) { sbuf_free(&v); return err; }
 
@@ -222,19 +278,23 @@ dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_on
 
 void dat_certificate_free(dat_certificate_t* cert) {
     if (!cert) return;
+    if (DAT_REFCOUNT_DEC(cert->refcount) != 1u) return;  /* other references remain */
     dat_signature_free(cert->signature);
     dat_crypto_free(cert->crypto);
     free(cert);
 }
 
+/* H-3: this used to be an export → parse round trip, which rebuilt the whole
+ * key material — and wrote the private key out as a base64 string that was then
+ * freed without being wiped (D-4) — on every issue() and parse(). A certificate
+ * never changes after construction, so sharing one is safe and the copy is
+ * pure overhead. The caller still owns the returned pointer and must free it. */
 dat_error_t dat_certificate_clone(const dat_certificate_t* cert, dat_certificate_t** out) {
-    if (!cert || !out) return DAT_ERROR_CERTIFICATE_ERROR;
-    char* s = NULL;
-    dat_error_t err = dat_certificate_export(cert, false, &s);
-    if (err != DAT_SUCCESS) return err;
-    err = dat_certificate_parse(s, out);
-    free(s);
-    return err;
+    if (!cert || !out) return DAT_CONFIG_ARGUMENT_INVALID;
+    dat_certificate_t* c = (dat_certificate_t*)cert;
+    DAT_REFCOUNT_INC(c->refcount);
+    *out = c;
+    return DAT_SUCCESS;
 }
 
 bool dat_certificate_expired(const dat_certificate_t* cert) {

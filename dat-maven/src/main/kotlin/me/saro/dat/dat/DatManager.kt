@@ -2,6 +2,7 @@ package me.saro.dat.dat
 
 import me.saro.dat.DatUtils
 import me.saro.dat.Unixtime
+import me.saro.dat.exception.DatErrorCode
 import me.saro.dat.exception.DatException
 import me.saro.dat.exception.DatResult
 import org.slf4j.LoggerFactory
@@ -22,8 +23,16 @@ class DatManager private constructor(
             lock.read {
                 if (issuer != null) {
                     issue(issuer!!, plain, secure)
+                } else if (certificates.isEmpty()) {
+                    DatResult.failure(DatException(DatErrorCode.MANAGER_NO_CERTIFICATE))
                 } else {
-                    DatResult.failure(DatException("Not Found IssuanceKey(SigningKey)"))
+                    DatResult.failure(
+                        DatException(
+                            DatErrorCode.MANAGER_NO_ISSUABLE_CERTIFICATE,
+                            null,
+                            noIssuableCause(certificates),
+                        )
+                    )
                 }
             }
         }
@@ -68,7 +77,9 @@ class DatManager private constructor(
     internal fun findUnsafeThread(cid: ULong): DatResult<DatCertificate> {
         return certificateMap[cid]
             ?.run { DatResult.success(this) }
-            ?: DatResult.failure(DatException("Not Found CID(Certificate ID): $cid"))
+            // cid 는 16진으로 통일한다. 예전에는 10진으로 찍혀 다른 포트의 로그와
+            // 대조가 되지 않았다.
+            ?: DatResult.failure(DatException(DatErrorCode.CERT_NOT_FOUND, "cid ${cid.toString(16)}"))
     }
 
     fun exportsIds(): List<Long> {
@@ -101,8 +112,8 @@ class DatManager private constructor(
 
     fun imports(certificates: List<DatCertificate>, clear: Boolean): Int {
         if (certificates.size != certificates.distinctBy { it.cid }.size) {
-            log.error("Duplicate CID(Certificate ID)")
-            throw IllegalArgumentException("Duplicate CID(Certificate ID)")
+            // 예전에는 로그 + IllegalArgumentException 두 갈래였다. DatException 으로 통일한다.
+            throw DatException(DatErrorCode.CERT_DUPLICATE_CID, "duplicate cid in the import list")
         }
 
         var renew: Int = 0
@@ -139,6 +150,40 @@ class DatManager private constructor(
     companion object {
         private val DOT = '.'.code.toByte()
         private val log = LoggerFactory.getLogger(DatManager::class.java)
+
+        /**
+         * 발급 가능한 인증서가 없을 때 **왜** 없는지 가려낸다.
+         *
+         * 예전에는 이 다섯 가지가 `"Not Found IssuanceKey(SigningKey)"` 문자열
+         * 하나였다. 대응이 전부 다르다 — 발급창 전이면 기다리면 되고, verify-only
+         * 뿐이면 배포 설정 실수이며, 0건이면 CMS 접속 문제다.
+         */
+        internal fun noIssuableCause(certificates: List<DatCertificate>): DatException {
+            val now = Unixtime.now().toULong()
+            var signableSeen = false
+            var notYet = false
+            var ended = false
+
+            for (certificate in certificates) {
+                if (!certificate.signable()) {
+                    continue
+                }
+                signableSeen = true
+                if (now < certificate.datIssuanceStartSeconds) {
+                    notYet = true
+                } else if (now > certificate.datIssuanceEndSeconds) {
+                    ended = true
+                }
+            }
+
+            return when {
+                !signableSeen -> DatException(DatErrorCode.CERT_VERIFY_ONLY)
+                // 기다리면 풀리는 유일한 사유다. 하나라도 있으면 이것을 앞세운다.
+                notYet -> DatException(DatErrorCode.CERT_NOT_YET_ISSUABLE)
+                ended -> DatException(DatErrorCode.CERT_ISSUANCE_ENDED)
+                else -> DatException(DatErrorCode.CERT_EXPIRED)
+            }
+        }
 
         @JvmStatic
         fun newInstance(): DatManager {
@@ -187,10 +232,17 @@ class DatManager private constructor(
 
         @JvmStatic
         fun parse(certificate: DatCertificate, dat: Dat): DatResult<Payload> {
-            if (!certificate.signature.verify(dat.body, dat.signatureBytes)) {
-                return DatResult.failure(DatException("Invalid Dat Signature"))
+            // verify 가 false 를 돌려주는 것은 오직 불일치일 때뿐이다. 연산 실패는
+            // SIG_BACKEND 예외로 올라오므로 여기서 위조로 뭉개지지 않는다.
+            return try {
+                if (!certificate.signature.verify(dat.body, dat.signatureBytes)) {
+                    DatResult.failure(DatException(DatErrorCode.SIG_MISMATCH))
+                } else {
+                    parseWithoutVerifying(certificate, dat)
+                }
+            } catch (e: DatException) {
+                DatResult.failure(e)
             }
-            return parseWithoutVerifying(certificate, dat)
         }
 
         @JvmStatic

@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
+        <!-- Both TFMs: net8.0 is the only one that compiles the Base64Url shim in
+             DatUtils, so the suite has to run there to cover it. -->
+        <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+        <!-- The net8.0 leg runs on whatever runtime is installed. It exists to
+             execute the net8.0-compiled code (the shim), not to certify the .NET 8
+             runtime, so not having a .NET 8 runtime on the machine must not skip it. -->
+        <RollForward>LatestMajor</RollForward>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>

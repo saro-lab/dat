@@ -1,5 +1,6 @@
 package me.saro.dat.signature
 
+import me.saro.dat.exception.DatErrorCode
 import me.saro.dat.exception.DatException
 import me.saro.dat.signature.DatSignatureAlgorithm.*
 import org.bouncycastle.crypto.Digest
@@ -8,6 +9,7 @@ import org.bouncycastle.crypto.digests.SHA384Digest
 import org.bouncycastle.crypto.digests.SHA512Digest
 import org.bouncycastle.crypto.macs.HMac
 import org.bouncycastle.crypto.params.KeyParameter
+import java.security.MessageDigest
 import java.security.SecureRandom
 
 
@@ -25,7 +27,7 @@ class DatSignatureHmac private constructor(
                 HMAC_SHA256_MFS -> SHA256Digest()
                 HMAC_SHA384_MFS -> SHA384Digest()
                 HMAC_SHA512_MFS -> SHA512Digest()
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an hmac signature algorithm: $algorithm")
             }
         }
 
@@ -34,14 +36,20 @@ class DatSignatureHmac private constructor(
                 HMAC_SHA256_MFS -> 32
                 HMAC_SHA384_MFS -> 48
                 HMAC_SHA512_MFS -> 64
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an hmac signature algorithm: $algorithm")
             }
         }
 
         @JvmStatic
         internal fun fromKey(algorithm: DatSignatureAlgorithm, key: ByteArray): DatSignature {
             if (getKeySize(algorithm) != key.size) {
-                throw DatException("Invalid Dat Signature")
+                // 예전에는 이 키 크기 오류와 아래 verify 실패가 둘 다
+                // "Invalid Dat Signature" 였다. 하나는 배포 설정 문제이고
+                // 다른 하나는 위조 시도다.
+                throw DatException(
+                    DatErrorCode.KEY_INVALID,
+                    "hmac key must be ${getKeySize(algorithm)} bytes, got ${key.size}",
+                )
             }
             return DatSignatureHmac(algorithm, KeyParameter(key), key)
         }
@@ -60,17 +68,25 @@ class DatSignatureHmac private constructor(
 
     override fun exportKey(verifyOnly: Boolean): ByteArray {
         if (verifyOnly) {
-            throw DatException("Hmac does not support Verify Only")
+            // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SIG_KEY_MISSING 과 다르다.
+            throw DatException(DatErrorCode.KEY_VERIFY_ONLY_UNSUPPORTED, algorithm.text)
         }
         return secret
     }
 
     override fun verify(body: ByteArray, signature: ByteArray): Boolean {
-        try {
-            return sign(body).contentEquals(signature)
+        // catch-all 로 false 를 돌려주면 잘못된 키 타입·손상된 핸들·라이브러리 버그가
+        // 전부 "서명 불일치"(위조 시도)로 보고된다. 연산 실패는 SIG_BACKEND 로 갈라 낸다.
+        val mine = try {
+            sign(body)
+        } catch (e: DatException) {
+            throw e
         } catch (e: Exception) {
-            return false
+            throw DatException(DatErrorCode.SIG_BACKEND, "hmac verification failed to run", e)
         }
+        // MessageDigest.isEqual is constant-time; contentEquals short-circuits
+        // on the first differing byte and leaks the MAC through timing.
+        return MessageDigest.isEqual(mine, signature)
     }
 
     override fun sign(body: ByteArray): ByteArray {

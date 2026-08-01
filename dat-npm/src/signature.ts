@@ -1,4 +1,5 @@
 import {DatArrayBuffer, DatUint8Array,} from "./index.js";
+import {DatError, DatErrorCodes} from "./error.js";
 
 export type DatSignatureAlgorithm =
     "HMAC-SHA256-MFS" | "HMAC-SHA384-MFS" | "HMAC-SHA512-MFS" |
@@ -32,7 +33,7 @@ function getCryptoConfig(algorithm: string): SignatureConfig {
     if (config) {
         return config;
     }
-    throw new Error(`Unsupported DAT Signature Algorithm: ${algorithm}`);
+    throw new DatError(DatErrorCodes.CONFIG_ALG_UNSUPPORTED, `unknown signature algorithm: ${algorithm}`);
 }
 
 export class DatSignature {
@@ -78,7 +79,7 @@ export class DatSignature {
 
         if (config.name === "HMAC") {
             if (bytes.length !== config.hmacLen) {
-                throw new Error(`Invalid HMAC key length: expected ${config.hmacLen}, got ${bytes.length}`);
+                throw new DatError(DatErrorCodes.KEY_INVALID, `hmac key must be ${config.hmacLen} bytes, got ${bytes.length}`);
             }
             const key = await crypto.subtle.importKey(
                 "raw", bytes,
@@ -134,7 +135,7 @@ export class DatSignature {
                     ["verify"]
                 );
             } else {
-                throw new Error(`Invalid ECDSA key length`);
+                throw new DatError(DatErrorCodes.KEY_INVALID, "ecdsa key length matches neither private+public nor public");
             }
 
             return new DatSignature(algorithm as DatSignatureAlgorithm, signingKey, verifyingKey, config);
@@ -143,7 +144,8 @@ export class DatSignature {
 
     async exports(verifyOnly: boolean = false): Promise<string> {
         if (verifyOnly && !this.supportVerifyOnly()) {
-            throw new Error(`${this.config.name} is not supported - verifyOnly`);
+            // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SIG_KEY_MISSING 과 다르다.
+            throw new DatError(DatErrorCodes.KEY_VERIFY_ONLY_UNSUPPORTED, this.algorithm);
         }
         if (this.config.name === "HMAC") {
             const bytes = await crypto.subtle.exportKey("raw", this.verifyingKey);
@@ -163,11 +165,11 @@ export class DatSignature {
 
     async sign(body: ArrayBufferLike | Uint8Array | string | null | undefined): Promise<ArrayBuffer> {
         if (!this.signingKey) {
-            throw new Error(`Signature key is not supported - verifying only key`);
+            throw new DatError(DatErrorCodes.SIG_KEY_MISSING, "this key is verify-only");
         }
         const bytes = DatArrayBuffer.from(body);
         if (!bytes.byteLength) {
-            throw new Error(`Sign Error - body is empty`);
+            throw new DatError(DatErrorCodes.CONFIG_ARGUMENT_INVALID, "body to sign is empty");
         }
         if (this.config.name === "HMAC") {
             return crypto.subtle.sign(

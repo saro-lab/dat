@@ -2,6 +2,36 @@ from __future__ import annotations
 import base64
 from typing import Union
 
+from . import error as E
+from .error import DatError
+
+_U64_MAX = 0xFFFFFFFFFFFFFFFF
+_HEX_DIGITS = frozenset('0123456789abcdefABCDEF')
+
+
+def parse_u64(s: str) -> int:
+    """Strict unsigned 64-bit decimal parse, matching rust's ``parse::<u64>()``.
+
+    Rejects sign prefixes, surrounding whitespace and ``_`` separators, all of
+    which python's built-in ``int()`` would silently accept.
+    """
+    if not s or not all(c in '0123456789' for c in s):
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, f"not an unsigned decimal integer: {s!r}")
+    v = int(s)
+    if v > _U64_MAX:
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, f"exceeds u64: {s!r}")
+    return v
+
+
+def parse_u64_hex(s: str) -> int:
+    """Strict unsigned 64-bit hex parse, matching rust's ``u64::from_str_radix(s, 16)``."""
+    if not s or not all(c in _HEX_DIGITS for c in s):
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, f"not an unsigned hex integer: {s!r}")
+    v = int(s, 16)
+    if v > _U64_MAX:
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, f"exceeds u64: {s!r}")
+    return v
+
 
 def encode_base64_url(s: Union[bytes, str, None]) -> bytes:
     if isinstance(s, str):

@@ -1,0 +1,16 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# dat links OpenSSL/Threads/CURL PRIVATE, but the port is static-only, so
+# consumers must resolve them too or they get undefined references to EVP_*,
+# HMAC and pthread_*.
+find_dependency(OpenSSL)
+find_dependency(Threads)
+if(@DAT_HAS_CURL@)
+    find_dependency(CURL)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/dat-targets.cmake")
+
+check_required_components(dat)

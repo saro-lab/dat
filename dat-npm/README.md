@@ -5,6 +5,12 @@
 - [What is DAT](https://dat.saro.me/intro)
 - [Example](https://dat.saro.me/libs/npm-saro-dat)
 
+### Requirements
+- **Node.js 24 or newer.** The encoders use `Uint8Array.fromBase64`/`toBase64`/`fromHex`/`toHex`,
+  which land in Node 24; on Node 20/22 every encode and decode throws a `TypeError`.
+- **ESM only.** This package ships a single ES module entry point — import it with
+  `import { ... } from 'saro-dat'`. There is no CommonJS (`require`) build.
+
 ### Support Platform
 - [Rust](https://github.com/saro-lab/dat/tree/master/dat-rust)
 - [Java, Kotlin](https://github.com/saro-lab/dat/tree/master/dat-maven)

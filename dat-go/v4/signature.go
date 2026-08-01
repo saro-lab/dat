@@ -1,6 +1,7 @@
 package dat
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/hmac"
@@ -73,6 +74,21 @@ func (sk *Signature) hmacSum(data []byte) []byte {
 	return sum
 }
 
+// ecdsaKeyInfo returns the curve and the raw private / uncompressed public key
+// lengths the wire format uses for an ecdsa algorithm.
+func ecdsaKeyInfo(algorithm SignatureAlgorithm) (elliptic.Curve, int, int) {
+	switch algorithm {
+	case EcdsaP256:
+		return elliptic.P256(), 32, 65
+	case EcdsaP384:
+		return elliptic.P384(), 48, 97
+	case EcdsaP521:
+		return elliptic.P521(), 66, 133
+	default:
+		return nil, 0, 0
+	}
+}
+
 func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []byte) (*Signature, error) {
 	switch algorithm {
 	case HmacSha256Mfs, HmacSha384Mfs, HmacSha512Mfs:
@@ -86,7 +102,7 @@ func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []b
 			size = 64
 		}
 		if len(privateBytes) != size {
-			return nil, ErrInvalidSignatureKey
+			return nil, ErrKeyInvalid.With("signature key material rejected")
 		}
 		return &Signature{
 			algorithm:    algorithm,
@@ -95,69 +111,54 @@ func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []b
 			publicBytes:  privateBytes,
 		}, nil
 	case EcdsaP256, EcdsaP384, EcdsaP521:
-		var curve elliptic.Curve
-		var privateLen, publicLen int
-		switch algorithm {
-		case EcdsaP256:
-			curve = elliptic.P256()
-			privateLen, publicLen = 32, 65
-		case EcdsaP384:
-			curve = elliptic.P384()
-			privateLen, publicLen = 48, 97
-		case EcdsaP521:
-			curve = elliptic.P521()
-			privateLen, publicLen = 66, 133
+		curve, privateLen, publicLen := ecdsaKeyInfo(algorithm)
+
+		// The wire format packs the pair as private||public in a single field.
+		if len(privateBytes) == privateLen+publicLen {
+			publicBytes = privateBytes[privateLen:]
+			privateBytes = privateBytes[:privateLen]
 		}
 
 		sk := &Signature{
 			algorithm: algorithm,
 		}
 
-		if len(publicBytes) == publicLen {
-			x, y := elliptic.Unmarshal(curve, publicBytes)
-			if x == nil {
-				return nil, ErrInvalidSignatureKey
+		switch {
+		case len(privateBytes) == privateLen:
+			// ParseRawPrivateKey rejects d == 0 and d >= n and derives the
+			// public point itself, so the pair cannot come out inconsistent.
+			priv, err := ecdsa.ParseRawPrivateKey(curve, privateBytes)
+			if err != nil {
+				return nil, ErrKeyInvalid.With("signature key material rejected")
 			}
-			sk.publicKey = &ecdsa.PublicKey{Curve: curve, X: x, Y: y}
-			sk.publicBytes = publicBytes
-		}
-
-		if len(privateBytes) == privateLen {
-			d := new(big.Int).SetBytes(privateBytes)
-			if sk.publicKey == nil {
-				x, y := curve.ScalarBaseMult(privateBytes)
-				sk.publicKey = &ecdsa.PublicKey{Curve: curve, X: x, Y: y}
-				sk.publicBytes = elliptic.Marshal(curve, x, y)
+			derived, err := priv.PublicKey.Bytes()
+			if err != nil {
+				return nil, ErrKeyInvalid.With("signature key material rejected")
 			}
-			sk.privateKey = &ecdsa.PrivateKey{
-				PublicKey: *sk.publicKey,
-				D:         d,
+			// A public key that does not belong to this private key would only
+			// surface much later, as signatures that never verify.
+			if len(publicBytes) > 0 && !bytes.Equal(publicBytes, derived) {
+				return nil, ErrKeyInvalid.With("signature key material rejected")
 			}
+			sk.privateKey = priv
+			sk.publicKey = &priv.PublicKey
 			sk.privateBytes = privateBytes
-		} else if len(privateBytes) == privateLen+publicLen {
-			// Some formats might store both
-			d := new(big.Int).SetBytes(privateBytes[:privateLen])
-			publicBytes = privateBytes[privateLen:]
-			x, y := elliptic.Unmarshal(curve, publicBytes)
-			if x == nil {
-				return nil, ErrInvalidSignatureKey
+			sk.publicBytes = derived
+		case len(publicBytes) == publicLen:
+			// Rejects points off the curve, compressed points and infinity.
+			pub, err := ecdsa.ParseUncompressedPublicKey(curve, publicBytes)
+			if err != nil {
+				return nil, ErrKeyInvalid.With("signature key material rejected")
 			}
-			sk.publicKey = &ecdsa.PublicKey{Curve: curve, X: x, Y: y}
+			sk.publicKey = pub
 			sk.publicBytes = publicBytes
-			sk.privateKey = &ecdsa.PrivateKey{
-				PublicKey: *sk.publicKey,
-				D:         d,
-			}
-			sk.privateBytes = privateBytes[:privateLen]
-		}
-
-		if sk.publicKey == nil && sk.privateKey == nil {
-			return nil, ErrInvalidSignatureKey
+		default:
+			return nil, ErrKeyInvalid.With("signature key material rejected")
 		}
 
 		return sk, nil
 	default:
-		return nil, ErrUnknownSignatureAlgorithm
+		return nil, ErrConfigAlgUnsupported.With("unknown signature algorithm: " + string(algorithm))
 	}
 }
 
@@ -175,7 +176,7 @@ func GenerateSignatureKey(algorithm SignatureAlgorithm) (*Signature, error) {
 		}
 		key := make([]byte, size)
 		if _, err := rand.Read(key); err != nil {
-			return nil, ErrGenerateSigningKeyError
+			return nil, ErrInternalUnknown.With("signing key generation failed")
 		}
 		return &Signature{
 			algorithm:    algorithm,
@@ -184,24 +185,21 @@ func GenerateSignatureKey(algorithm SignatureAlgorithm) (*Signature, error) {
 			publicBytes:  key,
 		}, nil
 	case EcdsaP256, EcdsaP384, EcdsaP521:
-		var curve elliptic.Curve
-		switch algorithm {
-		case EcdsaP256:
-			curve = elliptic.P256()
-		case EcdsaP384:
-			curve = elliptic.P384()
-		case EcdsaP521:
-			curve = elliptic.P521()
-		}
+		curve, _, _ := ecdsaKeyInfo(algorithm)
 
 		priv, err := ecdsa.GenerateKey(curve, rand.Reader)
 		if err != nil {
-			return nil, ErrGenerateSigningKeyError
+			return nil, ErrInternalUnknown.With("signing key generation failed")
 		}
 
-		byteSize := (curve.Params().BitSize + 7) / 8
-		privateBytes := priv.D.FillBytes(make([]byte, byteSize))
-		publicBytes := elliptic.Marshal(curve, priv.PublicKey.X, priv.PublicKey.Y)
+		privateBytes, err := priv.Bytes()
+		if err != nil {
+			return nil, ErrInternalUnknown.With("signing key generation failed")
+		}
+		publicBytes, err := priv.PublicKey.Bytes()
+		if err != nil {
+			return nil, ErrInternalUnknown.With("signing key generation failed")
+		}
 
 		return &Signature{
 			algorithm:    algorithm,
@@ -211,7 +209,7 @@ func GenerateSignatureKey(algorithm SignatureAlgorithm) (*Signature, error) {
 			publicBytes:  publicBytes,
 		}, nil
 	default:
-		return nil, ErrUnknownSignatureAlgorithm
+		return nil, ErrConfigAlgUnsupported.With("unknown signature algorithm: " + string(algorithm))
 	}
 }
 
@@ -248,7 +246,7 @@ func (sk *Signature) ExportVerifyOnlyKey() ([]byte, error) {
 
 func (sk *Signature) ExportKeyOption(verifyOnly bool) ([]byte, error) {
 	if verifyOnly && !sk.SupportVerifyOnly() {
-		return nil, ErrNotSupportedVerifyOnly
+		return nil, ErrKeyVerifyOnlyUnsupported.With(string(sk.algorithm))
 	}
 
 	switch sk.algorithm {
@@ -263,7 +261,7 @@ func (sk *Signature) ExportKeyOption(verifyOnly bool) ([]byte, error) {
 		}
 		return sk.publicBytes, nil
 	default:
-		return nil, ErrUnknownSignatureAlgorithm
+		return nil, ErrConfigAlgUnsupported.With("unknown signature algorithm: " + string(sk.algorithm))
 	}
 }
 
@@ -278,7 +276,7 @@ func (sk *Signature) Sign(data []byte) ([]byte, error) {
 		return sk.hmacSum(data), nil
 	case EcdsaP256, EcdsaP384, EcdsaP521:
 		if sk.privateKey == nil {
-			return nil, ErrNotExistsSigningKey
+			return nil, ErrSigKeyMissing
 		}
 
 		h := sk.newHash()
@@ -287,7 +285,7 @@ func (sk *Signature) Sign(data []byte) ([]byte, error) {
 
 		r, s, err := ecdsa.Sign(rand.Reader, sk.privateKey, digest)
 		if err != nil {
-			return nil, ErrSignError
+			return nil, ErrSigBackend.With("ecdsa sign failed")
 		}
 
 		byteSize := (sk.privateKey.Curve.Params().BitSize + 7) / 8
@@ -297,28 +295,28 @@ func (sk *Signature) Sign(data []byte) ([]byte, error) {
 
 		return sig, nil
 	default:
-		return nil, ErrUnknownSignatureAlgorithm
+		return nil, ErrConfigAlgUnsupported.With("unknown signature algorithm: " + string(sk.algorithm))
 	}
 }
 
 func (sk *Signature) Verify(body, sign []byte) error {
 	if len(sign) == 0 {
-		return ErrInvalidDat
+		return ErrSigMalformed.With("signature is empty")
 	}
 	switch sk.algorithm {
 	case HmacSha256Mfs, HmacSha384Mfs, HmacSha512Mfs:
 		if hmac.Equal(sign, sk.hmacSum(body)) {
 			return nil
 		}
-		return ErrInvalidDat
+		return ErrSigMismatch
 	case EcdsaP256, EcdsaP384, EcdsaP521:
 		if sk.publicKey == nil {
-			return ErrInvalidDat
+			return ErrKeyInvalid.With("no public key to verify with")
 		}
 
 		byteSize := (sk.publicKey.Curve.Params().BitSize + 7) / 8
 		if len(sign) != byteSize*2 {
-			return ErrInvalidDat
+			return ErrSigMalformed.With("ecdsa signature length does not match the curve")
 		}
 
 		r := new(big.Int).SetBytes(sign[:byteSize])
@@ -331,9 +329,9 @@ func (sk *Signature) Verify(body, sign []byte) error {
 		if ecdsa.Verify(sk.publicKey, digest, r, s) {
 			return nil
 		}
-		return ErrInvalidDat
+		return ErrSigMismatch
 	default:
-		return ErrUnknownSignatureAlgorithm
+		return ErrConfigAlgUnsupported.With("unknown signature algorithm: " + string(sk.algorithm))
 	}
 }
 

@@ -1,13 +1,16 @@
 package me.saro.dat
 
+import me.saro.dat.exception.DatErrorCode
+import me.saro.dat.exception.DatException
+import java.security.SecureRandom
 import java.util.*
-import java.util.concurrent.ThreadLocalRandom
 
 class DatUtils {
     companion object {
         private val DE_BASE64_URL: Base64.Decoder = Base64.getUrlDecoder()
         private val EN_BASE64_URL: Base64.Encoder = Base64.getUrlEncoder().withoutPadding()
         private val MOLD_BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray()
+        private val RANDOM = SecureRandom()
 
         @JvmStatic
         fun encodeBase64Url(bytes: ByteArray): String {
@@ -33,6 +36,37 @@ class DatUtils {
             return DE_BASE64_URL.decode(str)
         }
 
+        /**
+         * Strict unsigned decimal parse matching rust's `parse::<u64>()`.
+         * Kotlin's `toULongOrNull` also accepts a leading `+`, which rust rejects.
+         */
+        internal fun parseU64OrNull(s: String): ULong? {
+            if (s.isEmpty()) {
+                return null
+            }
+            for (c in s) {
+                if (c < '0' || c > '9') {
+                    return null
+                }
+            }
+            return s.toULongOrNull()
+        }
+
+        /**
+         * Strict unsigned hex parse matching rust's `u64::from_str_radix(s, 16)`.
+         */
+        internal fun parseU64HexOrNull(s: String): ULong? {
+            if (s.isEmpty()) {
+                return null
+            }
+            for (c in s) {
+                if (!((c in '0'..'9') || (c in 'a'..'f') || (c in 'A'..'F'))) {
+                    return null
+                }
+            }
+            return s.toULongOrNull(radix = 16)
+        }
+
         @JvmStatic
         fun generateRandomBase62(size: Int): String {
             return generateRandomString(size, MOLD_BASE62)
@@ -41,11 +75,13 @@ class DatUtils {
         @JvmStatic
         fun generateRandomString(size: Int, mold: CharArray): String {
             if (size <= 0 || mold.isEmpty()) {
-                throw IllegalArgumentException("invalid size or mold")
+                throw DatException(DatErrorCode.CONFIG_ARGUMENT_INVALID, "size must be > 0 and mold must not be empty")
             }
             val moldLen = mold.size
             val rv = CharArray(size)
-            val random = ThreadLocalRandom.current()
+            // SecureRandom, not ThreadLocalRandom: this is a public helper on a
+            // token library and gets reached for secret/id generation.
+            val random = RANDOM
             for (i in rv.indices) {
                 rv[i] = mold[random.nextInt(moldLen)]
             }

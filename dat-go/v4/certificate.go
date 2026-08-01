@@ -1,6 +1,7 @@
 package dat
 
 import (
+	"bytes"
 	"strconv"
 	"strings"
 )
@@ -13,14 +14,19 @@ type Certificate struct {
 	DatIssuanceStartSeconds uint64
 	DatIssuanceEndSeconds   uint64
 	DatTtlSeconds           uint64
+	expireSeconds           uint64
 }
 
 func NewCertificate(cid uint64, datIssuanceStartSeconds, datIssuanceDurationSeconds, datTtlSeconds uint64, signatureKey *Signature, cryptoKey *Crypto) (*Certificate, error) {
-	if datTtlSeconds == 0 {
-		return nil, ErrInvalidDatTtl
+	// rust (certificate.rs from) validates the time fields with checked_add only:
+	// zero ttl / zero duration are legal, wrapping past u64 is not.
+	datIssuanceEndSeconds := datIssuanceStartSeconds + datIssuanceDurationSeconds
+	if datIssuanceEndSeconds < datIssuanceStartSeconds {
+		return nil, ErrCertMalformed.With("certificate time arithmetic overflowed u64")
 	}
-	if datIssuanceDurationSeconds == 0 {
-		return nil, ErrInvalidIssuanceDuration
+	expireSeconds := datIssuanceEndSeconds + datTtlSeconds
+	if expireSeconds < datIssuanceEndSeconds {
+		return nil, ErrCertMalformed.With("certificate time arithmetic overflowed u64")
 	}
 
 	cidPreCopy := "." + ToHexFromU64(cid) + "."
@@ -31,8 +37,9 @@ func NewCertificate(cid uint64, datIssuanceStartSeconds, datIssuanceDurationSeco
 		SignatureKey:            signatureKey,
 		CryptoKey:               cryptoKey,
 		DatIssuanceStartSeconds: datIssuanceStartSeconds,
-		DatIssuanceEndSeconds:   datIssuanceStartSeconds + datIssuanceDurationSeconds,
+		DatIssuanceEndSeconds:   datIssuanceEndSeconds,
 		DatTtlSeconds:           datTtlSeconds,
+		expireSeconds:           expireSeconds,
 	}, nil
 }
 
@@ -41,12 +48,38 @@ func GenerateCertificate(cid uint64, datIssuanceStartSeconds, datIssuanceDuratio
 	if err != nil {
 		return nil, err
 	}
-	ck := GenerateCryptoKey(cryptoAlgorithm)
+	ck, err := GenerateCryptoKey(cryptoAlgorithm)
+	if err != nil {
+		return nil, err
+	}
 	return NewCertificate(cid, datIssuanceStartSeconds, datIssuanceDurationSeconds, datTtlSeconds, sk, ck)
 }
 
+// TryClone deep copies the certificate, so a handed out copy cannot be mutated
+// through the manager's live certificate (and vice versa).
+func (c *Certificate) TryClone() (*Certificate, error) {
+	signatureKey, err := NewSignatureKey(c.SignatureKey.algorithm, bytes.Clone(c.SignatureKey.privateBytes), bytes.Clone(c.SignatureKey.publicBytes))
+	if err != nil {
+		return nil, err
+	}
+	cryptoKey, err := NewCryptoKey(c.CryptoKey.algorithm, bytes.Clone(c.CryptoKey.key))
+	if err != nil {
+		return nil, err
+	}
+	return &Certificate{
+		Cid:                     c.Cid,
+		cidPreCopy:              c.cidPreCopy,
+		SignatureKey:            signatureKey,
+		CryptoKey:               cryptoKey,
+		DatIssuanceStartSeconds: c.DatIssuanceStartSeconds,
+		DatIssuanceEndSeconds:   c.DatIssuanceEndSeconds,
+		DatTtlSeconds:           c.DatTtlSeconds,
+		expireSeconds:           c.expireSeconds,
+	}, nil
+}
+
 func (c *Certificate) Expired() bool {
-	return (c.DatIssuanceEndSeconds + c.DatTtlSeconds) < NowUnixTimestamp()
+	return c.expireSeconds < NowUnixTimestamp()
 }
 
 func (c *Certificate) Issuable() bool {
@@ -100,27 +133,27 @@ func (c *Certificate) Export(verifyOnly bool) (string, error) {
 func ParseCertificate(format string) (*Certificate, error) {
 	parts := strings.Split(format, ".")
 	if len(parts) != 8 {
-		return nil, ErrInvalidCertificateFormat
+		return nil, ErrCertMalformed.With("expected exactly 8 dot-separated fields")
 	}
 
 	cid, err := strconv.ParseUint(parts[0], 16, 64)
 	if err != nil {
-		return nil, ErrInvalidDat
+		return nil, ErrCertMalformed.With("cid field is not a plain hex u64")
 	}
 
 	datIssuanceStartSeconds, err := strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
-		return nil, ErrInvalidCertificateFormat
+		return nil, ErrCertMalformed.With("certificate field is not a plain decimal u64")
 	}
 
 	datIssuanceDurationSeconds, err := strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {
-		return nil, ErrInvalidCertificateFormat
+		return nil, ErrCertMalformed.With("certificate field is not a plain decimal u64")
 	}
 
 	datTtlSeconds, err := strconv.ParseUint(parts[3], 10, 64)
 	if err != nil {
-		return nil, ErrInvalidCertificateFormat
+		return nil, ErrCertMalformed.With("certificate field is not a plain decimal u64")
 	}
 
 	sigAlgo := SignatureAlgorithm(parts[4])

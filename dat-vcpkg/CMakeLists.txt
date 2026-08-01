@@ -7,17 +7,11 @@ file(GLOB_RECURSE SOURCES src/*.c)
 
 add_library(dat ${SOURCES} src/dat_util.h)
 
-include(GenerateExportHeader)
-generate_export_header(dat
-        BASE_NAME DAT
-        EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/include/dat_export.h
-)
-target_include_directories(dat PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>)
-
-set_target_properties(dat PROPERTIES
-        C_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN 1
-)
+# NOTE: hidden visibility used to be set here together with generate_export_header,
+# but no declaration was ever annotated with DAT_EXPORT, so a BUILD_SHARED_LIBS=ON
+# build exported no symbols at all. Default visibility is used instead; if a
+# Windows DLL build is ever supported, the public API in include/dat/*.h needs
+# explicit __declspec(dllexport)/dllimport annotations.
 
 if (MSVC)
     add_compile_options(/utf-8)
@@ -55,14 +49,30 @@ else()
 endif()
 
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 install(TARGETS dat
-        EXPORT dat-config
+        EXPORT dat-targets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(EXPORT dat-config DESTINATION ${CMAKE_INSTALL_DATADIR}/dat)
+install(EXPORT dat-targets DESTINATION ${CMAKE_INSTALL_DATADIR}/dat)
+
+if(CURL_FOUND)
+    set(DAT_HAS_CURL 1)
+else()
+    set(DAT_HAS_CURL 0)
+endif()
+
+configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/dat-config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/dat-config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_DATADIR}/dat
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/dat-config.cmake
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/dat)
 
 enable_testing()
 file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS tests/*.c)

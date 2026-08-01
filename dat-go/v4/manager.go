@@ -21,13 +21,51 @@ func NewManager() *Manager {
 	}
 }
 
+// noIssuableCause 는 발급 가능한 인증서가 없을 때 왜 없는지 가려낸다.
+//
+// 예전에는 이 다섯 가지가 ErrSigningKeyNotExists 하나였다. 대응이 전부 다르다 —
+// 발급창 전이면 기다리면 되고, verify-only 뿐이면 배포 설정 실수이며,
+// 0건이면 CMS 접속 문제다.
+func noIssuableCause(certificates []*Certificate) error {
+	now := NowUnixTimestamp()
+	signableSeen, notYet, ended := false, false, false
+
+	for _, cert := range certificates {
+		if !cert.Signable() {
+			continue
+		}
+		signableSeen = true
+		if now < cert.DatIssuanceStartSeconds {
+			notYet = true
+		} else if now > cert.DatIssuanceEndSeconds {
+			ended = true
+		}
+	}
+
+	switch {
+	case !signableSeen:
+		return ErrCertVerifyOnly
+	case notYet:
+		// 유일하게 일시적인 사유다. 하나라도 있으면 이것을 앞세운다.
+		return ErrCertNotYetIssuable
+	case ended:
+		return ErrCertIssuanceEnded
+	default:
+		return ErrCertExpired
+	}
+}
+
 func (m *Manager) Issue(plain, secure string) (string, error) {
 	m.mu.RLock()
 	issuer := m.issuer
+	certificates := m.certificates
 	m.mu.RUnlock()
 
 	if issuer == nil {
-		return "", ErrSigningKeyNotExists
+		if len(certificates) == 0 {
+			return "", ErrManagerNoCertificate
+		}
+		return "", ErrManagerNoIssuableCertificate.Wrap(noIssuableCause(certificates))
 	}
 	return m.IssueWithCertificate(issuer, plain, secure)
 }
@@ -46,7 +84,7 @@ func (m *Manager) ParseDat(dat *Dat) (Payload, error) {
 	m.mu.RUnlock()
 
 	if cert == nil {
-		return Payload{}, ErrCidNotFound
+		return Payload{}, ErrCertNotFound
 	}
 	return m.ParseWithCertificate(cert, dat)
 }
@@ -65,7 +103,7 @@ func (m *Manager) ParseDatWithoutVerify(dat *Dat) (Payload, error) {
 	m.mu.RUnlock()
 
 	if cert == nil {
-		return Payload{}, ErrCidNotFound
+		return Payload{}, ErrCertNotFound
 	}
 	return m.ParseWithoutVerifyWithCertificate(cert, dat)
 }
@@ -96,10 +134,21 @@ func (m *Manager) Export(verifyOnly bool) string {
 	return sb.String()
 }
 
-func (m *Manager) ExportCertificates() []*Certificate {
+// ExportCertificates returns deep copies: slices.Clone would hand out the
+// manager's live *Certificate values, whose keys the caller could then mutate.
+func (m *Manager) ExportCertificates() ([]*Certificate, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	return slices.Clone(m.certificates)
+
+	certificates := make([]*Certificate, 0, len(m.certificates))
+	for _, cert := range m.certificates {
+		cloned, err := cert.TryClone()
+		if err != nil {
+			return nil, err
+		}
+		certificates = append(certificates, cloned)
+	}
+	return certificates, nil
 }
 
 func (m *Manager) Import(format string, clear bool) (int, error) {
@@ -123,7 +172,7 @@ func (m *Manager) ImportCertificates(newCertificates []*Certificate, clear bool)
 	ids := make(map[uint64]bool)
 	for _, cert := range newCertificates {
 		if ids[cert.Cid] {
-			return 0, ErrDuplicatedCid
+			return 0, ErrCertDuplicateCid
 		}
 		ids[cert.Cid] = true
 	}
@@ -216,8 +265,9 @@ func (m *Manager) IssueWithCertificate(certificate *Certificate, plain, secure s
 }
 
 func (m *Manager) ParseWithCertificate(certificate *Certificate, dat *Dat) (Payload, error) {
+	// SigMismatch(위조) 와 SigBackend(연산 실패) 를 구분해서 그대로 올린다.
 	if err := certificate.SignatureKey.Verify(dat.BodyBytes(), dat.Signature); err != nil {
-		return Payload{}, ErrInvalidDat
+		return Payload{}, err
 	}
 	return m.ParseWithoutVerifyWithCertificate(certificate, dat)
 }

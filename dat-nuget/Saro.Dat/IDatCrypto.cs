@@ -14,7 +14,7 @@ public interface IDatCrypto : ICloneable
         {
             DatCryptoAlgorithm.IvAes128Gcm or DatCryptoAlgorithm.IvAes256Gcm
                 => DatCryptoAesGcmNonce.FromBytes(algorithm, bytes),
-            _ => throw new NotSupportedException($"{algorithm} is not supported")
+            _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown crypto algorithm: {algorithm}")
         };
     }
 
@@ -24,7 +24,7 @@ public interface IDatCrypto : ICloneable
         {
             DatCryptoAlgorithm.IvAes128Gcm or DatCryptoAlgorithm.IvAes256Gcm
                 => DatCryptoAesGcmNonce.Generate(algorithm),
-            _ => throw new NotSupportedException($"{algorithm} is not supported")
+            _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown crypto algorithm: {algorithm}")
         };
     }
 }

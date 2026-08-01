@@ -3,6 +3,7 @@ import os
 from enum import Enum
 from typing import Union, Optional, TypeAlias
 
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
@@ -11,6 +12,8 @@ from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.hashes import HashAlgorithm
 from cryptography.hazmat.primitives.hmac import HMAC
 
+from . import error as E
+from .error import DatError
 from .util import decode_base64_url, encode_base64_url_str
 
 
@@ -40,7 +43,7 @@ def get_signature_config(algorithm: str) -> dict:
     config = SIGNATURE_CONFIG.get(algorithm)
     if config:
         return config
-    raise ValueError(f"Unsupported DAT Crypto Algorithm: {algorithm}")
+    raise DatError(E.CONFIG_ALG_UNSUPPORTED, f"unknown signature algorithm: {algorithm}")
 
 class DatSignature:
     def __init__(
@@ -93,7 +96,7 @@ class DatSignature:
 
         if config["name"] == "HMAC":
             if len(bytes_data) != config["hmacLen"]:
-                raise ValueError(f"Invalid HMAC key length: expected {config['hmacLen']}, got {len(bytes_data)}")
+                raise DatError(E.KEY_INVALID, f"hmac key must be {config['hmacLen']} bytes, got {len(bytes_data)}")
             return DatSignature(algorithm, bytes_data, bytes_data, config)
         else:
             private_len = config["privateLen"]
@@ -116,13 +119,13 @@ class DatSignature:
                     config["curve"], bytes_data
                 )
             else:
-                raise ValueError("Invalid ECDSA key length")
+                raise DatError(E.KEY_INVALID, "ecdsa key length matches neither private+public nor public")
 
             return DatSignature(algorithm, signing_key, verifying_key, config)
 
     def exports(self, verify_only: bool = False) -> str:
         if verify_only and not self.support_verify_only():
-            raise ValueError(self._config["name"] + " is not supported - verifying only key")
+            raise DatError(E.KEY_VERIFY_ONLY_UNSUPPORTED, str(self.algorithm.value))
 
         if self._is_hmac:
             return encode_base64_url_str(self.verifying_key)
@@ -147,13 +150,13 @@ class DatSignature:
 
     def sign(self, body: Union[bytes, str]) -> bytes:
         if not self.signing_key:
-            raise ValueError("Signature key is not supported - verifying only key")
+            raise DatError(E.SIG_KEY_MISSING, "this key is verify-only")
 
         if isinstance(body, str):
             body = body.encode()
 
         if not body:
-            raise ValueError("Sign Error - body is empty")
+            raise DatError(E.CONFIG_ARGUMENT_INVALID, "body to sign is empty")
 
         if self._is_hmac:
             h = self._hmac_sign_proto.copy()
@@ -171,22 +174,29 @@ class DatSignature:
 
         sig_bytes = decode_base64_url(signature) if isinstance(signature, str) else signature
 
+        # InvalidSignature(불일치) 만 False 로 돌려준다. 그 밖의 예외 — 잘못된 키
+        # 타입, 손상된 핸들, 라이브러리 버그 — 를 여기서 삼키면 프로그래밍 오류가
+        # 위조 시도로 보고된다. 그래서 SIG_BACKEND 로 갈라 낸다.
         if self._is_hmac:
             try:
                 h = self._hmac_verify_proto.copy()
                 h.update(body)
                 h.verify(sig_bytes)
                 return True
-            except Exception:
+            except InvalidSignature:
                 return False
+            except Exception as e:
+                raise DatError(E.SIG_BACKEND, "hmac verification failed to run", e) from e
         else:
             try:
                 # Raw (R|S) -> DER 변환 후 검증
                 der_sig = self._raw_to_der_signature(sig_bytes)
                 self.verifying_key.verify(der_sig, body, self._ecdsa_algorithm)
                 return True
-            except Exception:
+            except InvalidSignature:
                 return False
+            except Exception as e:
+                raise DatError(E.SIG_BACKEND, "ecdsa verification failed to run", e) from e
 
     def signable(self) -> bool:
         return self.signing_key is not None

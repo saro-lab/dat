@@ -43,13 +43,21 @@ int main(void) {
     dat_error_t err = dat_cms_manager_create(
         url, token, verify_only, interval_seconds,
         log_fn, NULL, &manager);
-    if (err == DAT_SUCCESS) {
-        printf("CMS manager created\n");
-    } else if (err == DAT_SUCCESS_CMS_MANAGER_BUT_NETWORK_FAIL) {
-        printf("CMS manager created but initial sync failed (network unavailable).\n");
-    } else {
-        printf("Failed to create cms manager: %d\n", (int)err);
+    /* 생성 성공은 이제 언제나 DAT_SUCCESS(0) 다 — 예전의 비-0 성공값은
+     * `if (err)` 관용구와 충돌했다. 최초 sync 실패는 last_error() 로 조회한다. */
+    if (err != DAT_SUCCESS) {
+        printf("Failed to create cms manager: %s\n", dat_error_code(err));
         return 1;
+    }
+    printf("CMS manager created\n");
+
+    dat_error_t sync_err = dat_cms_manager_last_error(manager);
+    if (sync_err != DAT_SUCCESS) {
+        /* 재시도해도 소용없는 실패(토큰·URL 설정 오류)와 기다리면 풀릴 실패를
+         * 여기서 구분할 수 있다. 예전에는 둘 다 같은 값이었다. */
+        printf("initial sync failed: %s (retry=%s)\n",
+               dat_error_code(sync_err),
+               dat_error_retry(sync_err) == DAT_RETRY_TRANSIENT ? "transient" : "permanent");
     }
 
     // manual sync

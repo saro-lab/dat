@@ -3,25 +3,56 @@ import time
 
 from .crypto import DatCrypto
 from .signature import DatSignature
-from .util import encode_base64_url_str, decode_base64_url
+from . import error as E
+from .error import DatError
+from .util import encode_base64_url_str, decode_base64_url, parse_u64, parse_u64_hex
+
+_U64_MAX = 0xFFFFFFFFFFFFFFFF
+
+
+def _u64(name: str, value: int) -> int:
+    """Mirrors rust's u64 parameter domain for the certificate timings."""
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise DatError(E.CERT_MALFORMED, f"{name} must be an integer")
+    if value < 0 or value > _U64_MAX:
+        raise DatError(E.CERT_MALFORMED, f"{name} must fit in u64: {value}")
+    return value
 
 
 class DatCertificate:
     def __init__(
             self,
             cid: int,
-            signature_key: DatSignature,
-            crypto_key: DatCrypto,
             dat_issuance_start_seconds: int,
-            dat_issuance_end_seconds: int,
-            dat_ttl_seconds: int
+            dat_issuance_duration_seconds: int,
+            dat_ttl_seconds: int,
+            signature_key: DatSignature,
+            crypto_key: DatCrypto
     ):
-        self.cid = cid
+        """Argument order matches dat-rust's ``DatCertificate::from``:
+        ``(cid, start, duration, ttl, signature_key, crypto_key)``.
+
+        The third argument is a *duration*, not an absolute end timestamp.
+        """
+        self.cid = _u64("cid", cid)
         self._signature_key = signature_key
         self._crypto_key = crypto_key
-        self.dat_issuance_start_seconds = dat_issuance_start_seconds
-        self.dat_issuance_end_seconds = dat_issuance_end_seconds
-        self.dat_ttl_seconds = dat_ttl_seconds
+        self.dat_issuance_start_seconds = _u64("dat_issuance_start_seconds", dat_issuance_start_seconds)
+        self.dat_ttl_seconds = _u64("dat_ttl_seconds", dat_ttl_seconds)
+
+        duration = _u64("dat_issuance_duration_seconds", dat_issuance_duration_seconds)
+        self.dat_issuance_end_seconds = _u64(
+            "dat_issuance_start_seconds + dat_issuance_duration_seconds",
+            self.dat_issuance_start_seconds + duration
+        )
+        self.expire_seconds = _u64(
+            "dat_issuance_start_seconds + dat_issuance_duration_seconds + dat_ttl_seconds",
+            self.dat_issuance_end_seconds + self.dat_ttl_seconds
+        )
+
+    @property
+    def dat_issuance_duration_seconds(self) -> int:
+        return self.dat_issuance_end_seconds - self.dat_issuance_start_seconds
 
     def exports(self, verify_only: bool = False) -> str:
         cid_hex = hex(self.cid)[2:]
@@ -39,20 +70,28 @@ class DatCertificate:
     def imports(cls, format_str: str) -> DatCertificate:
         parts = format_str.split(".")
         if len(parts) != 8:
-            raise ValueError("Invalid Certificate format")
+            raise DatError(E.CERT_MALFORMED, "expected exactly 8 dot-separated fields")
 
-        cid = int(parts[0], 16)
-        dat_issuance_start_seconds = int(parts[1])
-        dat_issuance_duration_seconds = int(parts[2])
-        dat_ttl_seconds = int(parts[3])
+        # 필드 파싱 실패는 인증서가 깨진 것이지 호출자의 인자 문제가 아니다.
+        def _field(fn, raw, name):
+            try:
+                return fn(raw)
+            except DatError as e:
+                raise DatError(E.CERT_MALFORMED, f"{name} field is not a plain number", e) from e
+
+        cid = _field(parse_u64_hex, parts[0], "cid")
+        dat_issuance_start_seconds = _field(parse_u64, parts[1], "issuance_start_seconds")
+        dat_issuance_duration_seconds = _field(parse_u64, parts[2], "issuance_duration_seconds")
+        dat_ttl_seconds = _field(parse_u64, parts[3], "dat_ttl_seconds")
         signature_algorithm = parts[4]
         crypto_algorithm = parts[5]
         signature_key = DatSignature.imports(signature_algorithm, parts[6])
         crypto_key = DatCrypto.imports(crypto_algorithm, parts[7])
 
         return cls(
-            cid, signature_key, crypto_key,
-            dat_issuance_start_seconds, dat_issuance_start_seconds + dat_issuance_duration_seconds, dat_ttl_seconds
+            cid,
+            dat_issuance_start_seconds, dat_issuance_duration_seconds, dat_ttl_seconds,
+            signature_key, crypto_key
         )
 
     def issuable(self) -> bool:
@@ -60,7 +99,7 @@ class DatCertificate:
         return self.signable() and self.dat_issuance_start_seconds <= now <= self.dat_issuance_end_seconds
 
     def expired(self) -> bool:
-        return int(time.time()) > (self.dat_issuance_end_seconds + self.dat_ttl_seconds)
+        return self.expire_seconds < int(time.time())
 
     def signable(self) -> bool:
         return self._signature_key.signable()

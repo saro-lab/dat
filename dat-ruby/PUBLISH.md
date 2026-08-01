@@ -9,7 +9,9 @@ bundle install
 ```
 gem build saro-dat.gemspec
 gem signin
-gem push saro-dat-4.3.4.gem
+# glob, not a pinned filename: a hardcoded version silently pushes a stale
+# package after a version bump
+gem push saro-dat-*.gem
 ```
 
 ## install

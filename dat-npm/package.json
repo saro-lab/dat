@@ -1,6 +1,6 @@
 {
   "name": "saro-dat",
-  "version": "4.3.4",
+  "version": "4.6.0",
   "description": "Distributed Access Token",
   "keywords": [
     "dat",
@@ -21,30 +21,32 @@
     "url": "git+https://github.com/saro-lab/dat.git"
   },
   "type": "module",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": "./dist/index.js"
     }
+  },
+  "engines": {
+    "node": ">=24"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc && tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "bench": "cross-env BENCH=TEST vitest run bench.test.ts --reporter=dot",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "infinite-unixtime": "^1.1.4"
+    "infinite-unixtime": "^1.1.5"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "@types/p-limit": "^2.2.0",
     "cross-env": "^10.1.0",
     "typescript": "^7.0.2",

@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "saro-dat"
-  spec.version       = "4.3.4"
+  spec.version       = "4.6.0"
   spec.authors       = ["marker"]
   spec.email         = ["j@saro.me"]
 

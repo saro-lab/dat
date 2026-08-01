@@ -5,29 +5,12 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+/* dat_error_t 와 코드 문자열·재시도 분류는 여기서 온다. */
+#include "dat_error.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum {
-    DAT_SUCCESS = 0,
-    DAT_ERROR_INVALID_DAT,
-    DAT_ERROR_SIGNING_KEY_NOT_EXISTS,
-    DAT_ERROR_CID_NOT_FOUND,
-    DAT_ERROR_DUPLICATED_CID,
-    DAT_ERROR_UNKNOWN_SIGNATURE_ALGORITHM,
-    DAT_ERROR_UNKNOWN_CRYPTO_ALGORITHM,
-    DAT_ERROR_INVALID_CRYPTO_KEY,
-    DAT_ERROR_ENCRYPT_ERROR,
-    DAT_ERROR_DECRYPT_ERROR,
-    DAT_ERROR_INVALID_BASE64_FORMAT,
-    DAT_ERROR_MALLOC_FAILED,
-    DAT_ERROR_CERTIFICATE_ERROR,
-    DAT_ERROR_MANAGER_ERROR,
-    DAT_ERROR_SIGNATURE_ERROR,
-    DAT_ERROR_OVERFLOW,
-    DAT_SUCCESS_CMS_MANAGER_BUT_NETWORK_FAIL,
-} dat_error_t;
 
 typedef enum {
     DAT_SIG_HMAC_SHA256_MFS,
@@ -120,6 +103,18 @@ dat_error_t dat_manager_parse_without_verify(dat_manager_t* manager, const char*
 dat_error_t dat_manager_export_cids(dat_manager_t* manager, uint64_t** cids, size_t* count);
 dat_error_t dat_manager_export(dat_manager_t* manager, bool verify_only, char** out);
 dat_error_t dat_manager_export_certificates(dat_manager_t* manager, dat_certificate_t*** certs, size_t* count);
+/* 발급 가능한 인증서가 없을 때 **왜** 없는지 묻는다. 발급 가능하면 DAT_SUCCESS.
+ *
+ * 예전에는 이 다섯 가지가 DAT_ERROR_MANAGER_ERROR 하나였다. 대응이 전부 다르다 —
+ * 발급창 전이면 기다리면 되고(CERT_NOT_YET_ISSUABLE, 일시적), verify-only 뿐이면
+ * 배포 설정 실수이며(CERT_VERIFY_ONLY), 0건이면 CMS 접속 문제다
+ * (MANAGER_NO_CERTIFICATE).
+ *
+ * C 에는 예외 체이닝이 없어 dat_manager_issue() 가 돌려주는 코드 하나에 사유를
+ * 실을 수 없다. 다른 공식 클라이언트와 코드 문자열을 맞추기 위해 issue() 는 계속
+ * DAT_MANAGER_NO_ISSUABLE_CERTIFICATE 를 돌려주고, 사유는 이 함수로 따로 묻는다. */
+dat_error_t dat_manager_issuable_cause(dat_manager_t* manager);
+
 dat_error_t dat_manager_import(dat_manager_t* manager, const char* format, bool clear, size_t* count_out);
 dat_error_t dat_manager_import_certificates(dat_manager_t* manager, dat_certificate_t** certs, size_t count, bool clear, size_t* count_out);
 dat_error_t dat_manager_issue_with_cert(const dat_certificate_t* cert, const char* plain, const char* secure, char** out);

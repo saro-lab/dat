@@ -12,13 +12,13 @@ public static class DatCryptoAlgorithmExtensions
     {
         DatCryptoAlgorithm.IvAes128Gcm => "IV-AES128-GCM",
         DatCryptoAlgorithm.IvAes256Gcm => "IV-AES256-GCM",
-        _ => throw new ArgumentOutOfRangeException(nameof(algorithm))
+        _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown crypto algorithm: {algorithm}")
     };
 
     public static DatCryptoAlgorithm FromText(string text) => text switch
     {
         "IV-AES128-GCM" => DatCryptoAlgorithm.IvAes128Gcm,
         "IV-AES256-GCM" => DatCryptoAlgorithm.IvAes256Gcm,
-        _ => throw new ArgumentException($"Unknown crypto algorithm: {text}")
+        _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown crypto algorithm: {text}")
     };
 }

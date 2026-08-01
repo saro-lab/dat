@@ -1,7 +1,14 @@
+import {DatError, DatErrorCodes} from "../error.js";
 
+export const U64_MAX = 0xffffffffffffffffn;
+const DECIMAL = /^[0-9]+$/;
+const HEX = /^[0-9a-fA-F]+$/;
+
+// Strict unsigned decimal parse matching rust's `parse::<u64>()`. Number()/BigInt()
+// would also accept "0x10", "1e3", "+1" and surrounding whitespace.
 export function parse(no: number|string): number {
     if (typeof no === 'string') {
-        no = no ? Number(no) : Number.NaN;
+        no = DECIMAL.test(no) ? Number(no) : Number.NaN;
     }
     return Number.isSafeInteger(no) ? no : Number.NaN;
 }
@@ -11,18 +18,24 @@ export function toCid(cid: number|string|bigint, error: string = 'Invalid CID'):
         let c: bigint|null = null;
         switch (typeof cid) {
             case 'bigint': c = cid; break;
-            case 'number': c = BigInt(cid); break;
-            case 'string': c = BigInt(`0x${cid}`); break;
+            case 'number': c = Number.isSafeInteger(cid) ? BigInt(cid) : null; break;
+            case 'string': c = HEX.test(cid) ? BigInt(`0x${cid}`) : null; break;
         }
-        if (c != null && c >= 0n && c <= 0xffffffffffffffffn) {
+        if (c != null && c >= 0n && c <= U64_MAX) {
             return c;
         }
     } catch (e) {}
-    throw new Error(error);
+    throw new DatError(DatErrorCodes.CONFIG_ARGUMENT_INVALID, error);
 }
 
 export function toBigInt(no: bigint|number|string, errorMessage: string = 'is not integer', min: bigint|undefined = undefined, max: bigint|undefined = undefined): bigint {
     try {
+        if (typeof no === 'string' && !DECIMAL.test(no)) {
+            throw new Error();
+        }
+        if (typeof no === 'number' && !Number.isSafeInteger(no)) {
+            throw new Error();
+        }
         let n = BigInt(no);
         if (typeof min !== 'undefined' && !(n >= min)) {
             throw new Error();
@@ -32,5 +45,5 @@ export function toBigInt(no: bigint|number|string, errorMessage: string = 'is no
         }
         return n;
     } catch (e) {}
-    throw new Error(errorMessage);
+    throw new DatError(DatErrorCodes.CONFIG_ARGUMENT_INVALID, errorMessage);
 }

@@ -1,11 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "saro-dat"
-version = "4.4.1"
+version = "4.6.0"
 description = "Distributed Access Token"
 keywords = ["dat", "distributed", "access", "token", "jwt", "security", "authentication"]
 readme = "README.md"
 authors = [{name = "Marker Seoul", email = "j@saro.me"}]
-requires-python = ">=3.9"
+# 3.10 floor: signature.py imports typing.TypeAlias (PEP 613, added in 3.10).
+requires-python = ">=3.10"
 dependencies = [
     "cryptography>=47.0.0",
 ]

@@ -78,7 +78,8 @@ async def benchmark(loop_size: int):
 
     for sa in DatSignatureAlgorithm:
         for ca in DatCryptoAlgorithm:
-            certificates.append(DatCertificate(0, DatSignature.generate(sa), DatCrypto.generate(ca), now - 10, now + 600, 60))
+            # (cid, issuance_start, issuance_duration, ttl, signature, crypto) — rust order
+            certificates.append(DatCertificate(0, now - 10, 610, 60, DatSignature.generate(sa), DatCrypto.generate(ca)))
 
     await loops(True, loop_size, certificates, plain, secure)
     await loops(False, loop_size, certificates, plain, secure)

@@ -1,3 +1,4 @@
+export * from "./error.js";
 export * as DatInteger from "./util/DatInteger.js";
 export * as DatBytes from "./util/DatBytes.js";
 export * as DatArrayBufferLike from "./util/DatArrayBufferLike.js";

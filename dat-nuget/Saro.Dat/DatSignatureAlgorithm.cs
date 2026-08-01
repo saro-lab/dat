@@ -20,7 +20,7 @@ public static class DatSignatureAlgorithmExtensions
         DatSignatureAlgorithm.EcdsaP256 => "ECDSA-P256",
         DatSignatureAlgorithm.EcdsaP384 => "ECDSA-P384",
         DatSignatureAlgorithm.EcdsaP521 => "ECDSA-P521",
-        _ => throw new ArgumentOutOfRangeException(nameof(algorithm))
+        _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown signature algorithm: {algorithm}")
     };
 
     public static DatSignatureAlgorithm FromText(string text) => text switch
@@ -31,6 +31,6 @@ public static class DatSignatureAlgorithmExtensions
         "ECDSA-P256" => DatSignatureAlgorithm.EcdsaP256,
         "ECDSA-P384" => DatSignatureAlgorithm.EcdsaP384,
         "ECDSA-P521" => DatSignatureAlgorithm.EcdsaP521,
-        _ => throw new ArgumentException($"Unknown signature algorithm: {text}")
+        _ => throw new DatException(DatErrorCode.ConfigAlgUnsupported, $"unknown signature algorithm: {text}")
     };
 }

@@ -1,4 +1,5 @@
 import {DatCrypto, DatInteger, DatSignature,} from "./index.js";
+import {DatError, DatErrorCodes} from "./error.js";
 import {Unixtime} from "infinite-unixtime";
 
 export class DatCertificate {
@@ -20,11 +21,20 @@ export class DatCertificate {
         this.cid = DatInteger.toCid(cid, `Invalid cid(Certificate ID) is HEX ${cid}`)
         this.signature = signature;
         this.crypto = crypto;
-        datIssuanceStartSeconds = DatInteger.toBigInt(datIssuanceStartSeconds, `Invalid: issuedAt is positive int or 0 ${datIssuanceStartSeconds}`, 0n);
-        datIssuanceDurationSeconds = DatInteger.toBigInt(datIssuanceDurationSeconds, `Invalid: datIssueEnd is positive int or 0 ${datIssuanceDurationSeconds}`, 0n);
-        datTtlSeconds = DatInteger.toBigInt(datTtlSeconds, `Invalid: datTtl is positive int or 0 ${datTtlSeconds}`, 0n);
+        // These three are u64 in the reference implementation: 0 is a legal value,
+        // the upper bound is u64::MAX, and both sums are checked additions there.
+        datIssuanceStartSeconds = DatInteger.toBigInt(datIssuanceStartSeconds, `Invalid: issuedAt is positive int or 0 ${datIssuanceStartSeconds}`, 0n, DatInteger.U64_MAX);
+        datIssuanceDurationSeconds = DatInteger.toBigInt(datIssuanceDurationSeconds, `Invalid: datIssueEnd is positive int or 0 ${datIssuanceDurationSeconds}`, 0n, DatInteger.U64_MAX);
+        datTtlSeconds = DatInteger.toBigInt(datTtlSeconds, `Invalid: datTtl is positive int or 0 ${datTtlSeconds}`, 0n, DatInteger.U64_MAX);
+        const datIssuanceEndSeconds = datIssuanceStartSeconds + datIssuanceDurationSeconds;
+        if (datIssuanceEndSeconds > DatInteger.U64_MAX) {
+            throw new DatError(DatErrorCodes.CERT_MALFORMED, 'issuance_start_seconds + issuance_duration_seconds overflowed u64');
+        }
+        if (datIssuanceEndSeconds + datTtlSeconds > DatInteger.U64_MAX) {
+            throw new DatError(DatErrorCodes.CERT_MALFORMED, 'issuance_start_seconds + issuance_duration_seconds + dat_ttl_seconds overflowed u64');
+        }
         this.datIssuanceStartSeconds = datIssuanceStartSeconds;
-        this.datIssuanceEndSeconds = datIssuanceStartSeconds + datIssuanceDurationSeconds;
+        this.datIssuanceEndSeconds = datIssuanceEndSeconds;
         this.datTtlSeconds = datTtlSeconds;
     }
 
@@ -43,12 +53,20 @@ export class DatCertificate {
     static async imports(format: string): Promise<DatCertificate> {
         const parts = format.split(".");
         if (parts.length !== 8) {
-            throw new Error("Invalid Certificate format");
+            throw new DatError(DatErrorCodes.CERT_MALFORMED, "expected exactly 8 dot-separated fields");
         }
-        const cid = DatInteger.toCid(parts[0], `Invalid cid(Certificate ID) is HEX ${parts[0]}`);
-        const datIssuanceStartSeconds = DatInteger.toBigInt(parts[1]);
-        const datIssuanceDurationSeconds = DatInteger.toBigInt(parts[2]);
-        const datTtlSeconds = DatInteger.toBigInt(parts[3]);
+        // 필드 파싱 실패는 인증서가 깨진 것이지 호출자의 인자 문제가 아니다.
+        const field = <T>(fn: () => T, name: string): T => {
+            try {
+                return fn();
+            } catch (e) {
+                throw new DatError(DatErrorCodes.CERT_MALFORMED, `${name} field is not a plain number`, e);
+            }
+        };
+        const cid = field(() => DatInteger.toCid(parts[0]), 'cid');
+        const datIssuanceStartSeconds = field(() => DatInteger.toBigInt(parts[1]), 'issuance_start_seconds');
+        const datIssuanceDurationSeconds = field(() => DatInteger.toBigInt(parts[2]), 'issuance_duration_seconds');
+        const datTtlSeconds = field(() => DatInteger.toBigInt(parts[3]), 'dat_ttl_seconds');
         const signatureAlgorithm = parts[4];
         const cryptAlgorithm = parts[5];
         const signatureKey = await DatSignature.imports(signatureAlgorithm, parts[6]);
@@ -57,12 +75,20 @@ export class DatCertificate {
         return new DatCertificate(cid, datIssuanceStartSeconds, datIssuanceDurationSeconds, datTtlSeconds, signatureKey, cryptoKey);
     }
 
+    // Both compare whole seconds against whole seconds, like the reference
+    // implementation. `Unixtime.now().after(x, true)` compares a millisecond
+    // `now` against `x * 1000`, so anything past `x.000` counted as after —
+    // certificates went un-issuable and expired up to a second early.
     issuable(): boolean {
-        return this.signable() && Unixtime.now().between(this.datIssuanceStartSeconds, this.datIssuanceEndSeconds, true);
+        if (!this.signable()) {
+            return false;
+        }
+        const now = Unixtime.now().time;
+        return now >= this.datIssuanceStartSeconds && now <= this.datIssuanceEndSeconds;
     }
 
     expired(): boolean {
-        return Unixtime.now().after(this.datIssuanceEndSeconds + this.datTtlSeconds, true);
+        return this.datIssuanceEndSeconds + this.datTtlSeconds < Unixtime.now().time;
     }
 
     signable(): boolean {

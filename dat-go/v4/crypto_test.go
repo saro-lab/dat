@@ -21,7 +21,10 @@ func encryptAndDecrypt(t *testing.T, alg dat.CryptoAlgorithm, randStr string) er
 	tag := fmt.Sprintf("Crypto %s", alg)
 	fmt.Printf("%s ready\n", tag)
 
-	key := dat.GenerateCryptoKey(alg)
+	key, err := dat.GenerateCryptoKey(alg)
+	if err != nil {
+		return err
+	}
 	byteKey := key.ToBytes()
 	b64Key := dat.EncodeBase64URL(byteKey)
 	fmt.Printf("%s key %s\n", tag, b64Key)
@@ -58,7 +61,10 @@ func encryptAndDecrypt(t *testing.T, alg dat.CryptoAlgorithm, randStr string) er
 		t.Errorf("expected %s, got %s", randStr, string(decrypted))
 	}
 
-	otherKey := dat.GenerateCryptoKey(alg)
+	otherKey, err := dat.GenerateCryptoKey(alg)
+	if err != nil {
+		return err
+	}
 	_, err = otherKey.Decrypt(decodedEncrypted)
 	failDecrypt := err == nil
 	if failDecrypt && randStr != "" {

@@ -1,4 +1,5 @@
 import {DatArrayBuffer,} from "./index.js";
+import {DatError, DatErrorCodes} from "./error.js";
 
 export type DatCryptoAlgorithm = "IV-AES128-GCM" | "IV-AES256-GCM";
 export const DatCryptoAlgorithms: DatCryptoAlgorithm[] = ["IV-AES128-GCM", "IV-AES256-GCM"];
@@ -15,7 +16,7 @@ function getCryptoConfig(algorithm: string): CryptoConfig {
     if (config) {
         return config;
     }
-    throw new Error(`Unsupported DAT Crypto Algorithm: ${algorithm}`);
+    throw new DatError(DatErrorCodes.CONFIG_ALG_UNSUPPORTED, `unknown crypto algorithm: ${algorithm}`);
 }
 
 export class DatCrypto {
@@ -28,6 +29,12 @@ export class DatCrypto {
         key: CryptoKey,
         config: CryptoConfig = getCryptoConfig(algorithm),
     ) {
+        // Same cross-check as `imports`, for keys handed in directly: WebCrypto is
+        // happy to encrypt with an AES-128 key under an IV-AES256-GCM label.
+        const keyLength = (key?.algorithm as AesKeyAlgorithm|undefined)?.length;
+        if (typeof keyLength === 'number' && keyLength !== config.length) {
+            throw new DatError(DatErrorCodes.KEY_INVALID, `${algorithm} key must be ${config.length / 8} bytes, got ${keyLength / 8}`);
+        }
         this.algorithm = algorithm;
         this.key = key;
         this.config = config;
@@ -44,6 +51,12 @@ export class DatCrypto {
     static async imports(algorithm: string, base64: string): Promise<DatCrypto> {
         const config = getCryptoConfig(algorithm);
         const bytes = DatArrayBuffer.fromBase64Url(base64)
+        // WebCrypto accepts any valid AES length, so the declared algorithm has to
+        // be cross-checked or a 16-byte key would silently import as AES-128
+        // under an IV-AES256-GCM label.
+        if (bytes.byteLength * 8 !== config.length) {
+            throw new DatError(DatErrorCodes.KEY_INVALID, `${algorithm} key must be ${config.length / 8} bytes, got ${bytes.byteLength}`);
+        }
         const key = await crypto.subtle.importKey(
             "raw", bytes, { name: config.name }, true, ["encrypt", "decrypt"]
         );
@@ -63,12 +76,17 @@ export class DatCrypto {
         if (this.config.name == "AES-GCM") {
             const nonce = new Uint8Array(12);
             crypto.getRandomValues(nonce);
-            const encrypt = await crypto.subtle.encrypt(
-                { name: this.config.name, iv: nonce }, this.key, buffer
-            );
+            let encrypt: ArrayBuffer;
+            try {
+                encrypt = await crypto.subtle.encrypt(
+                    { name: this.config.name, iv: nonce }, this.key, buffer
+                );
+            } catch (e) {
+                throw new DatError(DatErrorCodes.CRYPTO_BACKEND, "aes-gcm encrypt failed", e);
+            }
             return DatArrayBuffer.concat(nonce, encrypt);
         }
-        throw new Error(`Unsupported DAT Crypto Algorithm: ${this.algorithm}`);
+        throw new DatError(DatErrorCodes.CONFIG_ALG_UNSUPPORTED, `unknown crypto algorithm: ${this.algorithm}`);
     }
 
     async decrypt(data: ArrayBufferLike|Uint8Array|string|null|undefined): Promise<ArrayBuffer> {
@@ -78,13 +96,20 @@ export class DatCrypto {
         }
         if (this.config.name == "AES-GCM") {
             if (buffer.byteLength <= 12) {
-                throw new Error("Invalid data length");
+                throw new DatError(DatErrorCodes.CRYPTO_DATA_INVALID, "ciphertext is shorter than the 12-byte iv");
             }
             const bytes = new Uint8Array(buffer);
-            return await crypto.subtle.decrypt(
-                { name: this.config.name, iv: bytes.subarray(0, 12) }, this.key, bytes.subarray(12)
-            );
+            try {
+                return await crypto.subtle.decrypt(
+                    { name: this.config.name, iv: bytes.subarray(0, 12) }, this.key, bytes.subarray(12)
+                );
+            } catch (e) {
+                // WebCrypto 는 태그 불일치를 무정보 DOMException(OperationError) 으로 던진다.
+                // 그 예외가 그대로 공개 API 밖으로 나가던 자리다. parseWithoutVerify 경로에서는
+                // 이것이 유일한 무결성 검사다.
+                throw new DatError(DatErrorCodes.CRYPTO_TAG_MISMATCH, "gcm authentication tag mismatch", e);
+            }
         }
-        throw new Error(`Unsupported DAT Crypto Algorithm: ${this.algorithm}`);
+        throw new DatError(DatErrorCodes.CONFIG_ALG_UNSUPPORTED, `unknown crypto algorithm: ${this.algorithm}`);
     }
 }

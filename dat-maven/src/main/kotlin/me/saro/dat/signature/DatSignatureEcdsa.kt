@@ -1,5 +1,6 @@
 package me.saro.dat.signature
 
+import me.saro.dat.exception.DatErrorCode
 import me.saro.dat.exception.DatException
 import me.saro.dat.signature.DatSignatureAlgorithm.*
 import org.bouncycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey
@@ -27,7 +28,7 @@ class DatSignatureEcdsa private constructor(
                 ECDSA_P256 -> 32
                 ECDSA_P384 -> 48
                 ECDSA_P521 -> 66
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an ecdsa signature algorithm: $algorithm")
             }
         }
 
@@ -36,7 +37,7 @@ class DatSignatureEcdsa private constructor(
                 ECDSA_P256 -> 65
                 ECDSA_P384 -> 97
                 ECDSA_P521 -> 133
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an ecdsa signature algorithm: $algorithm")
             }
         }
 
@@ -53,7 +54,7 @@ class DatSignatureEcdsa private constructor(
             } else if (key.size == publicKeySize) {
                 null
             } else {
-                throw DatException("Invalid Dat Signature Key Size: $algorithm ${key.size}")
+                throw DatException(DatErrorCode.KEY_INVALID, "ecdsa key length matches neither private+public nor public: $algorithm ${key.size}")
             }
 
             val verifyKeyByte = if (key.size == publicKeySize) {
@@ -62,9 +63,14 @@ class DatSignatureEcdsa private constructor(
                 key.sliceArray(privateKeySize until key.size)
             }
 
-            val point = spec.curve.decodePoint(verifyKeyByte)
-            val pubSpec = ECPublicKeySpec(point, spec)
-            val verifyingKey = kf.generatePublic(pubSpec)
+            // 곡선 위에 없는 점·압축 점·인코딩 오류가 여기서 걸린다. 예전에는
+            // BouncyCastle 의 원본 예외가 그대로 공개 API 밖으로 나갔다.
+            val verifyingKey = try {
+                val point = spec.curve.decodePoint(verifyKeyByte)
+                kf.generatePublic(ECPublicKeySpec(point, spec))
+            } catch (e: Exception) {
+                throw DatException(DatErrorCode.KEY_INVALID, "ecdsa public key material rejected", e)
+            }
 
             return DatSignatureEcdsa(algorithm, signingKey as BCECPrivateKey?, verifyingKey as BCECPublicKey)
         }
@@ -80,7 +86,7 @@ class DatSignatureEcdsa private constructor(
         private fun getKeyFactory(algorithm: DatSignatureAlgorithm): KeyFactory {
             return when (algorithm) {
                 ECDSA_P256, ECDSA_P384, ECDSA_P521 -> KeyFactory.getInstance("EC", BOUNCY_CASTLE_PROVIDER)
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an ecdsa signature algorithm: $algorithm")
             }
         }
 
@@ -89,7 +95,7 @@ class DatSignatureEcdsa private constructor(
                 ECDSA_P256 -> Signature.getInstance("SHA256withPLAIN-ECDSA", BOUNCY_CASTLE_PROVIDER)
                 ECDSA_P384 -> Signature.getInstance("SHA384withPLAIN-ECDSA", BOUNCY_CASTLE_PROVIDER)
                 ECDSA_P521 -> Signature.getInstance("SHA512withPLAIN-ECDSA", BOUNCY_CASTLE_PROVIDER)
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an ecdsa signature algorithm: $algorithm")
             }
         }
 
@@ -98,7 +104,7 @@ class DatSignatureEcdsa private constructor(
                 ECDSA_P256 -> "secp256r1"
                 ECDSA_P384 -> "secp384r1"
                 ECDSA_P521 -> "secp521r1"
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an ecdsa signature algorithm: $algorithm")
             }
         }
 
@@ -107,7 +113,7 @@ class DatSignatureEcdsa private constructor(
                 ECDSA_P256 -> 256
                 ECDSA_P384 -> 384
                 ECDSA_P521 -> 521
-                else -> throw IllegalArgumentException("Unsupported algorithm: $algorithm")
+                else -> throw DatException(DatErrorCode.CONFIG_ALG_UNSUPPORTED, "not an ecdsa signature algorithm: $algorithm")
             }
         }
     }
@@ -144,24 +150,32 @@ class DatSignatureEcdsa private constructor(
     private val threadSignature: ThreadLocal<Signature> = ThreadLocal.withInitial { getSignature(algorithm) }
 
     override fun verify(body: ByteArray, signature: ByteArray): Boolean {
-        try {
+        // SignatureException(길이·DER 불일치) 만 false 로 돌려준다. 그 밖의 예외를
+        // 여기서 삼키면 프로그래밍 오류가 위조 시도로 보고된다.
+        return try {
             val instant: Signature = threadSignature.get()
             instant.initVerify(verifyingKey)
             instant.update(body)
-            return instant.verify(signature)
+            instant.verify(signature)
+        } catch (e: SignatureException) {
+            false
         } catch (e: Exception) {
-            return false
+            throw DatException(DatErrorCode.SIG_BACKEND, "ecdsa verification failed to run", e)
         }
     }
 
     override fun sign(body: ByteArray): ByteArray {
         if (signingKey != null) {
-            val signature: Signature = threadSignature.get()
-            signature.initSign(signingKey)
-            signature.update(body)
-            return signature.sign()
+            return try {
+                val signature: Signature = threadSignature.get()
+                signature.initSign(signingKey)
+                signature.update(body)
+                signature.sign()
+            } catch (e: Exception) {
+                throw DatException(DatErrorCode.SIG_BACKEND, "ecdsa sign failed", e)
+            }
         }
-        throw DatException("VerifyingKey Only Key: Is not Have Signing Key")
+        throw DatException(DatErrorCode.SIG_KEY_MISSING, "this key is verify-only")
     }
 
     override fun signable(): Boolean {
