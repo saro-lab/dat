@@ -45,6 +45,10 @@ export const hi = {
     clear: 'साफ़ करें',
 
     dat_cms: 'DAT प्रमाणपत्र प्रबंधन सेवा',
+
+    deploy_cmd: "रन कमांड",
+
+    api_check: "API जाँच",
     server: 'सर्वर',
     production: 'प्रोडक्शन',
     debug: 'डीबग',

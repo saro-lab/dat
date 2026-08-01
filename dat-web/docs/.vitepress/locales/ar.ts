@@ -45,6 +45,10 @@ export const ar = {
     clear: 'مسح',
 
     dat_cms: 'خدمة إدارة شهادات DAT',
+
+    deploy_cmd: "أمر التشغيل",
+
+    api_check: "فحص API",
     server: 'الخادم',
     production: 'الإنتاج',
     debug: 'التصحيح',

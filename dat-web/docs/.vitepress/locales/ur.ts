@@ -45,6 +45,10 @@ export const ur = {
     clear: 'صاف کریں',
 
     dat_cms: 'DAT سرٹیفکیٹ مینجمنٹ سروس',
+
+    deploy_cmd: "رن کمانڈ",
+
+    api_check: "API چیک",
     server: 'سرور',
     production: 'پروڈکشن',
     debug: 'ڈیبگ',

@@ -1,14 +1,14 @@
 <template>
   <div>
-    <div class="text-sm font-bold my-2 mx-1">{{t('structure')}}</div>
+    <div class="g-label mx-1">{{t('structure')}}</div>
     <div class="p-1.5 my-1 help-box">
       <div v-for="(attr, idx) in attrs" class="node" @mouseover="sel = idx" @mouseout="sel = -1" :class="{sel: idx == sel}">
         <span>{{attr}}</span>
       </div>
     </div>
-    <div class="mt-3 mx-1 text-sm font-bold">
-      {{t('example')}}
-      <span translate="no" class="material-symbols-outlined g-link text-lg! align-middle! font-bold!" @click="renew">refresh</span>
+    <div class="g-label-row mx-1">
+      <span class="g-label">{{t('example')}}</span>
+      <span translate="no" class="material-symbols-outlined g-link text-base! cursor-pointer" @click="renew">refresh</span>
     </div>
     <div class="py-1.5 px-2.5 my-1 break-all help-box">
       <div v-if="props.type === 'dat'" class="mt-1 mb-1 text-xs opacity-30">{{sa}} / {{ca}}</div>
@@ -104,7 +104,7 @@ onMounted(renew);
     content: '.';
   }
   span {
-    @apply px-2 py-1 m-1 rounded-md inline-block font-bold;
+    @apply px-2 py-1 m-1 rounded-md inline-block font-medium;
   }
   &:nth-child(odd) span {
     background-color: color-mix(in srgb, var(--c-accent-1) 16%, transparent);

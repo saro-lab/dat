@@ -45,6 +45,10 @@ export const zh = {
     clear: '清除',
 
     dat_cms: 'DAT证书管理服务',
+
+    deploy_cmd: "运行命令",
+
+    api_check: "API 检查",
     server: '服务器',
     production: '生产',
     debug: '调试',

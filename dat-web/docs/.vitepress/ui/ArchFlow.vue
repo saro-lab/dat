@@ -148,7 +148,7 @@ const rowSpan = computed(() => `1 / ${servers.value.length + firstRow.value}`)
     background: color-mix(in srgb, currentColor 4%, transparent);
 }
 .flow-title {
-    @apply relative text-center text-xs font-bold pb-0.5;
+    @apply relative text-center text-xs font-semibold pb-0.5;
     color: var(--c-text-1);
 }
 .flow-cell {

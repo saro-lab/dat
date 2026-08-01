@@ -45,6 +45,10 @@ export const pt = {
     clear: 'Limpar',
 
     dat_cms: 'Serviço de Gerenciamento de Certificados DAT',
+
+    deploy_cmd: "Comando de execução",
+
+    api_check: "Verificação de API",
     server: 'Servidor',
     production: 'Produção',
     debug: 'Depurar',

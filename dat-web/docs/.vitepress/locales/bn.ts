@@ -45,6 +45,10 @@ export const bn = {
     clear: 'মুছুন',
 
     dat_cms: 'DAT সার্টিফিকেট ম্যানেজমেন্ট সার্ভিস',
+
+    deploy_cmd: "রান কমান্ড",
+
+    api_check: "API যাচাই",
     server: 'সার্ভার',
     production: 'প্রোডাকশন',
     debug: 'ডিবাগ',

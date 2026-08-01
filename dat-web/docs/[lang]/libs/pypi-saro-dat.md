@@ -1,5 +1,5 @@
 # DAT Python Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-pypi/tree/master/tests)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-pypi/tests)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -11,7 +11,7 @@
 
 #### {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: test_cms_manager.py](https://github.com/saro-lab/dat/tree/master/dat-pypi/blob/master/tests/test_cms_manager.py)
+- [{{t('example')}}: test_cms_manager.py](https://github.com/saro-lab/dat/blob/master/dat-pypi/tests/test_cms_manager.py)
 ```python
 from saro_dat import DatCmsManager, DatRetry
 
@@ -57,8 +57,8 @@ print("payload secure : " + payload_secure)
 ```
 
 #### {{t('manual_code')}}
-- [{{t('example')}}: test_manager.py](https://github.com/saro-lab/dat/tree/master/dat-pypi/blob/master/tests/test_manager.py)
-- [{{t('example')}}: test_hard.py](https://github.com/saro-lab/dat/tree/master/dat-pypi/blob/master/tests/test_hard.py)
+- [{{t('example')}}: test_manager.py](https://github.com/saro-lab/dat/blob/master/dat-pypi/tests/test_manager.py)
+- [{{t('example')}}: test_hard.py](https://github.com/saro-lab/dat/blob/master/dat-pypi/tests/test_hard.py)
 ```python
 dat_manager = DatManager()
 
@@ -104,7 +104,7 @@ verifier.imports(verify_only_format)
 ```
 
 #### {{t('error_handling')}}
-- [{{t('example')}}: test_error_code.py](https://github.com/saro-lab/dat/tree/master/dat-pypi/blob/master/tests/test_error_code.py)
+- [{{t('example')}}: test_error_code.py](https://github.com/saro-lab/dat/blob/master/dat-pypi/tests/test_error_code.py)
 
 Every failure is a `DatError` carrying a `code` that is identical across all official clients.
 The one split that matters most: **an expired token is not a forged one.**

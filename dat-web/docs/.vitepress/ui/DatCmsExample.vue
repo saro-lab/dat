@@ -1,171 +1,213 @@
 <template>
   <div>
     <h1>{{t('dat_cms')}}</h1>
-    <div class="text-sm font-bold">
+    <div class="cms-links">
       <a href="https://github.com/saro-lab/dat" target="_blank">
-        Github
+        <span translate="no" class="material-symbols-outlined">code</span>Github
       </a>
-      /
       <a href="https://github.com/saro-lab/dat/releases" target="_blank">
-        {{t('download')}}
+        <span translate="no" class="material-symbols-outlined">download</span>{{t('download')}}
       </a>
     </div>
-    <div class="mt-3 mb-0">
-      <div class="font-bold mt-3 text-sm">{{t('server')}}</div>
-      <div class="g-radio-group">
-        <div v-for="oe in operatingEnvironmentList">
-          <input type="radio" :id="`oe-${oe}`" name="oe" :value="oe" v-model="operatingEnvironment" @change="makeCode">
-          <label :for="`oe-${oe}`">{{oe}}</label>
-        </div>
+
+    <div class="g-panel-head cms-head">
+      <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">dns</span></span>
+      <h2 class="g-panel-title">{{t('server')}}</h2>
+    </div>
+
+    <div class="g-radio-group mt-3">
+      <div v-for="oe in operatingEnvironmentList">
+        <input type="radio" :id="`oe-${oe}`" name="oe" :value="oe" v-model="operatingEnvironment" @change="makeCode">
+        <label :for="`oe-${oe}`">{{oe}}</label>
       </div>
-      <div class="g-radio-group">
-        <div v-for="modeName in modeList">
-          <input type="radio" :id="`modeName-${modeName}`" name="modeName" :value="modeName" v-model="mode" @change="makeCode">
-          <label :for="`modeName-${modeName}`">{{t(modeName)}}</label>
-        </div>
+    </div>
+    <div class="g-radio-group">
+      <div v-for="modeName in modeList">
+        <input type="radio" :id="`modeName-${modeName}`" name="modeName" :value="modeName" v-model="mode" @change="makeCode">
+        <label :for="`modeName-${modeName}`">{{t(modeName)}}</label>
       </div>
-      <div class="g-radio-group">
-        <div v-for="logConsoleName in logConsoleList">
-          <input type="radio" :id="`logConsoleName-${logConsoleName}`" name="logConsoleName" :value="logConsoleName" v-model="logConsole"  @change="makeCode">
-          <label :for="`logConsoleName-${logConsoleName}`">Console {{logConsoleName}}</label>
-        </div>
-        <div v-for="logFileName in logFileList">
-          <input type="radio" :id="`logFileName-${logFileName}`" name="logFileName" :value="logFileName" v-model="logFile"  @change="makeCode">
-          <label :for="`logFileName-${logFileName}`">{{t('log_file')}} {{logFileName}}</label>
-        </div>
+    </div>
+    <div class="g-radio-group">
+      <div v-for="logConsoleName in logConsoleList">
+        <input type="radio" :id="`logConsoleName-${logConsoleName}`" name="logConsoleName" :value="logConsoleName" v-model="logConsole"  @change="makeCode">
+        <label :for="`logConsoleName-${logConsoleName}`">Console {{logConsoleName}}</label>
       </div>
-      <div v-if="!isKubernetes" class="flex">
-        <input class="mt-3 mr-2" type="text" inputmode="numeric" :placeholder="`PORT (${t('default')}: 8088)`" v-model="port"  @input="makeCode"/>
-        <input class="mt-3 flex-1" type="text" :placeholder="`HOSTNAME (${t('default')}: Auto)`" v-model="hostname"  @input="makeCode"/>
+      <div v-for="logFileName in logFileList">
+        <input type="radio" :id="`logFileName-${logFileName}`" name="logFileName" :value="logFileName" v-model="logFile"  @change="makeCode">
+        <label :for="`logFileName-${logFileName}`">{{t('log_file')}} {{logFileName}}</label>
       </div>
     </div>
 
-    <div v-if="isKubernetes" class="my-3">
-      <div class="flex">
-        <input class="mt-3 mr-2 flex-1" type="text" :placeholder="t('kube_namespace')" v-model="kubeNamespace"  @input="makeCode"/>
-        <input class="mt-3" type="text" inputmode="numeric" :placeholder="`replicas (${t('default')}: 2)`" v-model="kubeReplicas"  @input="makeCode"/>
-      </div>
-      <LogBox v-model="logList"/>
-    </div>
-
-    <div v-if="(['Binary', 'Docker', 'Podman']).includes(operatingEnvironment)" class="mb-3 mt-1.5">
-      <div class="g-radio-group">
-        <div v-for="(bash, i) in binaryBashList">
-          <input type="radio" :id="`bash-${bash}`" name="bash" :value="bash" v-model="binaryBash" @change="makeCode">
-          <label :for="`bash-${bash}`">{{binaryBashNameList[i]}}</label>
+    <div v-if="!isKubernetes" class="field-grid two">
+      <div>
+        <div class="g-label-row">
+          <span class="g-label">Port</span>
+          <span class="g-label-note">{{t('default')}}: 8088</span>
         </div>
-      </div>
-    </div>
-
-
-    <div>
-      <CodeBox :lang="codeLang" :code="code" />
-      <LogBox v-model="logList"/>
-      <CodeBox class="mt-3" lang="bash" :code="curlCommand" />
-    </div>
-
-    <div class="my-3">
-      <div class="font-bold mt-3 text-sm">{{t('db')}}</div>
-      <div class="g-radio-group">
-        <div v-for="(dbName, i) in dbList">
-          <input type="radio" :id="`dbName-${dbName}`" name="dbName" :value="dbName" v-model="db"  @change="makeCode">
-          <label :for="`dbName-${dbName}`">{{i == 0 ? t('none') : dbNameList[i]}}</label>
-        </div>
-      </div>
-      <div v-if="db != ''">
-        <div class="mt-3 ml-1 text-xs">
-          {{t('see')}}: <a href="https://www.sea-ql.org/SeaORM/docs/install-and-config/connection/" target="_blank">SeaORM connection</a>
-        </div>
-        <div v-if="db == 'sqlite'">
-          <input class="mt-3 w-full" type="text" :placeholder="t('sqlite_path')" v-model="dbFilePath" @input="makeCode" />
-        </div>
-        <div v-else>
-          <div class="flex">
-            <input class="mt-3 mr-2 flex-1" type="text" :placeholder="t('username')" v-model="dbUsername" @input="makeCode" />
-            <input class="mt-3 flex-1" type="text"  :placeholder="t('password')" v-model="dbPassword" @input="makeCode" />
-          </div>
-          <div class="flex">
-            <input class="mt-3 mr-2 flex-1" type="text" :placeholder="t('host')" v-model="dbHost" @input="makeCode" />
-            <input class="mt-3 mr-2" type="text" inputmode="numeric" :placeholder="t('port')" v-model="dbPort" @input="makeCode" />
-          </div>
-          <div>
-            <input class="mt-3 w-full" type="text" :placeholder="t('db')" v-model="dbDatabase" @input="makeCode" />
-          </div>
-        </div>
+        <input class="w-full" type="text" inputmode="numeric" v-model="port" @input="makeCode"/>
       </div>
       <div>
-        <input class="mt-3 w-full" type="text" inputmode="numeric" :placeholder="`${t('api_cache')} (${t('default')}: 60)`" v-model="dbCacheSecs" @input="makeCode" />
+        <div class="g-label-row">
+          <span class="g-label">Hostname</span>
+          <span class="g-label-note">{{t('default')}}: Auto</span>
+        </div>
+        <input class="w-full" type="text" v-model="hostname" @input="makeCode"/>
       </div>
     </div>
 
-    <div class="my-3">
-      <div class="font-bold text-sm">{{t('cert')}}</div>
-      <div class="pl-1">
-        <div class="font-bold mt-3 text-sm">{{t('sig_alg')}}</div>
-        <div class="g-radio-group">
-          <div v-for="sa in signAlgList">
-            <input type="radio" :id="`sa-${sa}`" name="sa" :value="sa" v-model="certSignAlg"  @change="makeCode">
-            <label :for="`sa-${sa}`">{{sa}}</label>
+    <div v-if="isKubernetes" class="field-grid two">
+      <div>
+        <span class="g-label">{{t('kube_namespace')}}</span>
+        <input class="w-full" type="text" v-model="kubeNamespace" @input="makeCode"/>
+      </div>
+      <div>
+        <div class="g-label-row">
+          <span class="g-label">Replicas</span>
+          <span class="g-label-note">{{t('default')}}: 2</span>
+        </div>
+        <input class="w-full" type="text" inputmode="numeric" v-model="kubeReplicas" @input="makeCode"/>
+      </div>
+    </div>
+
+    <div v-if="(['Binary', 'Docker', 'Podman']).includes(operatingEnvironment)" class="g-radio-group mt-1">
+      <div v-for="(bash, i) in binaryBashList">
+        <input type="radio" :id="`bash-${bash}`" name="bash" :value="bash" v-model="binaryBash" @change="makeCode">
+        <label :for="`bash-${bash}`">{{binaryBashNameList[i]}}</label>
+      </div>
+    </div>
+
+    <div class="g-panel-head cms-head">
+      <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">terminal</span></span>
+      <h2 class="g-panel-title">{{t('deploy_cmd')}}</h2>
+    </div>
+
+    <div class="mt-4">
+      <CodeBox :lang="codeLang" :code="code" />
+      <LogBox v-model="logList"/>
+      <div class="g-label">{{t('api_check')}}</div>
+      <CodeBox lang="bash" :code="curlCommand" />
+    </div>
+
+    <div class="g-panel-head cms-head">
+      <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">database</span></span>
+      <h2 class="g-panel-title">{{t('db')}}</h2>
+    </div>
+
+    <div class="g-radio-group mt-3">
+      <div v-for="(dbName, i) in dbList">
+        <input type="radio" :id="`dbName-${dbName}`" name="dbName" :value="dbName" v-model="db"  @change="makeCode">
+        <label :for="`dbName-${dbName}`">{{i == 0 ? t('none') : dbNameList[i]}}</label>
+      </div>
+    </div>
+    <div v-if="db != ''">
+      <div class="mt-3 text-xs" style="color: var(--c-muted)">
+        {{t('see')}}: <a class="g-link" href="https://www.sea-ql.org/SeaORM/docs/install-and-config/connection/" target="_blank">SeaORM connection</a>
+      </div>
+      <div v-if="db == 'sqlite'">
+        <span class="g-label">{{t('sqlite_path')}}</span>
+        <input class="w-full" type="text" v-model="dbFilePath" @input="makeCode" />
+      </div>
+      <template v-else>
+        <div class="field-grid two">
+          <div>
+            <span class="g-label">{{t('username')}}</span>
+            <input class="w-full" type="text" v-model="dbUsername" @input="makeCode" />
+          </div>
+          <div>
+            <span class="g-label">{{t('password')}}</span>
+            <input class="w-full" type="text" v-model="dbPassword" @input="makeCode" />
+          </div>
+          <div>
+            <span class="g-label">{{t('host')}}</span>
+            <input class="w-full" type="text" v-model="dbHost" @input="makeCode" />
+          </div>
+          <div>
+            <span class="g-label">{{t('port')}}</span>
+            <input class="w-full" type="text" inputmode="numeric" v-model="dbPort" @input="makeCode" />
           </div>
         </div>
-        <div class="font-bold mt-3 text-sm">{{t('crypto_alg')}}</div>
-        <div class="g-radio-group">
-          <div v-for="ca in cryptoAlgList">
-            <input type="radio" :id="`ca-${ca}`" name="ca" :value="ca" v-model="certCryptoAlg"  @change="makeCode">
-            <label :for="`ca-${ca}`">{{ca}}</label>
-          </div>
-        </div>
+        <span class="g-label">{{t('db')}}</span>
+        <input class="w-full" type="text" v-model="dbDatabase" @input="makeCode" />
+      </template>
+    </div>
+    <div class="g-label-row">
+      <span class="g-label">{{t('api_cache')}}</span>
+      <span class="g-label-note">{{t('default')}}: 60</span>
+    </div>
+    <input class="w-full" type="text" inputmode="numeric" v-model="dbCacheSecs" @input="makeCode" />
 
-        <div class="font-bold mt-4 text-sm">
-          <span class="align-middle!">{{t('cert_issue_delay')}} ({{t('seconds')}})</span>
-          <span translate="no" class="material-symbols-outlined text-lg! align-middle! ml-1 g-link" @click="showDetail = !showDetail">help</span>
-        </div>
-        <blockquote v-if="showDetail" class="my-1! py-3! text-xs leading-relaxed" v-html="help('cms_help_cert_issue_delay')"></blockquote>
-        <div>
-          <input class="mt-1 min-w-1/5 w-full" inputmode="numeric" type="text" :placeholder="propagationDelayDefault" v-model="propagationDelay" @input="makeCode" />
-        </div>
-
-        <div class="font-bold mt-4 text-sm">
-          <span class="align-middle!">{{t('dat_issue_dur')}} ({{t('seconds')}})</span>
-          <span translate="no" class="material-symbols-outlined text-lg! align-middle! ml-1 g-link" @click="showDetail = !showDetail">help</span>
-        </div>
-        <blockquote v-if="showDetail" class="my-1! py-3! text-xs leading-relaxed" v-html="help('cms_help_dat_issue_dur')"></blockquote>
-        <div>
-          <input class="mt-1 min-w-1/5 w-full" inputmode="numeric" type="text" :placeholder="datIssuanceDurationDefault" v-model="datIssuanceDuration" @input="makeCode" />
-        </div>
-
-        <div class="font-bold mt-4 text-sm">
-          <span class="align-middle!">{{t('dat_ttl')}} ({{t('seconds')}})</span>
-          <span translate="no" class="material-symbols-outlined text-lg! align-middle! ml-1 g-link" @click="showDetail = !showDetail">help</span>
-        </div>
-        <blockquote v-if="showDetail" class="my-1! py-3! text-xs leading-relaxed" v-html="help('cms_help_dat_ttl')"></blockquote>
-        <div>
-          <input class="mt-1 min-w-1/5 w-full" inputmode="numeric" type="text" :placeholder="datTtlDefault" v-model="datTtl" @input="makeCode" />
-        </div>
-
-        <div class="font-bold mt-4 text-sm">{{t('cert_cron')}}</div>
-        <blockquote v-if="showDetail" class="my-1! py-3! text-xs leading-relaxed" v-html="help('cms_help_cert_cron')"></blockquote>
-        <div class="flex">
-          <input class="mt-1 flex-1" type="text" :placeholder="cronDefault" v-model="cron" @input="makeCode" />
-        </div>
-      </div>
-
+    <div class="g-panel-head cms-head">
+      <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">verified_user</span></span>
+      <h2 class="g-panel-title">{{t('cert')}}</h2>
     </div>
 
-    <div class="my-3">
-      <div class="font-bold mt-3 mb-2 text-sm">{{t('access_control')}}</div>
-      <div class="pl-0.5">
-        <div class="text-sm pl-1">{{t('master_token')}}: {{t('master_token_desc')}}</div>
-        <input class="mt-1 w-full" type="text" :placeholder="t('alnum_only')" v-model="tokenMaster" @input="makeCode" />
-        <div class="text-sm mt-3 pl-1">{{t('full_cert_token')}}: {{t('full_cert_token_desc')}}</div>
-        <input class="mt-1 w-full" type="text" :placeholder="t('alnum_only')" v-model="tokenCertFull" @input="makeCode" />
-        <div class="text-sm mt-3 pl-1">{{t('verify_cert_token')}}: {{t('verify_cert_token_desc')}}</div>
-        <input class="mt-1 w-full" type="text" :placeholder="t('alnum_only')" v-model="tokenCertVerify" @input="makeCode" />
+    <div class="g-label">{{t('sig_alg')}}</div>
+    <div class="g-radio-group">
+      <div v-for="sa in signAlgList">
+        <input type="radio" :id="`sa-${sa}`" name="sa" :value="sa" v-model="certSignAlg"  @change="makeCode">
+        <label :for="`sa-${sa}`">{{sa}}</label>
       </div>
     </div>
 
+    <div class="g-label">{{t('crypto_alg')}}</div>
+    <div class="g-radio-group">
+      <div v-for="ca in cryptoAlgList">
+        <input type="radio" :id="`ca-${ca}`" name="ca" :value="ca" v-model="certCryptoAlg"  @change="makeCode">
+        <label :for="`ca-${ca}`">{{ca}}</label>
+      </div>
+    </div>
 
+    <div class="g-label-row">
+      <span class="g-label">{{t('cert_issue_delay')}}</span>
+      <span class="g-label-note">{{t('seconds')}}</span>
+      <span translate="no" class="material-symbols-outlined help-btn" @click="showDetail = !showDetail">help</span>
+    </div>
+    <blockquote v-if="showDetail" class="cms-help" v-html="help('cms_help_cert_issue_delay')"></blockquote>
+    <input class="w-full" inputmode="numeric" type="text" :placeholder="propagationDelayDefault" v-model="propagationDelay" @input="makeCode" />
 
+    <div class="g-label-row">
+      <span class="g-label">{{t('dat_issue_dur')}}</span>
+      <span class="g-label-note">{{t('seconds')}}</span>
+      <span translate="no" class="material-symbols-outlined help-btn" @click="showDetail = !showDetail">help</span>
+    </div>
+    <blockquote v-if="showDetail" class="cms-help" v-html="help('cms_help_dat_issue_dur')"></blockquote>
+    <input class="w-full" inputmode="numeric" type="text" :placeholder="datIssuanceDurationDefault" v-model="datIssuanceDuration" @input="makeCode" />
+
+    <div class="g-label-row">
+      <span class="g-label">{{t('dat_ttl')}}</span>
+      <span class="g-label-note">{{t('seconds')}}</span>
+      <span translate="no" class="material-symbols-outlined help-btn" @click="showDetail = !showDetail">help</span>
+    </div>
+    <blockquote v-if="showDetail" class="cms-help" v-html="help('cms_help_dat_ttl')"></blockquote>
+    <input class="w-full" inputmode="numeric" type="text" :placeholder="datTtlDefault" v-model="datTtl" @input="makeCode" />
+
+    <div class="g-label-row">
+      <span class="g-label">{{t('cert_cron')}}</span>
+      <span translate="no" class="material-symbols-outlined help-btn" @click="showDetail = !showDetail">help</span>
+    </div>
+    <blockquote v-if="showDetail" class="cms-help" v-html="help('cms_help_cert_cron')"></blockquote>
+    <input class="w-full" type="text" :placeholder="cronDefault" v-model="cron" @input="makeCode" />
+
+    <div class="g-panel-head cms-head">
+      <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">lock</span></span>
+      <h2 class="g-panel-title">{{t('access_control')}}</h2>
+    </div>
+
+    <div class="token-field">
+      <span class="g-label">{{t('master_token')}}</span>
+      <div class="token-desc">{{t('master_token_desc')}}</div>
+      <input class="w-full" type="text" :placeholder="t('alnum_only')" v-model="tokenMaster" @input="makeCode" />
+    </div>
+    <div class="token-field">
+      <span class="g-label">{{t('full_cert_token')}}</span>
+      <div class="token-desc">{{t('full_cert_token_desc')}}</div>
+      <input class="w-full" type="text" :placeholder="t('alnum_only')" v-model="tokenCertFull" @input="makeCode" />
+    </div>
+    <div class="token-field">
+      <span class="g-label">{{t('verify_cert_token')}}</span>
+      <div class="token-desc">{{t('verify_cert_token_desc')}}</div>
+      <input class="w-full" type="text" :placeholder="t('alnum_only')" v-model="tokenCertVerify" @input="makeCode" />
+    </div>
   </div>
 </template>
 
@@ -630,29 +672,58 @@ onMounted(() => {
 <style scoped>
 @reference 'tailwindcss';
 
-.click-here-bg {
-  animation: blink-red 0.3s ease-in-out 2;
-}
-@keyframes blink-red {
-  50% { background-color: #e74c3c; }
-}
-.cert-group {
-  > div {
-    @apply p-1 text-xs font-normal border-2 box-border border-transparent cursor-pointer;
-    span {
-      @apply opacity-40 font-bold;
+/* 제목 바로 아래 붙는 외부 링크 — 본문 링크가 아니라 메타 정보라서
+   본문보다 작게, 아이콘을 앞세워 한 줄로 묶는다 */
+.cms-links {
+  @apply flex flex-wrap gap-x-4 gap-y-1 mt-1;
+
+  a {
+    @apply inline-flex items-center gap-1 text-[0.8rem];
+    color: var(--c-link-1);
+
+    &:hover {
+      color: var(--c-link-2);
     }
-    .warn {
-      @apply text-[#e74c3c] font-bold;
+    .material-symbols-outlined {
+      @apply text-[0.95rem]! opacity-70;
     }
   }
-  /* 선택된 인증서 — 칩·라디오와 같은 "켜짐" 면을 쓴다 (라이트/다크는 토큰이 갈라준다) */
-  .sel {
-    background-color: var(--ctrl-bg-on);
-    border-color: var(--ctrl-border-on);
+}
+
+/* 이 컴포넌트는 이미 유리 패널 하나 안에 들어 있어, 구획을 상자로 또 나누지
+   않고 아이콘 + 괘선만으로 끊는다. 위 여백이 구획의 경계를 대신한다. */
+.cms-head {
+  @apply mt-9;
+}
+
+.help-btn {
+  @apply text-base! cursor-pointer select-none;
+  color: var(--c-link-1);
+
+  &:hover {
+    color: var(--c-link-2);
   }
 }
-blockquote b {
-  @apply text-[#f33];
+
+.cms-help {
+  @apply my-2! py-3! text-xs leading-relaxed;
+
+  b {
+    color: var(--c-accent-2);
+  }
+}
+
+.field-grid {
+  @apply grid grid-cols-1 gap-x-4 gap-y-0;
+  @variant min-sm {
+    @apply grid-cols-2;
+  }
+}
+
+.token-field {
+  .token-desc {
+    @apply text-xs mb-1.5 -mt-0.5;
+    color: var(--c-text-2);
+  }
 }
 </style>

@@ -1,5 +1,5 @@
 # DAT Javascript, Typescript Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-npm/tree/master/src)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-npm/src)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -11,7 +11,7 @@
 
 #### {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: dat.cms.manager.test.ts](https://github.com/saro-lab/dat/tree/master/dat-npm/blob/master/src/dat.cms.manager.test.ts)
+- [{{t('example')}}: dat.cms.manager.test.ts](https://github.com/saro-lab/dat/blob/master/dat-npm/src/dat.cms.manager.test.ts)
 ```js
 const manager = await DatCmsManager.builder()
     .uri("http://localhost:8088")
@@ -50,8 +50,8 @@ console.log("payload secure : " + payloadSecure);
 ```
 
 #### {{t('manual_code')}}
-- [{{t('example')}}: dat.manager.test.ts](https://github.com/saro-lab/dat/tree/master/dat-npm/blob/master/src/dat.manager.test.ts)
-- [{{t('example')}}: hard.test.ts](https://github.com/saro-lab/dat/tree/master/dat-npm/blob/master/src/hard.test.ts)
+- [{{t('example')}}: dat.manager.test.ts](https://github.com/saro-lab/dat/blob/master/dat-npm/src/dat.manager.test.ts)
+- [{{t('example')}}: hard.test.ts](https://github.com/saro-lab/dat/blob/master/dat-npm/src/hard.test.ts)
 ```js
 import {DatCertificate, DatCrypto, DatInteger, DatManager, DatSignature} from "saro-dat";
 import {Unixtime} from "infinite-unixtime";
@@ -83,7 +83,7 @@ console.log("payload secure : " + payloadSecure);
 ```
 
 #### {{t('error_handling')}}
-- [{{t('example')}}: error.test.ts](https://github.com/saro-lab/dat/tree/master/dat-npm/blob/master/src/error.test.ts)
+- [{{t('example')}}: error.test.ts](https://github.com/saro-lab/dat/blob/master/dat-npm/src/error.test.ts)
 
 Every failure is a `DatError` carrying a `code` that is identical across all official clients.
 The one split that matters most: **an expired token is not a forged one.**

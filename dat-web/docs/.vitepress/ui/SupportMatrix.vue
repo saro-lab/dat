@@ -108,8 +108,8 @@ function cellTitle(cell: MatrixCell): string {
 @reference 'tailwindcss';
 
 .sm-title {
-    @apply text-sm font-bold mb-2;
-    color: var(--c-text-1);
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.08em] mb-2;
+    color: var(--c-muted);
 }
 
 .sm-scroll {
@@ -123,14 +123,14 @@ function cellTitle(cell: MatrixCell): string {
 }
 
 .sm-head {
-    @apply px-2.5 py-2 text-center whitespace-nowrap font-bold;
+    @apply px-2.5 py-2 text-center whitespace-nowrap font-semibold;
     font-size: 11px;
     color: var(--c-text-2);
     border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .sm-row-head {
-    @apply px-2.5 py-1.5 text-left whitespace-nowrap font-semibold;
+    @apply px-2.5 py-1.5 text-left whitespace-nowrap font-medium;
     font-size: 12px;
     color: var(--c-text-1);
     border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
@@ -153,8 +153,8 @@ function cellTitle(cell: MatrixCell): string {
     font-size: 12px;
     border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
 
-    &.yes { color: var(--c-accent-1); @apply font-bold; }
-    &.partial { color: var(--c-chart-3); @apply font-bold; }
+    &.yes { color: var(--c-accent-1); @apply font-semibold; }
+    &.partial { color: var(--c-chart-3); @apply font-semibold; }
     &.no { color: color-mix(in srgb, var(--c-text-1) 35%, transparent); }
     &.text { color: var(--c-text-2); }
 }
@@ -168,7 +168,7 @@ function cellTitle(cell: MatrixCell): string {
     color: var(--c-text-2);
 }
 .sm-sample {
-    @apply inline-block not-italic font-bold;
+    @apply inline-block not-italic font-semibold;
 
     &.yes { color: var(--c-accent-1); }
     &.partial { color: var(--c-chart-3); }

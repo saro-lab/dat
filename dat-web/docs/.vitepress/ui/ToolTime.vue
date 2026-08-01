@@ -493,14 +493,14 @@ onUnmounted(() => {
     @apply py-1;
 }
 .tt-cal-title {
-    @apply flex-1 text-center font-mono font-bold text-sm break-all px-1;
+    @apply flex-1 text-center font-mono font-medium text-sm break-all px-1;
     color: var(--c-heading);
 }
 .tt-cal-grid {
     @apply grid grid-cols-7 gap-0.5;
 }
 .tt-dow {
-    @apply text-center text-[0.68rem] font-bold uppercase py-1 select-none;
+    @apply text-center text-[0.68rem] font-semibold uppercase py-1 select-none;
     color: var(--c-muted);
 }
 .tt-day {

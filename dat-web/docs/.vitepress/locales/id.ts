@@ -45,6 +45,10 @@ export const id = {
     clear: 'Bersihkan',
 
     dat_cms: 'Layanan Manajemen Sertifikat DAT',
+
+    deploy_cmd: "Perintah Menjalankan",
+
+    api_check: "Pemeriksaan API",
     server: 'Server',
     production: 'Produksi',
     debug: 'Debug',

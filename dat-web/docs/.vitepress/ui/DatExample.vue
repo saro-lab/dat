@@ -2,153 +2,212 @@
   <div>
 
     <div class="g-glass rd-box box my-3 md">
-      <h1>{{t('gen_certs')}}</h1>
-      <div>
-        <div class="font-bold mt-2 text-sm">{{t('sig_alg')}}</div>
-        <div class="g-radio-group">
-          <div v-for="sa in signAlgList">
-            <input type="radio" :id="`gen-sa-${sa}`" name="gen-sa" :value="sa" v-model="genCertSignAlg">
-            <label :for="`gen-sa-${sa}`">{{sa}}</label>
+      <div class="g-panel-head">
+        <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">key</span></span>
+        <h2 class="g-panel-title">{{t('gen_certs')}}</h2>
+      </div>
+
+      <div class="g-label">{{t('sig_alg')}}</div>
+      <div class="g-radio-group">
+        <div v-for="sa in signAlgList">
+          <input type="radio" :id="`gen-sa-${sa}`" name="gen-sa" :value="sa" v-model="genCertSignAlg">
+          <label :for="`gen-sa-${sa}`">{{sa}}</label>
+        </div>
+      </div>
+      <div v-if="genCertSignAlg.startsWith('ECDSA-')" class="g-radio-group">
+        <div>
+          <input type="radio" :id="`gen-sa-vo-0`" name="gen-sa-vo" :value="false" v-model="genCertExportVerifyOnly">
+          <label :for="`gen-sa-vo-0`">{{t('export_key_pair')}}</label>
+        </div>
+        <div>
+          <input type="radio" :id="`gen-sa-vo-1`" name="gen-sa-vo" :value="true" v-model="genCertExportVerifyOnly">
+          <label :for="`gen-sa-vo-1`">{{t('export_verify_only')}}</label>
+        </div>
+      </div>
+
+      <div class="g-label">{{t('crypto_alg')}}</div>
+      <div class="g-radio-group">
+        <div v-for="ca in cryptoAlgList">
+          <input type="radio" :id="`gen-ca-${ca}`" name="gen-ca" :value="ca" v-model="genCertCryptoAlg">
+          <label :for="`gen-ca-${ca}`">{{ca}}</label>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div>
+          <div class="g-label-row">
+            <span class="g-label">{{t('dat_issue_start')}}</span>
+            <span class="g-label-note">unixtime</span>
           </div>
+          <input class="w-full" type="text" inputmode="numeric" v-model="genCertIssueBegin" />
         </div>
-      </div>
-      <div v-if="genCertSignAlg.startsWith('ECDSA-')">
-        <div class="g-radio-group">
-          <div>
-            <input type="radio" :id="`gen-sa-vo-0`" name="gen-sa-vo" :value="false" v-model="genCertExportVerifyOnly">
-            <label :for="`gen-sa-vo-0`">{{t('export_key_pair')}}</label>
+        <div>
+          <div class="g-label-row">
+            <span class="g-label">{{t('dat_issue_dur')}}</span>
+            <span class="g-label-note">{{t('seconds')}}</span>
           </div>
-          <div>
-            <input type="radio" :id="`gen-sa-vo-1`" name="gen-sa-vo" :value="true" v-model="genCertExportVerifyOnly">
-            <label :for="`gen-sa-vo-1`">{{t('export_verify_only')}}</label>
+          <input class="w-full" type="text" inputmode="numeric" v-model="genCertIssueDuration" />
+        </div>
+        <div>
+          <div class="g-label-row">
+            <span class="g-label">{{t('dat_ttl')}}</span>
+            <span class="g-label-note">{{t('seconds')}}</span>
           </div>
+          <input class="w-full" type="text" inputmode="numeric" v-model="genCertDatTtl" />
         </div>
       </div>
-      <div>
-        <div class="font-bold mt-2 text-sm">{{t('crypto_alg')}}</div>
-        <div class="g-radio-group">
-          <div v-for="ca in cryptoAlgList">
-            <input type="radio" :id="`gen-ca-${ca}`" name="gen-ca" :value="ca" v-model="genCertCryptoAlg">
-            <label :for="`gen-ca-${ca}`">{{ca}}</label>
-          </div>
+
+      <div class="readout mt-3.5" :class="({bad: !genCertTimeValid})">
+        <span translate="no" class="material-symbols-outlined">schedule</span>
+        <span class="readout-body">{{genCertTimeDisplay}}</span>
+      </div>
+
+      <div class="action-row">
+        <div class="count-field">
+          <span class="g-label">{{t('gen_count')}}</span>
+          <input class="w-full" type="text" inputmode="numeric" v-model="genCertCount" />
         </div>
+        <button class="btn primary click-here-bg" @click="doGenerate">{{t('gen')}}</button>
       </div>
-      <div>
-        <div class="font-bold mt-2 text-sm">{{t('dat_issue_dur')}} ({{t('seconds')}})</div>
-        <div class="">
-          <input class="mt-2 mr-2" type="text" inputmode="numeric" :placeholder="t('dat_issue_start')" v-model="genCertIssueBegin" />
-          <input class="mt-2 mr-2" type="text" inputmode="numeric" :placeholder="t('dat_issue_dur')" v-model="genCertIssueDuration" />
-          <input class="mt-2 mr-2" type="text" inputmode="numeric" :placeholder="t('dat_ttl')" v-model="genCertDatTtl" />
-        </div>
-      </div>
-      <div class="mt-3">
-        <pre>{{genCertTimeDisplay}}</pre>
-      </div>
-      <div>
-        <div class="">
-          <input class="mt-2 mr-2" type="text" inputmode="numeric" :placeholder="t('gen_count')" v-model="genCertCount" />
-          <button class="btn click-here-bg" @click="doGenerate">{{t('gen')}}</button>
-        </div>
-      </div>
-      <div>
-        <LogBox v-model="genCertLogList"/>
-      </div>
+
+      <LogBox v-model="genCertLogList"/>
     </div>
 
     <div class="g-glass rd-box box my-3 md">
-      <h1>{{t('import_certs')}}</h1>
-      <div class="mt-3 language-text">
+      <div class="g-panel-head">
+        <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">move_to_inbox</span></span>
+        <h2 class="g-panel-title">{{t('import_certs')}}</h2>
+        <span v-if="importCertCount" class="g-panel-aside">{{importCertCount}}</span>
+      </div>
+
+      <div class="mt-4 language-text">
         <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, importCertList)"></button>
         <textarea class="w-full h-48 text-xs!" spellcheck="false" :placeholder="t('paste_cert')" v-model="importCertList"></textarea>
       </div>
-      <div class="mt-2">
+      <div class="action-row">
         <button class="btn" @click="doImportCertificate">{{t('import_certs')}}</button>
       </div>
-      <div>
-        <LogBox v-model="importCertLogList"/>
-      </div>
+
+      <LogBox v-model="importCertLogList"/>
     </div>
 
     <div v-if="mgrCertList.length">
 
       <div class="g-glass rd-box box my-3 md">
-        <h1>{{t('mgr_certs')}}</h1>
-        <div class="mt-3 cert-group grid grid-cols-1 @min-lg:grid-cols-2 @min-3xl:grid-cols-3 gap-4">
-          <div v-for="cert in mgrCertList" class="g-code-box" :class="({'sel': cert.cid.toString(16) === mgrCertSelectCid})" @click="mgrCertSelectCid = cert.cid.toString(16)">
-            <div><span>CID</span> {{cert.cid.toString(16)}}</div>
-            <div class="mt-0.5"><span>{{t('sig')}}</span> {{cert.signature.algorithm}}</div>
-            <div><span>{{t('crypto')}}</span> {{cert.crypto.algorithm}}</div>
-            <div class="mt-0.5"><span>{{t('dat_ttl')}}</span> {{cert.datTtlSeconds}} <span>{{t('seconds')}}</span></div>
-            <div class="mt-0.5"><span>{{t('dat_issue_dur')}}</span></div>
-            <div class="ml-2">{{Unixtime.fromSeconds(cert.datIssuanceStartSeconds).format(`yyyy-MM-dd HH:mm:ss`)}} ~</div>
-            <div class="ml-2">{{Unixtime.fromSeconds(cert.datIssuanceEndSeconds).format(`yyyy-MM-dd HH:mm:ss XXX`)}}</div>
-            <div class="mt-0.5"><span>{{t('cert_exp')}}</span></div>
-            <div class="ml-2">{{Unixtime.fromSeconds(cert.datIssuanceEndSeconds + cert.datTtlSeconds).format(`yyyy-MM-dd HH:mm:ss XXX`)}}</div>
-            <div v-if="cert.expired()">
-              <div class="warn">{{t('expired')}}</div>
+        <div class="g-panel-head">
+          <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">badge</span></span>
+          <h2 class="g-panel-title">{{t('mgr_certs')}}</h2>
+          <span class="g-panel-aside">{{mgrCertList.length}}</span>
+        </div>
+
+        <div class="cert-grid">
+          <div v-for="card in mgrCertCards" :key="card.cid" class="cert-card"
+               :class="({sel: card.cid === mgrCertSelectCid, off: !card.ready})"
+               @click="mgrCertSelectCid = card.cid">
+            <div class="cc-head">
+              <span class="cc-dot"></span>
+              <span class="cc-cid">{{card.cid}}</span>
+              <span class="cc-ttl">{{card.ttl}}</span>
             </div>
-            <div v-if="!cert.signable()" class="warn">
-              {{t('verify_only')}}
+            <div class="cc-tags">
+              <span class="cc-tag">{{card.sig}}</span>
+              <span class="cc-tag">{{card.crypto}}</span>
             </div>
-            <div v-else-if="!cert.expired() && !cert.issuable()" class="warn">
-              {{t(cert.datIssuanceEndSeconds < Unixtime.now().time ? `issue_over` : `not_issue_yet`)}}
+            <div class="cc-rows">
+              <div>
+                <span>{{t('dat_issue_dur')}}</span>
+                <b>{{card.from}}</b>
+                <b class="cc-to">{{card.to}}</b>
+              </div>
+              <div>
+                <span>{{t('cert_exp')}}</span>
+                <b>{{card.expire}}</b>
+              </div>
+            </div>
+            <div v-if="card.flags.length" class="cc-flags">
+              <span v-for="f in card.flags" class="cc-flag">{{f}}</span>
             </div>
           </div>
         </div>
-        <div class="mt-1 gap-2 @min-xl:flex">
-          <input type="text" class="mt-3 text-xs! w-full flex-1" spellcheck="false" :placeholder="t('dat_plain')" v-model="mgrCertDatPlainText" @input="doInputIssueDat"/>
-          <input type="text" class="mt-3 text-xs! w-full flex-1" spellcheck="false" :placeholder="t('dat_secure')" v-model="mgrCertDatSecureText" @input="doInputIssueDat"/>
+
+        <div class="field-grid two">
+          <div>
+            <span class="g-label">{{t('dat_plain')}}</span>
+            <input type="text" class="text-xs! w-full" spellcheck="false" v-model="mgrCertDatPlainText" @input="doInputIssueDat"/>
+          </div>
+          <div>
+            <span class="g-label">{{t('dat_secure')}}</span>
+            <input type="text" class="text-xs! w-full" spellcheck="false" v-model="mgrCertDatSecureText" @input="doInputIssueDat"/>
+          </div>
         </div>
-        <div class="mt-3">
-          <button class="btn" @click="doIssueDat">{{t('issue_dat')}}</button>
+        <div class="action-row">
+          <button class="btn primary" @click="doIssueDat">{{t('issue_dat')}}</button>
         </div>
-        <div>
-          <LogBox v-model="mgrCertLogList"/>
-        </div>
+
+        <LogBox v-model="mgrCertLogList"/>
       </div>
 
       <div class="g-glass rd-box box my-3 md">
-        <h1>{{t('parse_dat')}}</h1>
-        <div class="mt-3 language-text">
+        <div class="g-panel-head">
+          <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">frame_inspect</span></span>
+          <h2 class="g-panel-title">{{t('parse_dat')}}</h2>
+        </div>
+
+        <div class="mt-4 language-text">
           <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDat)"></button>
           <input type="text" class="w-full text-xs!" spellcheck="false" :placeholder="t('paste_dat')" v-model="parseDat" />
         </div>
-        <div class="mt-3 @min-xl:flex">
-          <button class="btn" @click="doParseDat">{{t('parse_dat')}}</button>
-          <div class=" @max-xl:hidden  @min-xl:flex-1"></div>
+        <div class="action-row">
+          <button class="btn primary" @click="doParseDat">{{t('parse_dat')}}</button>
+          <div class="flex-1"></div>
           <button class="btn" @click="clearParseDat(true)">{{t('clear')}}</button>
         </div>
-        <div>
-          <LogBox v-model="parseDatLogList"/>
-        </div>
-        <div v-if="parseDatInfo" class="mt-3 language-text">
+
+        <LogBox v-model="parseDatLogList"/>
+
+        <div v-if="parseDatInfo" class="mt-4 language-text">
           <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatInfo)"></button>
           <pre>{{parseDatInfo}}</pre>
         </div>
-        <div class="mt-1 gap-2 @min-xl:flex">
-          <div class="w-full flex-1 mt-3 language-text">
-            <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatPlainText)"></button>
-            <input type="text" readonly class="text-xs! w-full" spellcheck="false" :placeholder="t('plain_text')" v-model="parseDatPlainText" />
+
+        <div class="field-grid two">
+          <div>
+            <span class="g-label">{{t('plain_text')}}</span>
+            <div class="language-text">
+              <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatPlainText)"></button>
+              <input type="text" readonly class="text-xs! w-full" spellcheck="false" v-model="parseDatPlainText" />
+            </div>
           </div>
-          <div class="w-full flex-1 mt-3 language-text">
-            <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatSecureText)"></button>
-            <input type="text" readonly class="text-xs! w-full" spellcheck="false" :placeholder="t('secure_text')" v-model="parseDatSecureText" />
+          <div>
+            <span class="g-label">{{t('secure_text')}}</span>
+            <div class="language-text">
+              <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatSecureText)"></button>
+              <input type="text" readonly class="text-xs! w-full" spellcheck="false" v-model="parseDatSecureText" />
+            </div>
           </div>
-        </div>
-        <div class="mt-1 gap-2 @min-xl:flex">
-          <div class="w-full flex-1 mt-3 language-text">
-            <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatPlainHex.replace(/\s+/g, ''))"></button>
-            <input type="text" readonly class="text-xs! w-full" spellcheck="false" :placeholder="t('plain_hex')" v-model="parseDatPlainHex" />
+          <div>
+            <span class="g-label">{{t('plain_hex')}}</span>
+            <div class="language-text">
+              <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatPlainHex.replace(/\s+/g, ''))"></button>
+              <input type="text" readonly class="text-xs! w-full" spellcheck="false" v-model="parseDatPlainHex" />
+            </div>
           </div>
-          <div class="w-full flex-1 mt-3 language-text">
-            <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatSecureHex.replace(/\s+/g, ''))"></button>
-            <input type="text" readonly class="text-xs! w-full" spellcheck="false" :placeholder="t('secure_hex')" v-model="parseDatSecureHex" />
+          <div>
+            <span class="g-label">{{t('secure_hex')}}</span>
+            <div class="language-text">
+              <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, parseDatSecureHex.replace(/\s+/g, ''))"></button>
+              <input type="text" readonly class="text-xs! w-full" spellcheck="false" v-model="parseDatSecureHex" />
+            </div>
           </div>
         </div>
       </div>
     </div>
+
     <div class="g-glass rd-box box my-3 md">
-      <h1>{{t('tool_bytes_title')}}</h1>
+      <div class="g-panel-head">
+        <span class="g-panel-icon"><span translate="no" class="material-symbols-outlined">swap_horiz</span></span>
+        <h2 class="g-panel-title">{{t('tool_bytes_title')}}</h2>
+      </div>
       <ToolBytes class="simple" />
     </div>
   </div>
@@ -183,20 +242,33 @@ import {useTranslate} from "../src/langs";
 const {t} = useTranslate();
 
 
+const genCertTimeValid = computed(() => checkNumberInput(false, false));
+
 const genCertTimeDisplay = computed(() => {
-  if (checkNumberInput(false, false)) {
-    let begin = BigInt(genCertIssueBegin.value);
-    let ttl = BigInt(genCertDatTtl.value);
-    let duration = BigInt(genCertIssueDuration.value);
-    let bt = Unixtime.fromSeconds(begin).format(`yyyy-MM-dd HH:mm:ss`);
-    let et = Unixtime.fromSeconds(begin + duration).format(`yyyy-MM-dd HH:mm:ss XXX`).replace(bt.substring(0, 11), '');
-    return (`${t('dat_issue_dur')}:
-  ${bt} ~ ${et}
-    `.trim());
-  } else {
+  if (!genCertTimeValid.value) {
     return t('err_invalid_issue_times');
   }
+  let begin = BigInt(genCertIssueBegin.value);
+  let duration = BigInt(genCertIssueDuration.value);
+  let bt = Unixtime.fromSeconds(begin).format(`yyyy-MM-dd HH:mm:ss`);
+  let et = Unixtime.fromSeconds(begin + duration).format(`yyyy-MM-dd HH:mm:ss XXX`).replace(bt.substring(0, 11), '');
+  return `${bt} ~ ${et}`;
 });
+
+const DATE_FMT = `yyyy-MM-dd HH:mm:ss`;
+
+function certFlags(cert: DatCertificate): string[] {
+  const flags: string[] = [];
+  if (cert.expired()) {
+    flags.push(t('expired'));
+  }
+  if (!cert.signable()) {
+    flags.push(t('verify_only'));
+  } else if (!cert.expired() && !cert.issuable()) {
+    flags.push(t(cert.datIssuanceEndSeconds < Unixtime.now().time ? `issue_over` : `not_issue_yet`));
+  }
+  return flags;
+}
 
 function checkNumberInput(reset: boolean, withCount: boolean): boolean {
   try {
@@ -283,6 +355,7 @@ function makeRandomCid(count: number) {
 
 const importCertList = ref('');
 const importCertLogList = ref<LogItem[]>([]);
+const importCertCount = computed(() => importCertList.value.trim().split(/[\r\n]+/).filter(e => e).length);
 async function doImportCertificate() {
   let certs = importCertList.value.trim();
   importCertLogList.value = [];
@@ -309,6 +382,26 @@ async function doImportCertificate() {
 const mgrCertLogList = ref<LogItem[]>([]);
 const mgrCertList = ref<DatCertificate[]>([]);
 const mgrCertSelectCid = ref('-1');
+
+/* 카드에 뿌릴 값은 여기서 한 번만 만든다. 시각은 시작·종료를 두 줄로 나눠 두는데,
+   카드 폭(≈230px)에 한 줄로 넣으면 초 단위에서 잘려 다음 줄로 넘어가서다.
+   두 시각이 같은 날이면 아래 줄의 날짜를 지운다 — 카드 열두 장에 같은 문자열이
+   반복되면 정작 서로 다른 값이 눈에 들어오지 않는다. */
+const mgrCertCards = computed(() => mgrCertList.value.map(cert => {
+  const from = Unixtime.fromSeconds(cert.datIssuanceStartSeconds).format(DATE_FMT);
+  const to = Unixtime.fromSeconds(cert.datIssuanceEndSeconds).format(DATE_FMT);
+  return {
+    cid: cert.cid.toString(16),
+    ttl: `${cert.datTtlSeconds}${t('seconds')}`,
+    sig: cert.signature.algorithm,
+    crypto: cert.crypto.algorithm,
+    from,
+    to: to.startsWith(from.substring(0, 11)) ? to.substring(11) : to,
+    expire: Unixtime.fromSeconds(cert.datIssuanceEndSeconds + cert.datTtlSeconds).format(`${DATE_FMT} XXX`),
+    ready: cert.signable() && cert.issuable() && !cert.expired(),
+    flags: certFlags(cert as DatCertificate),
+  };
+}));
 const mgrCertDatPlainText = ref('');
 const mgrCertDatSecureText = ref('');
 function doInputIssueDat() {
@@ -405,25 +498,153 @@ async function doParseDat() {
 @reference 'tailwindcss';
 
 .click-here-bg {
-  animation: blink-red 0.3s ease-in-out 2;
+  animation: blink-accent 0.9s ease-in-out 2;
 }
-@keyframes blink-red {
-  50% { background-color: #e74c3c; }
+@keyframes blink-accent {
+  50% { border-color: var(--c-link-1); background-color: color-mix(in srgb, var(--c-link-1) 22%, transparent); }
 }
-.cert-group {
-  > div {
-    @apply p-1 text-xs font-normal border-2 box-border border-transparent cursor-pointer;
-    span {
-      @apply opacity-40 font-bold;
-    }
-    .warn {
-      @apply text-[#e74c3c] font-bold;
+
+/* 입력 필드 묶음 — 라벨과 입력을 한 칸으로 보고 격자에 앉힌다 */
+.field-grid {
+  @apply grid grid-cols-1 gap-x-4 gap-y-0 mt-1;
+  @variant min-sm {
+    @apply grid-cols-3;
+  }
+  &.two {
+    @variant min-sm {
+      @apply grid-cols-2;
     }
   }
-  /* 선택된 인증서 — 칩·라디오와 같은 "켜짐" 면을 쓴다 (라이트/다크는 토큰이 갈라준다) */
-  .sel {
+}
+
+/* 계산된 발급 구간 — 입력이 아니라 결과라서 코드 면 위에 모노로 올린다 */
+.readout {
+  @apply flex items-center gap-2 rounded-lg px-3 py-2.5 font-mono text-[0.78rem];
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--c-heading);
+  text-shadow: none;
+
+  .material-symbols-outlined {
+    @apply text-base! shrink-0 opacity-55;
+  }
+  .readout-body {
+    @apply min-w-0 overflow-x-auto whitespace-nowrap;
+  }
+  &.bad {
+    color: #e0554a;
+    border-color: color-mix(in srgb, #e0554a 35%, transparent);
+  }
+}
+
+.action-row {
+  @apply flex items-end gap-2 mt-4;
+
+  .count-field {
+    @apply max-w-32;
+
+    .g-label {
+      @apply mt-0;
+    }
+  }
+}
+
+.cert-grid {
+  @apply grid grid-cols-1 gap-2 mt-4;
+  @variant min-md {
+    @apply grid-cols-2;
+  }
+  @variant min-[64rem] {
+    @apply grid-cols-3;
+  }
+}
+
+/* 인증서 카드 — 고를 수 있는 대상이므로 칩·라디오와 같은 "켜짐" 면을 쓰되,
+   내용은 CID(모노) → 알고리즘 태그 → 시각 순으로 위계를 세 단으로 나눈다. */
+.cert-card {
+  @apply rounded-lg px-3 py-2.5 cursor-pointer select-none transition-colors duration-150;
+  background-color: color-mix(in srgb, currentColor 4%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
+
+  &:hover {
+    background-color: var(--ctrl-bg-hover);
+    border-color: var(--ctrl-border-hover);
+  }
+  &.sel {
     background-color: var(--ctrl-bg-on);
     border-color: var(--ctrl-border-on);
+
+    .cc-cid {
+      color: var(--ctrl-fg-on);
+    }
+  }
+
+  .cc-head {
+    @apply flex items-center gap-2;
+  }
+  /* 발급 가능 여부를 한 점으로 — 카드 열두 장을 훑을 때 글자보다 먼저 읽힌다 */
+  .cc-dot {
+    @apply w-1.5 h-1.5 rounded-full shrink-0;
+    background-color: var(--c-accent-1);
+  }
+  .cc-cid {
+    @apply font-mono text-[0.9rem] tracking-tight;
+    color: var(--c-heading);
+    text-shadow: none;
+  }
+  .cc-ttl {
+    @apply ml-auto font-mono text-[0.68rem];
+    color: var(--c-muted);
+  }
+
+  .cc-tags {
+    @apply flex flex-wrap gap-1 mt-2;
+  }
+  .cc-tag {
+    @apply inline-block rounded px-1.5 py-0.5 font-mono text-[0.62rem] tracking-tight;
+    color: color-mix(in srgb, var(--c-text-1) 72%, transparent);
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  .cc-rows {
+    @apply mt-2.5 flex flex-col gap-1;
+
+    > div {
+      @apply flex flex-col;
+    }
+    span {
+      @apply text-[0.62rem] uppercase tracking-[0.07em];
+      color: color-mix(in srgb, var(--c-muted) 85%, transparent);
+    }
+    b {
+      @apply font-mono font-normal text-[0.7rem] break-all;
+      color: var(--c-text-2);
+    }
+    /* 종료 시각 — 앞의 대시가 시작 시각과 한 쌍임을 만든다 */
+    .cc-to::before {
+      content: "– ";
+      color: var(--c-muted);
+    }
+  }
+
+  .cc-flags {
+    @apply flex flex-wrap gap-1 mt-2.5;
+  }
+  .cc-flag {
+    @apply inline-block rounded px-1.5 py-0.5 text-[0.62rem] font-medium;
+    color: #e0554a;
+    background-color: color-mix(in srgb, #e0554a 12%, transparent);
+    border: 1px solid color-mix(in srgb, #e0554a 25%, transparent);
+  }
+
+  /* 발급에 쓸 수 없는 인증서 — 지우지 않고 톤만 내려 목록의 리듬을 지킨다 */
+  &.off {
+    .cc-dot {
+      background-color: color-mix(in srgb, var(--c-muted) 55%, transparent);
+    }
+    .cc-cid {
+      color: var(--c-muted);
+    }
   }
 }
 

@@ -45,6 +45,10 @@ export const en = {
     clear: 'Clear',
 
     dat_cms: 'DAT Certificate Management Service',
+
+    deploy_cmd: "Run Command",
+
+    api_check: "API Check",
     server: 'Server',
     production: 'Production',
     debug: 'Debug',

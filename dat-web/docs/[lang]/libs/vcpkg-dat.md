@@ -1,5 +1,5 @@
 # DAT C Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/tree/master/tests)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/tests)
 
 ## {{t('repository')}}
 > Until it is officially merged into vcpkg, you will need to manually install and integrate the project using this repository.<br/>
@@ -21,7 +21,7 @@ static consumer no longer has to declare them itself.
 
 ## {{t('example')}}: {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: example_cms_manager_test.c](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/blob/master/tests/example_cms_manager_test.c)
+- [{{t('example')}}: example_cms_manager_test.c](https://github.com/saro-lab/dat/blob/master/dat-vcpkg/tests/example_cms_manager_test.c)
 #### log
 ```c
 static const char* log_level_str(dat_log_level_t level) {
@@ -100,7 +100,7 @@ if (err != DAT_SUCCESS) {
 free(dat_str);
 ```
 #### {{t('error_handling')}}
-- [{{t('example')}}: error_code_test.c](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/blob/master/tests/error_code_test.c)
+- [{{t('example')}}: error_code_test.c](https://github.com/saro-lab/dat/blob/master/dat-vcpkg/tests/error_code_test.c)
 
 Every failure returns a `dat_error_t`. The string from `dat_error_code()` is the
 contract — the integer is kept only for ABI compatibility.
@@ -140,8 +140,8 @@ if (err == DAT_MANAGER_NO_ISSUABLE_CERTIFICATE) {
 ```
 
 ## {{t('example')}}: {{t('manual_code')}}
-- [{{t('example')}}: hard_test.c](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/blob/master/tests/hard_test.c)
-- [{{t('example')}}: manager_example_test.c](https://github.com/saro-lab/dat/tree/master/dat-vcpkg/blob/master/tests/manager_example_test.c)
+- [{{t('example')}}: hard_test.c](https://github.com/saro-lab/dat/blob/master/dat-vcpkg/tests/hard_test.c)
+- [{{t('example')}}: manager_example_test.c](https://github.com/saro-lab/dat/blob/master/dat-vcpkg/tests/manager_example_test.c)
 ```c
 static const char* PLAIN  = "Unicode 유니코드 ユニコード 万国码 يونيكود यूनिकोड Юникод 🦄💻";
 static const char* SECURE = "Ciphertext 암호문 暗号文 密文 Шифротекст Texte chiffré Geheimtext نص مشفر सिफरपाठ 🔐";

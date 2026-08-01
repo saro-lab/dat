@@ -45,6 +45,10 @@ export const de = {
     clear: 'Leeren',
 
     dat_cms: 'DAT Zertifikatverwaltungsdienst',
+
+    deploy_cmd: "Startbefehl",
+
+    api_check: "API-Prüfung",
     server: 'Server',
     production: 'Produktion',
     debug: 'Debug',

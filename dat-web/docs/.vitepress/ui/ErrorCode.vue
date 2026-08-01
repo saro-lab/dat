@@ -94,7 +94,7 @@ withDefaults(
 }
 /* 코드는 절대 줄바꿈되지 않는다. 좁은 화면에서는 이 줄만 가로로 스크롤된다. */
 .ec-code {
-  @apply font-bold text-[0.95em] whitespace-nowrap overflow-x-auto;
+  @apply font-semibold text-[0.92em] whitespace-nowrap overflow-x-auto;
   color: var(--c-heading);
   background: none;
   padding: 0;

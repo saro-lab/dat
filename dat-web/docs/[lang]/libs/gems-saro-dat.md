@@ -1,5 +1,5 @@
 # DAT Ruby Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-ruby/tree/master/test)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-ruby/test)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -11,7 +11,7 @@
 
 #### {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: test_cms_manager.rb](https://github.com/saro-lab/dat/tree/master/dat-ruby/blob/master/test/test_cms_manager.rb)
+- [{{t('example')}}: test_cms_manager.rb](https://github.com/saro-lab/dat/blob/master/dat-ruby/test/test_cms_manager.rb)
 ```rb
 manager = Saro::Dat::DatCmsManager.builder
   .uri("http://localhost:8088")
@@ -48,8 +48,8 @@ assert_equal secure, payload_secure
 ```
 
 #### {{t('manual_code')}}
-- [{{t('example')}}: test_hard.rb](https://github.com/saro-lab/dat/tree/master/dat-ruby/blob/master/test/test_hard.rb)
-- [{{t('example')}}: test_manager_example.rb](https://github.com/saro-lab/dat/tree/master/dat-ruby/blob/master/test/test_manager_example.rb)
+- [{{t('example')}}: test_hard.rb](https://github.com/saro-lab/dat/blob/master/dat-ruby/test/test_hard.rb)
+- [{{t('example')}}: test_manager_example.rb](https://github.com/saro-lab/dat/blob/master/dat-ruby/test/test_manager_example.rb)
 ```rb
 require 'saro-dat'
 
@@ -97,7 +97,7 @@ signature.verify_base64(data, base64_sig)
 ```
 
 #### {{t('error_handling')}}
-- [{{t('example')}}: test_error_code.rb](https://github.com/saro-lab/dat/tree/master/dat-ruby/blob/master/test/test_error_code.rb)
+- [{{t('example')}}: test_error_code.rb](https://github.com/saro-lab/dat/blob/master/dat-ruby/test/test_error_code.rb)
 
 Every failure raises `Saro::Dat::Error`, which carries a `code` that is identical
 across all official clients. Rescue that class rather than `StandardError` — the

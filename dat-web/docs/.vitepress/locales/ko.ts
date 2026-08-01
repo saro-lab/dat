@@ -45,6 +45,10 @@ export const ko = {
     clear: '지우기',
 
     dat_cms: 'DAT 인증서 관리 서비스',
+
+    deploy_cmd: "실행 명령어",
+
+    api_check: "API 확인",
     server: '서버',
     production: '운영',
     debug: '디버그',

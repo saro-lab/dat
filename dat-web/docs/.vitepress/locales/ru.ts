@@ -45,6 +45,10 @@ export const ru = {
     clear: 'Очистить',
 
     dat_cms: 'Сервис управления сертификатами DAT',
+
+    deploy_cmd: "Команда запуска",
+
+    api_check: "Проверка API",
     server: 'Сервер',
     production: 'Продакшн',
     debug: 'Отладка',

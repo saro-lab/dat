@@ -45,6 +45,10 @@ export const fr = {
     clear: 'Effacer',
 
     dat_cms: 'Service de gestion des certificats DAT',
+
+    deploy_cmd: "Commande de lancement",
+
+    api_check: "Vérification API",
     server: 'Serveur',
     production: 'Production',
     debug: 'Débogage',

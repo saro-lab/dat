@@ -60,7 +60,7 @@ onMounted(() => {
     @apply flex items-center justify-between gap-2;
 }
 .lib-title {
-    @apply text-base font-bold inline-flex items-center gap-1.5;
+    @apply text-[0.95rem] font-semibold inline-flex items-center gap-1.5;
     color: var(--c-text-1);
 
     &:hover {
@@ -68,6 +68,6 @@ onMounted(() => {
     }
 }
 .lib-icon {
-    @apply text-xl leading-none;
+    @apply text-lg leading-none;
 }
 </style>

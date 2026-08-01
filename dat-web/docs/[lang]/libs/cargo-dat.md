@@ -1,12 +1,12 @@
 # DAT Rust Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-rust/blob/master/tests/)
+<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-rust/tests)
 
 > **Requires:** Rust edition 2024 · the `dat_cms` feature pulls in `tokio` + `reqwest`
 
 
 ## {{t('example')}}: {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: example_cms_manager_test.rs](https://github.com/saro-lab/dat/tree/master/dat-rust/blob/master/tests/example_cms_manager_test.rs)
+- [{{t('example')}}: example_cms_manager_test.rs](https://github.com/saro-lab/dat/blob/master/dat-rust/tests/example_cms_manager_test.rs)
 ##### {{t('repository')}}
 <CodeBox lang="toml" :code="cmsRepo"/>
 
@@ -101,8 +101,8 @@ if let Some(e) = manager.last_error().await {
 - [{{t('menu_spec_errors')}}](../spec/errors)
 
 ## {{t('example')}}: {{t('manual_code')}}
-- [manager_test.rs](https://github.com/saro-lab/dat/tree/master/dat-rust/blob/master/tests/manager_test.rs)
-- [hard_test.rs](https://github.com/saro-lab/dat/tree/master/dat-rust/blob/master/tests/hard_test.rs)
+- [manager_test.rs](https://github.com/saro-lab/dat/blob/master/dat-rust/tests/manager_test.rs)
+- [hard_test.rs](https://github.com/saro-lab/dat/blob/master/dat-rust/tests/hard_test.rs)
 
 ##### {{t('repository')}}
 

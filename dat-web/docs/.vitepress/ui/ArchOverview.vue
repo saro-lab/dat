@@ -268,7 +268,7 @@ const railSpan = computed(() => {
     }
 }
 .arch-group-title {
-    @apply text-center font-bold mb-0.5;
+    @apply text-center font-semibold mb-0.5;
     font-size: 11px;
     color: var(--c-text-2);
 
@@ -286,7 +286,7 @@ const railSpan = computed(() => {
 
 /* 상자 안 권한 배지 — 같은 그룹 안에서 발급/검증을 구분해 읽게 한다. */
 .arch-tag {
-    @apply rounded px-1.5 py-0.5 font-bold;
+    @apply rounded px-1.5 py-0.5 font-semibold;
     font-size: 10px;
 
     .arch-box.issuer & {

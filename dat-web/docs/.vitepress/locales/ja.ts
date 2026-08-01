@@ -45,6 +45,10 @@ export const ja = {
     clear: 'クリア',
 
     dat_cms: 'DAT証明書管理サービス',
+
+    deploy_cmd: "実行コマンド",
+
+    api_check: "API 確認",
     server: 'サーバー',
     production: '本番環境',
     debug: 'デバッグ',

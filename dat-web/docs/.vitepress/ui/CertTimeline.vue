@@ -103,8 +103,8 @@ function markAlign(i: number): string {
 @reference 'tailwindcss';
 
 .ct-title {
-    @apply text-sm font-bold mb-2;
-    color: var(--c-text-1);
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.08em] mb-2;
+    color: var(--c-muted);
 }
 
 .ct-scroll {

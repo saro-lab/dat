@@ -24,7 +24,7 @@
    이미 색을 갖고 있다. 그래서 콘텐츠 쪽 색은 한 계열(틸)로 좁혀 워시와 경쟁하지
    않게 한다 — 링크·제목·컨트롤이 전부 같은 틸이면 무지개 위에서도 위계가 선다.
    틸은 워시의 지배색이면서 DAT 로고(#373)의 그린과도 이웃한 색이다. */
-html {
+html:not(.dark) {
     --c-bg: #ffffff;
     --c-text-1: #1e293b;
     --c-text-2: color-mix(in srgb, var(--c-text-1) 93%, #fff);
@@ -94,7 +94,7 @@ html {
 html.dark {
     /* 배경(캔버스 + 워시)은 이 사이트가 원래 쓰던 값 그대로 되돌렸다. 패널·코드·
        컨트롤은 뉴트럴 검정 계열로 남아 있어, 색은 패널 밖 여백에서만 돈다. */
-    --c-bg: #0d1319;
+    
     --c-text-1: #eceeed;
     /* 본문은 알파로 눌러 두는데, 다크에서 20%를 빼면 워시가 비치는 패널 위에서
        획이 뭉개진다. 라이트를 88→93%로 올린 것과 같은 이유로 12%만 뺀다. */
@@ -115,10 +115,13 @@ html.dark {
     --c-chart-2: #8f89ad;  /* 비교 대상(JWT) */
     --c-chart-3: #b9899f;  /* 강조가 한 겹 더 필요한 구간 */
 
-    --bg-image:
-        radial-gradient(at 20% 40%, rgba(0, 240, 210, 0.13) 0px, transparent 70%),
-        radial-gradient(at 85% 25%, rgba(10, 105, 255, 0.11) 0px, transparent 65%),
-        radial-gradient(at 45% 80%, rgba(0, 225, 255, 0.12) 0px, transparent 75%);
+
+--bg-image:
+    radial-gradient(at 20% 40%, rgba(40, 160, 150, 0.10) 0px, transparent 70%),
+    radial-gradient(at 85% 25%, rgba(45, 95, 170, 0.09) 0px, transparent 65%),
+    radial-gradient(at 45% 80%, rgba(50, 140, 170, 0.09) 0px, transparent 75%);
+
+--c-bg: #0d1319;
 
     /* 글자가 앉는 면 — 라이트에서 흰 패널을 0.72까지 올린 것과 같은 처방을 반대
        방향으로. 0.55에서는 아쿠아·블루 워시가 패널을 뚫고 올라와 본문 대비를
@@ -175,6 +178,10 @@ html.dark {
 
 /* ── page canvas ───────────────────────────────────────────────────────── */
 html {
+    /* 두 팔레트가 같은 값을 쓰므로 여기 한 번만 — 라이트 블록에만 두면 다크에서
+       변수가 풀리지 않아 border-bottom 선언 자체가 무효가 된다. */
+    --divider: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     color: var(--c-text-1);
@@ -297,31 +304,41 @@ a {
     h4,
     h5,
     h6 {
-        font-weight: 700;
-        letter-spacing: -0.025em;
+        font-weight: 600;
+        letter-spacing: -0.016em;
     }
-    /* 위계: h1 1.6 > h2 1.25 > h3 1.125 > h4 1 — 섹션 위는 넉넉히, 아래는 좁게 */
+    /* 위계: h1 1.4 > h2 1.12 > h3 1 > h4 0.925 — 섹션 위는 넉넉히, 아래는 좁게.
+       무게는 전부 600에서 멈춘다. 한글은 700에서 획이 붙어 뭉툭해지는데, 위계는
+       크기와 여백이 이미 충분히 만들고 있어 무게까지 끌어올릴 이유가 없다. */
     h1 {
-        @apply p-0 mt-0 mb-4 text-[1.6rem] leading-snug;
+        @apply p-0 mt-0 mb-4 text-[1.4rem] leading-snug;
         color: var(--c-heading);
     }
     h2 {
-        @apply p-0 mt-8 mb-3.5 pb-1.5 text-xl;
+        @apply p-0 mt-8 mb-3.5 pb-1.5 text-[1.12rem];
         border-bottom: var(--divider);
     }
     h3 {
-        @apply p-0 mt-6 mb-3 text-lg;
+        @apply p-0 mt-6 mb-3 text-[1rem];
     }
     h4 {
-        @apply p-0 mt-5 mb-2.5 text-base;
+        @apply p-0 mt-5 mb-2.5 text-[0.925rem];
     }
+    /* h5·h6는 본문 마크다운에서 쓰이지 않고 도구 컴포넌트의 필드 제목으로만
+       등장한다. 그래서 작은 제목이 아니라 마이크로 라벨(.g-label)과 같은 결로. */
     h5,
     h6 {
-        @apply p-0 mt-4 mb-2 text-sm;
+        @apply p-0 mt-4 mb-1.5 text-[0.72rem] uppercase tracking-[0.07em];
+        color: var(--c-muted);
+    }
+
+    strong,
+    b {
+        font-weight: 600;
     }
 
     p {
-        @apply my-3.5 mx-0.5 leading-[1.8] text-(--c-text-2);
+        @apply my-3.5 mx-0.5 text-[0.95rem] leading-[1.75] text-(--c-text-2);
     }
 
     div[class*="language-"] {
@@ -362,9 +379,9 @@ a {
         }
         th {
             background-color: color-mix(in srgb, currentColor 6%, transparent);
-            font-weight: 600;
-            font-size: 0.78rem;
-            letter-spacing: 0.03em;
+            font-weight: 500;
+            font-size: 0.76rem;
+            letter-spacing: 0.04em;
             text-align: left;
             white-space: nowrap;
             color: color-mix(in srgb, var(--c-text-1) 88%, transparent);
@@ -393,6 +410,7 @@ a {
         li {
             margin-top: 0.3rem;
             margin-bottom: 0.3rem;
+            font-size: 0.95rem;
             line-height: 1.75;
         }
     }
@@ -454,7 +472,7 @@ div[class*="language-"] {
         transform: translateY(4px);
         transition: opacity 0.2s ease, transform 0.2s ease;
         pointer-events: none;
-        @apply text-white text-xs font-bold px-1.5 py-0.5 rounded;
+        @apply text-white text-xs font-medium px-1.5 py-0.5 rounded;
         background-color: var(--c-heading);
     }
     &.copied {
@@ -486,7 +504,7 @@ pre {
    같은 칩을 쓰기 위한 별칭이다. */
 :not(pre) > code,
 .g-code-box {
-    @apply font-semibold rounded-[0.3rem];
+    @apply font-medium rounded-[0.3rem];
     padding: 0.08em 0.35em 0.12em;
     font-size: 0.86em;
     background-color: var(--code-bg);
@@ -673,35 +691,38 @@ input[type="submit"] {
    Identical markup/classes across every locale's index.md, so the rules live
    here once instead of in a <style scoped> block copied into each one. */
 .hero-title {
-    @apply text-2xl font-bold;
+    @apply text-[1.5rem] font-semibold tracking-[-0.02em];
     a { color: var(--c-text-1); }
 }
 .hero-sub {
-    @apply text-sm font-semibold mt-1;
-    color: var(--c-text-2);
+    @apply text-[0.82rem] font-normal mt-1.5 leading-relaxed;
+    color: var(--c-muted);
 }
 .hero-desc {
-    @apply text-sm mt-3 leading-relaxed;
+    @apply text-[0.875rem] mt-3.5 leading-[1.75];
     color: var(--c-text-2);
     code { @apply text-xs px-1 rounded-sm; background: color-mix(in srgb, currentColor 10%, transparent); }
 }
 
 .feature-grid {
-    @apply grid grid-cols-1 gap-2.5 mt-5;
+    @apply grid grid-cols-1 gap-2 mt-6;
 }
+/* 아이콘 한 칸 + 제목/설명 한 칸. flex 한 줄로 두면 셋이 나란히 서서, 제목이
+   길어질 때 제목만 좁게 접히고 설명이 그 옆에 붙어 읽는 순서가 흐트러진다. */
 .feature-card {
-    @apply rounded-lg p-3 flex gap-2.5 items-start;
-    background: color-mix(in srgb, currentColor 5%, transparent);
+    @apply rounded-lg p-3.5 grid gap-x-3 gap-y-1 items-start;
+    grid-template-columns: auto 1fr;
+    background: color-mix(in srgb, currentColor 4%, transparent);
     border: 1px solid color-mix(in srgb, currentColor 6%, transparent);
 }
 .feature-icon {
-    @apply text-xl leading-none;
+    @apply text-lg leading-none mt-px row-span-2;
 }
 .feature-title {
-    @apply text-sm font-bold;
+    @apply text-[0.82rem] font-semibold tracking-[-0.005em];
 }
 .feature-desc {
-    @apply text-xs mt-0.5 leading-relaxed;
+    @apply text-xs mt-1 leading-[1.7];
     color: var(--c-text-2);
 }
 
@@ -720,21 +741,90 @@ input[type="submit"] {
     @apply flex-1 min-w-0;
 }
 .cta-title {
-    @apply text-sm font-bold;
+    @apply text-[0.82rem] font-semibold;
     color: var(--c-link-1);
 }
 .cta-desc {
-    @apply text-xs mt-0.5 leading-relaxed;
+    @apply text-xs mt-1 leading-[1.7];
     color: var(--c-text-2);
 }
 .cta-arrow {
-    @apply text-lg font-bold transition-transform duration-150;
+    @apply text-base transition-transform duration-150;
     color: var(--c-link-1);
 }
 .cta-banner:hover .cta-arrow {
     transform: translateX(3px);
 }
 
+/* ── micro label ───────────────────────────────────────────────────────────
+   폼 필드 위·섹션 위에 앉는 작은 라벨. 굵게 키우는 대신 작게·자간을 벌려
+   대문자로 세워, 값(입력·칩·카드)이 화면의 큰 글자를 독점하게 둔다. */
+.g-label,
 .section-title {
-    @apply text-sm font-bold mt-6 mb-2;
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.08em];
+    color: var(--c-muted);
+}
+.section-title {
+    @apply mt-7 mb-2.5;
+}
+.g-label {
+    @apply block mt-4 mb-1.5;
+}
+/* 라벨 + 부연(+도움말)을 한 줄에. 라벨이 남는 폭을 전부 먹어 뒤따르는 것들이
+   오른쪽에 붙는다 — justify-between이면 셋 이상일 때 가운데가 떠 보인다. */
+.g-label-row {
+    @apply flex items-baseline gap-2 mt-4 mb-1.5;
+
+    > .g-label {
+        @apply mt-0 mb-0 mr-auto;
+    }
+}
+/* 라벨 옆에 붙는 부연(단위·기본값) — 라벨보다 한 톤 더 물러나 있어야 라벨이 산다 */
+.g-label-note {
+    @apply text-[0.68rem] font-mono;
+    color: color-mix(in srgb, var(--c-muted) 80%, transparent);
+}
+
+/* ── generator panels ──────────────────────────────────────────────────────
+   DatExample·DatCmsExample처럼 도구 패널을 세로로 쌓는 화면의 패널 머리.
+   제목을 키우는 대신 아이콘 → 제목 → 얇은 괘선으로 위계를 만든다. 패널들은
+   서로 독립이라 번호는 붙이지 않는다 — 순서대로 밟아야 하는 것처럼 읽힌다. */
+.g-panel-head {
+    @apply flex items-center gap-2.5 pb-3;
+    border-bottom: var(--divider);
+}
+.g-panel-icon {
+    @apply inline-flex items-center justify-center shrink-0 w-7 h-7 rounded-lg select-none;
+    color: var(--c-link-1);
+    background-color: color-mix(in srgb, var(--c-link-1) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c-link-1) 20%, transparent);
+    text-shadow: none;
+
+    .material-symbols-outlined {
+        font-size: 1rem;
+    }
+}
+/* `.md` 안에서 h2로 쓰이므로 본문 h2가 얹는 여백·밑줄을 여기서 걷어낸다 */
+.g-panel-title {
+    @apply text-[1.02rem] font-semibold tracking-[-0.015em] leading-tight m-0! p-0! border-0!;
+    color: var(--c-heading);
+}
+.g-panel-aside {
+    @apply ml-auto shrink-0 text-[0.7rem] font-mono;
+    color: var(--c-muted);
+}
+
+/* 강조 버튼 — 페이지에서 "지금 누를 것"이 하나일 때만. 면을 채우지 않고
+   브랜드색 테두리+옅은 틴트로만 올려서, 유리 패널 위에서 튀지 않게 한다. */
+button.btn.primary {
+    color: var(--ctrl-fg-on);
+    background-color: var(--ctrl-bg-on);
+    border-color: var(--ctrl-border-on);
+    text-shadow: var(--ctrl-text-shadow-on);
+
+    &:hover {
+        color: var(--ctrl-fg-on);
+        background-color: color-mix(in srgb, var(--c-link-1) 18%, transparent);
+        border-color: var(--c-link-1);
+    }
 }

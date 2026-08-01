@@ -1,7 +1,7 @@
 # DAT Java, Kotlin Library
 <GithubBadge label="GitHub" />
-- [Java Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/java/test/java)
-- [Kotlin Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt)
+- [Java Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/src/test/java/test/java)
+- [Kotlin Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/src/test/kotlin/test/kt)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -13,7 +13,7 @@
 
 #### {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: ExampleCmsManagerTest.java](https://github.com/saro-lab/dat/tree/master/dat-maven/blob/master/src/test/java/test/java/ExampleCmsManagerTest.java)
+- [{{t('example')}}: ExampleCmsManagerTest.java](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/java/test/java/ExampleCmsManagerTest.java)
 ```java
 // singleton
 DatCmsManager manager = DatCmsManager.builder()
@@ -47,9 +47,9 @@ System.out.println("payload secure : " + payloadSecure);
 ```
 
 #### {{t('manual_code')}}
-- [{{t('example')}}: ExampleTest.java](https://github.com/saro-lab/dat/tree/master/dat-maven/blob/master/src/test/java/test/java/ExampleTest.java)
-- [{{t('example')}}: ManagerTest.java](https://github.com/saro-lab/dat/tree/master/dat-maven/blob/master/src/test/java/test/java/ManagerTest.java)
-- [{{t('example')}}: HardTest.java](https://github.com/saro-lab/dat/tree/master/dat-maven/blob/master/src/test/java/test/java/HardTest.java)
+- [{{t('example')}}: ExampleTest.java](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/java/test/java/ExampleTest.java)
+- [{{t('example')}}: ManagerTest.java](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/java/test/java/ManagerTest.java)
+- [{{t('example')}}: HardTest.java](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/java/test/java/HardTest.java)
 ```java
 DatManager manager = DatManager.newInstance();
 
@@ -140,7 +140,7 @@ if (err != null && err.getRetry() == DatRetry.PERMANENT) {
 
 #### {{t('dat_cms')}}
 - [{{t('download')}}: Kubernetes, Docker, Binary](../svc/docker-saro-lab-dat-cms)
-- [{{t('example')}}: ExampleCmsManagerTest.kt](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt/ExampleCmsManagerTest.kt)
+- [{{t('example')}}: ExampleCmsManagerTest.kt](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/kotlin/test/kt/ExampleCmsManagerTest.kt)
 ```kt
 // singleton
 val manager = DatCmsManager.builder()
@@ -174,9 +174,9 @@ println("payload secure : " + payloadSecure)
 ```
 
 #### {{t('manual_code')}}
-- [{{t('example')}}: ExampleTest.kt](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt/ExampleTest.kt)
-- [{{t('example')}}: ManagerTest.kt](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt/ManagerTest.kt)
-- [{{t('example')}}: HardTest.kt](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt/HardTest.kt)
+- [{{t('example')}}: ExampleTest.kt](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/kotlin/test/kt/ExampleTest.kt)
+- [{{t('example')}}: ManagerTest.kt](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/kotlin/test/kt/ManagerTest.kt)
+- [{{t('example')}}: HardTest.kt](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/kotlin/test/kt/HardTest.kt)
 ```kt
 val manager = DatManager.newInstance()
 
@@ -215,7 +215,7 @@ val verifyOnlyFormat = manager.exports(true)
 ```
 
 #### {{t('error_handling')}}
-- [{{t('example')}}: ErrorCodeTest.kt](https://github.com/saro-lab/dat/tree/master/dat-maven/tree/master/src/test/kotlin/test/kt/ErrorCodeTest.kt)
+- [{{t('example')}}: ErrorCodeTest.kt](https://github.com/saro-lab/dat/blob/master/dat-maven/src/test/kotlin/test/kt/ErrorCodeTest.kt)
 
 `issue` and `parse` return `DatResult`, so a failure is a value rather than a
 thrown exception. The `errorCode` on `DatException` is identical across all

@@ -80,8 +80,8 @@ const envLine = computed(() => [BENCH_WORKLOAD, BENCH_ENV].filter(Boolean).join(
 }
 
 .bench-title {
-    @apply text-sm font-bold mb-1.5;
-    color: var(--c-text-1);
+    @apply text-[0.7rem] font-semibold uppercase tracking-[0.08em] mb-1.5;
+    color: var(--c-muted);
 }
 .bench-desc {
     @apply text-xs leading-relaxed mb-2.5;

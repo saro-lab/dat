@@ -63,10 +63,10 @@ function label(entry: NavLink): string {
     @apply min-w-0;
 }
 .pn-lbl {
-    @apply text-xs opacity-50 font-bold;
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.08em] opacity-55;
 }
 .pn-title {
-    @apply text-sm font-bold truncate;
+    @apply text-[0.875rem] font-medium truncate;
 }
 .arrow {
     @apply text-lg! opacity-60;
