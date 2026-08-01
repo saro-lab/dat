@@ -5,6 +5,7 @@ mod cron;
 mod dto;
 mod entity;
 mod env;
+mod extract;
 mod request_context;
 mod routes;
 mod schema;
@@ -28,8 +29,14 @@ async fn main() {
         .await
         .unwrap();
     schema::sync(database::db()).await.unwrap();
-    cron::start().await.unwrap();
+    let scheduler = cron::start().await.unwrap();
 
     let server_host = format!("0.0.0.0:{}", ENV.server.port);
     server::serve(routes::router(), &server_host, SHUTDOWN_TIMEOUT).await;
+
+    // Shut everything down together: the HTTP server has stopped accepting,
+    // now stop the cron scheduler and flush/close the database pool.
+    cron::stop(scheduler).await;
+    database::close().await;
+    tracing::info!("SHUTDOWN COMPLETE");
 }

@@ -34,6 +34,16 @@ pub async fn connect(db_uri: &str, sqlx_logging: bool) -> ApiResult<()> {
     Ok(())
 }
 
+/// Closes the connection pool so in-flight writes are flushed on shutdown.
+pub async fn close() {
+    if let Some(conn) = DB.get() {
+        match conn.clone().close().await {
+            Ok(()) => tracing::info!("DATABASE CLOSED"),
+            Err(e) => tracing::error!("database close failed: {:?}", e),
+        }
+    }
+}
+
 fn prepare_sqlite_file(file_path: &str) -> Result<(), DbErr> {
     let path = Path::new(file_path);
     if let Some(parent) = path.parent() {

@@ -123,15 +123,20 @@ ex) HMAC-SHA512-MFS, IV-AES256-GCM, 0 0/30 * * * *, 1200, 10800, 600
             DatSignatureAlgorithm::from_str(parts[0]).unwrap_or_else(|_| panic!("invalid signature algorithm\n{arg_example}"));
             DatCryptoAlgorithm::from_str(parts[1]).unwrap_or_else(|_| panic!("invalid crypto algorithm\n{arg_example}"));
 
+            let cmd = RegisterCertificateCommand {
+                signature_algorithm: parts[0].to_string(),
+                crypto_algorithm: parts[1].to_string(),
+                certificate_propagation_delay_seconds: parts[3].parse::<i64>().unwrap_or_else(|_| panic!("invalid certificate propagation delay seconds\n{arg_example}")),
+                dat_issuance_duration_seconds: parts[4].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat issuance duration seconds\n{arg_example}")),
+                dat_ttl_seconds: parts[5].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat ttl seconds\n{arg_example}")),
+            };
+            // Same bounds as the admin route: the cron command reaches the very same
+            // `register()`, where `now + delay` and `start + duration + ttl` are computed.
+            cmd.validate().unwrap_or_else(|reason| panic!("invalid SINGLE_NODE argument: {reason}\n{arg_example}"));
+
             Some(EnvCron {
                 expression: Job::schedule_to_cron(parts[2]).unwrap_or_else(|_| panic!("invalid cron expression\n{arg_example}")),
-                cmd: RegisterCertificateCommand {
-                    signature_algorithm: parts[0].to_string(),
-                    crypto_algorithm: parts[1].to_string(),
-                    certificate_propagation_delay_seconds: parts[3].parse::<i64>().unwrap_or_else(|_| panic!("invalid certificate propagation delay seconds\n{arg_example}")),
-                    dat_issuance_duration_seconds: parts[4].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat issuance duration seconds\n{arg_example}")),
-                    dat_ttl_seconds: parts[5].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat ttl seconds\n{arg_example}")),
-                }
+                cmd,
             })
         }
     }
@@ -139,17 +144,51 @@ ex) HMAC-SHA512-MFS, IV-AES256-GCM, 0 0/30 * * * *, 1200, 10800, 600
 
 impl EnvToken {
     fn new() -> Self {
-        Self {
+        let token = Self {
             master: env_token("TOKEN_MASTER"),
             cert_full: env_token("TOKEN_CERT_FULL"),
             cert_verify: env_token("TOKEN_CERT_VERIFY"),
+        };
+        token.warn_if_disabled();
+        token
+    }
+
+    /// 어느 등급에든 등록된 토큰인가.
+    ///
+    /// 등록은 됐는데 이 자원의 등급이 아니면 401(인증 실패)이 아니라 403(권한 부족)이다.
+    pub fn is_known(&self, token: &str) -> bool {
+        if token.is_empty() {
+            return false;
+        }
+        let token = token.to_string();
+        self.master.contains(&token)
+            || self.cert_full.contains(&token)
+            || self.cert_verify.contains(&token)
+    }
+
+    /// 토큰 미설정 = 그 등급 전면 개방.
+    ///
+    /// `RequestContext::is_allow` 의 `allows.is_empty() → 통과` 때문에, TOKEN_MASTER 를
+    /// 비워 두면 `POST /v1/cert/...`(인증서 발급)까지 무인증으로 열린다. 지금까지 이
+    /// 상태는 어떤 신호로도 표현되지 않았다. 동작을 바꾸는 것은 별도 결정이므로
+    /// 여기서는 기동 경고만 남긴다.
+    fn warn_if_disabled(&self) {
+        for (name, allows, risk) in [
+            ("TOKEN_MASTER", &self.master, "certificate issuance is fully open"),
+            ("TOKEN_CERT_FULL", &self.cert_full, "full certificate export is fully open"),
+            ("TOKEN_CERT_VERIFY", &self.cert_verify, "verify-only export is fully open"),
+        ] {
+            if allows.is_empty() {
+                // ENV 는 tracing 초기화보다 먼저 평가될 수 있어 println 으로 남긴다.
+                println!("[WARN] {}: {name} is not set, {risk}", crate::codes::AUTH_DISABLED);
+            }
         }
     }
 }
 
 fn env_token(key: &str) -> Vec<String> {
     let mut vec = Vec::new();
-    let regex_token = regex::Regex::new("[a-zA-Z0-9]+").expect("regex error");
+    let regex_token = regex::Regex::new("^[a-zA-Z0-9]+$").expect("regex error");
     let tokens = env_str(key, "");
     if !tokens.is_empty() {
         for token in tokens.split(',') {

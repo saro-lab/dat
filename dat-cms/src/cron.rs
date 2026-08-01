@@ -4,9 +4,11 @@ use crate::env::ENV;
 use crate::services::cert_service;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
-pub async fn start() -> ApiResult<()> {
+/// Returns the running scheduler so the caller can shut it down together with
+/// the HTTP server and the database pool. `None` when cron is not configured.
+pub async fn start() -> ApiResult<Option<JobScheduler>> {
     let Some(cron) = ENV.cron.as_ref() else {
-        return Ok(());
+        return Ok(None);
     };
 
     cert_service::register(cron.cmd.clone(), db()).await?;
@@ -34,5 +36,14 @@ pub async fn start() -> ApiResult<()> {
 
     sched.start().await.expect("Failed to start job scheduler");
 
-    Ok(())
+    Ok(Some(sched))
+}
+
+pub async fn stop(sched: Option<JobScheduler>) {
+    if let Some(mut sched) = sched {
+        match sched.shutdown().await {
+            Ok(()) => tracing::info!("CRON SCHEDULER STOPPED"),
+            Err(e) => tracing::error!("cron scheduler shutdown failed: {:?}", e),
+        }
+    }
 }

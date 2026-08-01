@@ -90,7 +90,7 @@ async fn error_5() -> ApiResult<Api> {
 }
 
 async fn error_6() -> ApiResult<Api> {
-    Err(DatError::EtcError("dat error"))?
+    Err(DatError::InternalUnknown("dat error"))?
 }
 
 async fn error_7() -> Api {
