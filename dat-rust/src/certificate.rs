@@ -1,8 +1,9 @@
 use crate::crypto::{DatCrypto, DatCryptoAlgorithm};
 use crate::error::DatError;
 use crate::signature::{DatSignature, DatSignatureAlgorithm};
-use crate::util::{decode_base64_url, encode_base64_url_out, now_unix_timestamp, to_hex_u64_out};
+use crate::util::{decode_base64_url, encode_base64_url_out, now_unix_timestamp, parse_u64_dec, parse_u64_hex, to_hex_u64_out};
 use std::str::FromStr;
+use zeroize::Zeroize;
 
 pub struct DatCertificate {
     pub cid: u64,
@@ -33,10 +34,10 @@ impl DatCertificate {
     ) -> Result<Self, DatError> {
 
         let dat_issuance_end_seconds = dat_issuance_start_seconds.checked_add(dat_issuance_duration_seconds)
-            .ok_or(DatError::CertificateError("create/from certificate error: issuance_start_seconds + issuance_duration_seconds overflowed u64"))?;
+            .ok_or(DatError::CertMalformed("issuance_start_seconds + issuance_duration_seconds overflowed u64"))?;
 
         let expire_seconds = dat_issuance_end_seconds.checked_add(dat_ttl_seconds)
-            .ok_or(DatError::CertificateError("create/from certificate error: issuance_start_seconds + issuance_duration_seconds + dat_ttl_seconds overflowed u64"))?;
+            .ok_or(DatError::CertMalformed("issuance_start_seconds + issuance_duration_seconds + dat_ttl_seconds overflowed u64"))?;
 
         Ok(DatCertificate {
             cid,
@@ -100,9 +101,16 @@ impl DatCertificate {
         v.push('.');
         v.push_str(self.crypto.algorithm().as_str());
         v.push('.');
-        encode_base64_url_out(self.signature.export_key_option(verify_only)?, &mut v);
+        // 키 재료가 담긴 임시 버퍼는 base64 로 옮긴 직후 소거한다. (반환되는 문자열은 호출부 책임)
+        let mut signature_key = self.signature.export_key_option(verify_only)?;
+        encode_base64_url_out(&signature_key, &mut v);
+        signature_key.zeroize();
+
         v.push('.');
-        encode_base64_url_out(self.crypto.export_key(), &mut v);
+
+        let mut crypto_key = self.crypto.export_key();
+        encode_base64_url_out(&crypto_key, &mut v);
+        crypto_key.zeroize();
 
         Ok(v)
     }
@@ -126,17 +134,25 @@ impl FromStr for DatCertificate {
         let parts = format.split('.').collect::<Vec<&str>>();
         let count = parts.len();
         if count == 8 {
-            let cid = u64::from_str_radix(parts[0], 16).map_err(|_| DatError::CertificateError("invalid dat certificate format: cid must hex in u64"))?;
-            let dat_issuance_start_seconds = parts[1].parse::<u64>().map_err(|_| DatError::CertificateError("invalid dat certificate format: issuance_start_seconds must u64"))?;
-            let dat_issuance_duration_seconds = parts[2].parse::<u64>().map_err(|_| DatError::CertificateError("invalid dat certificate format: issuance_duration_seconds must u64"))?;
-            let dat_ttl_seconds = parts[3].parse::<u64>().map_err(|_| DatError::CertificateError("invalid dat certificate format: dat_ttl_seconds must u64"))?;
+            let cid = parse_u64_hex(parts[0])
+                .ok_or(DatError::CertMalformed("cid field is not a plain hex u64"))?;
+            let dat_issuance_start_seconds = parse_u64_dec(parts[1])
+                .ok_or(DatError::CertMalformed("issuance_start_seconds field is not a plain decimal u64"))?;
+            let dat_issuance_duration_seconds = parse_u64_dec(parts[2])
+                .ok_or(DatError::CertMalformed("issuance_duration_seconds field is not a plain decimal u64"))?;
+            let dat_ttl_seconds = parse_u64_dec(parts[3])
+                .ok_or(DatError::CertMalformed("dat_ttl_seconds field is not a plain decimal u64"))?;
             let signature_algorithm = DatSignatureAlgorithm::from_str(parts[4])?;
             let crypto_algorithm = DatCryptoAlgorithm::from_str(parts[5])?;
-            let signature = DatSignature::from_key(signature_algorithm, &*decode_base64_url(parts[6])?)?;
-            let crypto = DatCrypto::from_key(crypto_algorithm, &*decode_base64_url(parts[7])?)?;
+            let signature_key = decode_base64_url(parts[6])
+                .map_err(|_| DatError::CertMalformed("signature_key field is not base64url"))?;
+            let signature = DatSignature::from_key(signature_algorithm, &*signature_key)?;
+            let crypto_key = decode_base64_url(parts[7])
+                .map_err(|_| DatError::CertMalformed("crypto_key field is not base64url"))?;
+            let crypto = DatCrypto::from_key(crypto_algorithm, &*crypto_key)?;
             DatCertificate::from(cid, dat_issuance_start_seconds, dat_issuance_duration_seconds, dat_ttl_seconds, signature, crypto)
         } else {
-            Err(DatError::CertificateError("invalid dat certificate format"))
+            Err(DatError::CertMalformed("expected exactly 8 dot-separated fields"))
         }
     }
 }

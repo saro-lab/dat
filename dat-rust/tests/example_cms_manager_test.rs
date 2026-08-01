@@ -10,7 +10,7 @@ mod dat_cms {
     pub fn get_cms_manager() -> Result<Arc<DatCmsManager>, DatError> {
         DAT_CMS_MANAGER.get()
             .map(|manager| Arc::clone(manager))
-            .ok_or_else(|| DatError::EtcError("dat auto sync manager not initialized"))
+            .ok_or(DatError::InternalUnknown("dat auto sync manager not initialized"))
     }
 
     async fn test_auto_sync() -> Result<(), DatError> {

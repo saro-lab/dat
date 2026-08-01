@@ -10,19 +10,20 @@ pub(crate) fn from_or_new_hmac(new: bool, algorithm: DatSignatureAlgorithm, key_
         HmacSha256Mfs => (&HMAC_SHA256, 32),
         HmacSha384Mfs => (&HMAC_SHA384, 48),
         HmacSha512Mfs => (&HMAC_SHA512, 64),
-        _ => return Err(DatError::AlgorithmError("unsupported hmac signature algorithm.", algorithm.to_string())),
+        _ => return Err(DatError::ConfigAlgUnsupported(format!("not an hmac signature algorithm: {algorithm}"))),
     };
 
     let (key, key_b) = if new {
         let mut key_b = vec![0u8; size];
-        aws_lc_rs::rand::fill(&mut key_b)?;
+        aws_lc_rs::rand::fill(&mut key_b)
+            .map_err(|_| DatError::InternalUnknown("hmac key random generation failed"))?;
         let key = Key::new(*alg, &key_b);
         (key, key_b)
     } else if key_b.len() == size {
         let key = Key::new(*alg, &key_b);
         (key, Vec::from(key_b))
     } else {
-        return Err(DatError::SignatureError("invalid hmac signature key length"))
+        return Err(DatError::KeyInvalid("hmac key length does not match the declared algorithm"))
     };
 
     Ok(HmacShaMfs(algorithm, key, key_b))
@@ -34,5 +35,5 @@ pub(crate) fn sign_hmac(key: &Key, data: &[u8]) -> Result<Box<[u8]>, DatError> {
 
 pub(crate) fn verify_hmac(key: &Key, body: &[u8], sign: &[u8]) -> Result<(), DatError> {
     hmac::verify(key, body, sign)
-        .map_err(|_| DatError::InvalidDat)
+        .map_err(|_| DatError::SigMismatch)
 }

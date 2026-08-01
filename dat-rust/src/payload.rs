@@ -15,7 +15,8 @@ impl DatPayload {
 
     #[inline]
     pub fn plain_text(&self) -> Result<&str, DatError> {
-        Ok(str::from_utf8(&self.plain)?)
+        str::from_utf8(&self.plain)
+            .map_err(|_| DatError::TokenMalformed("plain payload is not valid utf-8"))
     }
 
     #[inline]
@@ -25,7 +26,8 @@ impl DatPayload {
 
     #[inline]
     pub fn secure_text(&self) -> Result<&str, DatError> {
-        Ok(str::from_utf8(&self.secure)?)
+        str::from_utf8(&self.secure)
+            .map_err(|_| DatError::TokenMalformed("secure payload is not valid utf-8"))
     }
 }
 
