@@ -2,7 +2,7 @@
   <div class="tt">
     <div class="flex items-end gap-3 flex-wrap">
       <h1 class="m-0!">Infinite Unix Time</h1>
-      <a class="text-sm g-link" href="https://github.com/saro-lab/unixtime-npm" target="_blank" rel="noreferrer">GitHub (npm/cdn)</a>
+      <a class="text-sm g-link" href="https://github.com/saro-lab/misc-npm/tree/master/infinite-unixtime" target="_blank" rel="noreferrer">GitHub (npm/cdn)</a>
     </div>
 
     <!-- 모드 칩 : Live(실시간 틱) · 타임존 · Now(현재로 점프) -->
