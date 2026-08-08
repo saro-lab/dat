@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <title>DAT</title>
-  <g transform="rotate(-90 256 256)" fill="none" stroke-width="96" stroke-dasharray="235.3 945.9">
-    <circle cx="256" cy="256" r="188" stroke="#0f766e" stroke-dashoffset="0"/>
-    <circle cx="256" cy="256" r="188" stroke="#4f46e5" stroke-dashoffset="-295.3"/>
-    <circle cx="256" cy="256" r="188" stroke="#c23b82" stroke-dashoffset="-590.6"/>
-    <circle cx="256" cy="256" r="188" stroke="#6ba30f" stroke-dashoffset="-885.9"/>
+  <g transform="rotate(-90 256 256)" fill="none" stroke-width="148">
+    <circle cx="256" cy="256" r="158" stroke="#0f766e" stroke-dasharray="311.5 992.7" stroke-dashoffset="0"/>
+    <circle cx="256" cy="256" r="158" stroke="#4f46e5" stroke-dasharray="242 992.7" stroke-dashoffset="-337.5"/>
+    <circle cx="256" cy="256" r="158" stroke="#c23b82" stroke-dasharray="192.4 992.7" stroke-dashoffset="-605.6"/>
+    <circle cx="256" cy="256" r="158" stroke="#6ba30f" stroke-dasharray="142.8 992.7" stroke-dashoffset="-824"/>
   </g>
-  <path d="M186 262 L234 310 L332 194" fill="none" stroke="#65a30d" stroke-width="62"
-        stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

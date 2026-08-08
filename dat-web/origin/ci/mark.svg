@@ -1,12 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <title>DAT</title>
-  <g transform="rotate(-90 256 256)" fill="none" stroke-width="80" stroke-dasharray="195.3 1011.1">
-    <circle cx="256" cy="256" r="192" stroke="#0f766e" stroke-dashoffset="0"/>
-    <circle cx="256" cy="256" r="192" stroke="#12837a" stroke-dashoffset="-241.3"/>
-    <circle cx="256" cy="256" r="192" stroke="#4f46e5" stroke-dashoffset="-482.5"/>
-    <circle cx="256" cy="256" r="192" stroke="#c23b82" stroke-dashoffset="-723.8"/>
-    <circle cx="256" cy="256" r="192" stroke="#6ba30f" stroke-dashoffset="-965.1"/>
+  <g transform="rotate(-90 256 256)" fill="none" stroke-width="136">
+    <circle cx="256" cy="256" r="160" stroke="#0f766e" stroke-dasharray="301.7 1005.3" stroke-dashoffset="0"/>
+    <circle cx="256" cy="256" r="160" stroke="#12837a" stroke-dasharray="221.3 1005.3" stroke-dashoffset="-321.7"/>
+    <circle cx="256" cy="256" r="160" stroke="#4f46e5" stroke-dasharray="161 1005.3" stroke-dashoffset="-563"/>
+    <circle cx="256" cy="256" r="160" stroke="#c23b82" stroke-dasharray="130.8 1005.3" stroke-dashoffset="-743.9"/>
+    <circle cx="256" cy="256" r="160" stroke="#6ba30f" stroke-dasharray="90.6 1005.3" stroke-dashoffset="-894.7"/>
   </g>
-  <path d="M182 260 L234 312 L338 190" fill="none" stroke="#65a30d" stroke-width="52"
-        stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

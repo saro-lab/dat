@@ -10,9 +10,7 @@
   <circle cx="1080" cy="560" r="440" fill="url(#w2)"/>
   <circle cx="820" cy="60"  r="360" fill="url(#w3)"/>
   <g transform="translate(76 166) scale(0.582)">
-    <g transform="rotate(-90 256 256)" fill="none" stroke-width="80" stroke-dasharray="195.3 1011.1"><circle cx="256" cy="256" r="192" stroke="#0f766e" stroke-dashoffset="0"/><circle cx="256" cy="256" r="192" stroke="#12837a" stroke-dashoffset="-241.3"/><circle cx="256" cy="256" r="192" stroke="#4f46e5" stroke-dashoffset="-482.5"/><circle cx="256" cy="256" r="192" stroke="#c23b82" stroke-dashoffset="-723.8"/><circle cx="256" cy="256" r="192" stroke="#6ba30f" stroke-dashoffset="-965.1"/></g>
-    <path d="M182 260 L234 312 L338 190" fill="none" stroke="#84cc16" stroke-width="52"
-          stroke-linecap="round" stroke-linejoin="round"/>
+    <g transform="rotate(-90 256 256)" fill="none" stroke-width="136"><circle cx="256" cy="256" r="160" stroke="#0f766e" stroke-dasharray="301.7 1005.3" stroke-dashoffset="0"/><circle cx="256" cy="256" r="160" stroke="#12837a" stroke-dasharray="221.3 1005.3" stroke-dashoffset="-321.7"/><circle cx="256" cy="256" r="160" stroke="#4f46e5" stroke-dasharray="161 1005.3" stroke-dashoffset="-563"/><circle cx="256" cy="256" r="160" stroke="#c23b82" stroke-dasharray="130.8 1005.3" stroke-dashoffset="-743.9"/><circle cx="256" cy="256" r="160" stroke="#6ba30f" stroke-dasharray="90.6 1005.3" stroke-dashoffset="-894.7"/></g>
   </g>
   <g transform="translate(280.4 515.5) scale(0.548)">
     <path d="m305.9-594.25v141.7h10.656q14.112 0 23.04-4.032t13.824-12.672 6.624-22.176q2.016-13.536 2.016-32.544 0-18.72-2.016-31.968-1.728-13.248-6.912-21.6-4.896-8.64-13.536-12.672t-22.176-4.032zm-32.256 168.19v-195.26h44.64q21.024 0 35.424 5.472 14.688 5.472 23.616 17.28 9.216 11.808 13.248 30.24 4.32 18.144 4.32 44.064 0 27.36-4.32 46.08t-13.824 30.24q-9.216 11.52-23.904 16.704t-35.712 5.184zm217.44-195.26 55.584 195.26h-33.408l-12.96-50.4h-52.416l-12.384 50.4h-32.832l53.856-195.26zm2.88 118.94-15.552-67.968-4.032-21.312-3.168 21.312-16.992 67.968zm140.83 76.32h-32.256v-168.19h-51.552v-27.072h135.36v27.072h-51.552z" fill="#ffffff"/>
