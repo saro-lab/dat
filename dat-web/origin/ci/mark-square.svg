@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>DAT</title>
+  <rect width="512" height="512" fill="#0b2b28"/>
+  <g transform="rotate(-90 256 256)" fill="none" stroke-width="52" stroke-dasharray="139.4 677.4">
+    <circle cx="256" cy="256" r="130" stroke="#0f766e" stroke-dashoffset="0"/>
+    <circle cx="256" cy="256" r="130" stroke="#12837a" stroke-dashoffset="-163.4"/>
+    <circle cx="256" cy="256" r="130" stroke="#4f46e5" stroke-dashoffset="-326.7"/>
+    <circle cx="256" cy="256" r="130" stroke="#c23b82" stroke-dashoffset="-490.1"/>
+    <circle cx="256" cy="256" r="130" stroke="#6ba30f" stroke-dashoffset="-653.4"/>
+  </g>
+  <path d="M204 258 L242 296 L312 212" fill="none" stroke="#84cc16" stroke-width="34"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

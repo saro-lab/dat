@@ -38,7 +38,16 @@ export default defineConfig({
   description: "DAT (Distributed Access Token) — A lightweight, high-performance token specification with enforced security and mandatory key rolling. A faster, safer alternative to JWT.",
   head: [
     ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-N4K2L7KWJ9' }],
-    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/dat.svg' },],
+    /* SVG를 먼저 두되 PNG를 남겨 둔다 — SVG 파비콘을 못 읽는 클라이언트(구형 사파리,
+       대부분의 RSS·채팅 프리뷰 봇)가 폴백으로 집어 갈 게 있어야 한다. 16/32는 링을
+       키운 별도 소스(origin/ci/mark-small.svg)에서 뽑아서 그 크기에서 뭉개지지 않는다. */
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/favicon-32.png' },],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/favicon-16.png' },],
+    /* 홈 화면 아이콘은 모서리를 OS가 깎으므로 라운드 없는 풀블리드를 준다. */
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },],
+    ['link', { rel: 'manifest', href: '/site.webmanifest' },],
+    ['meta', { name: 'theme-color', content: '#0b2b28' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' },],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: "" },],
     ['link', { rel: 'stylesheet', href: FONT_ICONS },],
@@ -46,9 +55,16 @@ export default defineConfig({
     ['meta', { name: "viewport", content: "width=device-width,initial-scale=1" }],
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:site_name', content: 'DAT' }],
-    ['meta', { property: 'og:image', content: `${SITE_HOST}/og.svg` }],
-    ['meta', { name: 'twitter:card', content: 'summary' }],
-    ['meta', { name: 'twitter:image', content: `${SITE_HOST}/og.svg` }],
+    /* OG는 PNG여야 한다 — 슬랙·디스코드·트위터 카드 렌더러는 SVG를 대부분 무시하고
+       썸네일을 아예 그리지 않는다. 크기를 같이 넘기면 이미지를 받기 전에 자리를
+       잡아 카드가 밀리지 않는다. 1200×630이라 카드는 large 형식으로 뜬다. */
+    ['meta', { property: 'og:image', content: `${SITE_HOST}/og.png` }],
+    ['meta', { property: 'og:image:type', content: 'image/png' }],
+    ['meta', { property: 'og:image:width', content: '1200' }],
+    ['meta', { property: 'og:image:height', content: '630' }],
+    ['meta', { property: 'og:image:alt', content: 'DAT — Distributed Access Token' }],
+    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ['meta', { name: 'twitter:image', content: `${SITE_HOST}/og.png` }],
   ],
   sitemap: {
     hostname: SITE_HOST,

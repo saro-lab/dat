@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <title>DAT — Distributed Access Token</title>
+  <defs>
+    <radialGradient id="w1"><stop offset="0" stop-color="#2fa87e" stop-opacity="0.26"/><stop offset="1" stop-color="#2fa87e" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w2"><stop offset="0" stop-color="#4f46e5" stop-opacity="0.20"/><stop offset="1" stop-color="#4f46e5" stop-opacity="0"/></radialGradient>
+    <radialGradient id="w3"><stop offset="0" stop-color="#84cc16" stop-opacity="0.16"/><stop offset="1" stop-color="#84cc16" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#051614"/>
+  <circle cx="180" cy="120" r="440" fill="url(#w1)"/>
+  <circle cx="1080" cy="560" r="440" fill="url(#w2)"/>
+  <circle cx="820" cy="60"  r="360" fill="url(#w3)"/>
+  <g transform="translate(76 166) scale(0.582)">
+    <g transform="rotate(-90 256 256)" fill="none" stroke-width="80" stroke-dasharray="195.3 1011.1"><circle cx="256" cy="256" r="192" stroke="#0f766e" stroke-dashoffset="0"/><circle cx="256" cy="256" r="192" stroke="#12837a" stroke-dashoffset="-241.3"/><circle cx="256" cy="256" r="192" stroke="#4f46e5" stroke-dashoffset="-482.5"/><circle cx="256" cy="256" r="192" stroke="#c23b82" stroke-dashoffset="-723.8"/><circle cx="256" cy="256" r="192" stroke="#6ba30f" stroke-dashoffset="-965.1"/></g>
+    <path d="M182 260 L234 312 L338 190" fill="none" stroke="#84cc16" stroke-width="52"
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(280.4 515.5) scale(0.548)">
+    <path d="m305.9-594.25v141.7h10.656q14.112 0 23.04-4.032t13.824-12.672 6.624-22.176q2.016-13.536 2.016-32.544 0-18.72-2.016-31.968-1.728-13.248-6.912-21.6-4.896-8.64-13.536-12.672t-22.176-4.032zm-32.256 168.19v-195.26h44.64q21.024 0 35.424 5.472 14.688 5.472 23.616 17.28 9.216 11.808 13.248 30.24 4.32 18.144 4.32 44.064 0 27.36-4.32 46.08t-13.824 30.24q-9.216 11.52-23.904 16.704t-35.712 5.184zm217.44-195.26 55.584 195.26h-33.408l-12.96-50.4h-52.416l-12.384 50.4h-32.832l53.856-195.26zm2.88 118.94-15.552-67.968-4.032-21.312-3.168 21.312-16.992 67.968zm140.83 76.32h-32.256v-168.19h-51.552v-27.072h135.36v27.072h-51.552z" fill="#ffffff"/>
+  </g>
+  <rect x="430" y="308" width="112" height="5" rx="2.5" fill="#84cc16"/>
+  <text x="430" y="374" font-family="Noto Sans, Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="36" fill="#dcebe4">Distributed Access Token</text>
+  <text x="430" y="424" font-family="Noto Sans, Helvetica Neue, Helvetica, Arial, sans-serif"
+        font-size="23" fill="#8fb4a4">Certificate rolling · Mandatory security · High performance</text>
+</svg>

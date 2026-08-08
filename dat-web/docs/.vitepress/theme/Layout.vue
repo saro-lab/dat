@@ -12,7 +12,10 @@
             <div v-if="hasMenu" class="hdr-btn g-link-hover @min-[60rem]:hidden!" @click="onMenu = !onMenu">
               <span translate="no" class="material-symbols-outlined text-xl! font-extralight">menu</span>
             </div>
-            <a :href="`${root}/`" class="font-medium text-[1rem] px-1">DAT</a>
+            <a :href="`${root}/`" class="flex items-center gap-1.5 font-medium text-[1rem] px-1">
+              <!-- 1em — 옆 글자와 같은 크기로 묶어 둔다 -->
+              <Logo class="w-[1em] h-[1em]" />DAT
+            </a>
             <div class="flex-1"></div>
 
             <a :href="`${root}/intro`" class="hdr-btn px-2 font-medium g-link-hover">{{ t('menu_docs') }}</a>
@@ -47,6 +50,7 @@
 
     <!-- Shown at the un-prefixed root, which redirects to a language as soon as JS runs. -->
     <div v-else class="g-frame pt-[9rem] pb-[10rem] text-center">
+      <Logo class="w-14 h-14 mx-auto mb-5" />
       <div class="text-3xl">DAT</div>
       <div class="mt-8 flex flex-wrap justify-center gap-6">
         <a v-for="[code, name] in languages" :key="code" :href="`/${code}/`" class="g-link">{{ name }}</a>
@@ -59,6 +63,7 @@
 import { Content, inBrowser, useData, useRouter } from 'vitepress'
 import { computed, onMounted, ref } from 'vue'
 
+import Logo from '../ui/Logo.vue'
 import Menu from '../ui/Menu.vue'
 import PageNav from '../ui/PageNav.vue'
 import SelectLanguage from '../ui/SelectLanguage.vue'
