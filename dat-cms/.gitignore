@@ -4,3 +4,4 @@
 /logs
 /data
 .DS_Store
+/qemu_rustc*.core
