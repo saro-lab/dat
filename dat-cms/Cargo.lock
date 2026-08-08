@@ -321,9 +321,9 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "aws-lc-rs"
-version = "1.17.3"
+version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00bdb5da18dac48ca2cc7cd4a98e533e8635a58e2361d13a1a4ee3888e0d72f1"
+checksum = "ce2b2dcc879c3bae0d371e77c99f2238400ef24ec001394befa67b6e543add9e"
 dependencies = [
  "aws-lc-sys",
  "untrusted 0.7.1",
@@ -332,9 +332,9 @@ dependencies = [
 
 [[package]]
 name = "aws-lc-sys"
-version = "0.43.0"
+version = "0.44.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "43103168cc76fe62678a375e722fc9cb3a0146159ac5828bc4f0dfd755c2224c"
+checksum = "f09fae7be8bb3174e05c6afdb34199e6dc0c7c04ba9fa237b1967adfbde27483"
 dependencies = [
  "cc",
  "cmake",
@@ -415,9 +415,9 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "base64"
-version = "0.23.0"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b25655df2c3cdd83c5e5b293b88acd880332b2ddadd7c30ac43144fdc0033da9"
+checksum = "ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5"
 
 [[package]]
 name = "bigdecimal"
@@ -812,14 +812,14 @@ dependencies = [
 
 [[package]]
 name = "dat"
-version = "4.6.0"
+version = "4.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ffc6168d30dfa0a61079ec68df3b37cfe7c6c4ada01b72e05c5eb32e6f3176c4"
+checksum = "2527af809d71248438ed86db6a7fe2b4130201c1303e3ea3bde3f4a5c2924739"
 dependencies = [
  "aes",
  "aes-gcm",
  "aws-lc-rs",
- "base64 0.23.0",
+ "base64 0.23.1",
  "itertools 0.15.0",
  "itoa",
  "zeroize",
@@ -827,7 +827,7 @@ dependencies = [
 
 [[package]]
 name = "dat-cms"
-version = "4.6.0"
+version = "4.6.1"
 dependencies = [
  "anyhow",
  "axum",
@@ -2278,9 +2278,9 @@ dependencies = [
 
 [[package]]
 name = "sea-orm"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "549c6d29a2e7a84e35c5dfbc06370a62c4d35f2328c31005267bec586b34f682"
+checksum = "e29e1a2e2e6da3d2486086f9d96b4bf5b7d8bf344e16c48bd87ce7977b8d0154"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -2327,9 +2327,9 @@ dependencies = [
 
 [[package]]
 name = "sea-orm-macros"
-version = "2.0.0"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4cbb7ae053b9b37c919ea944a3bc52f7830a90c223f8a765c908293bca8f22d"
+checksum = "88a6fd7ae2932a838d3bc7ca1e5483ffa10d6b25e4c43c8aebb4cd14773c2d08"
 dependencies = [
  "heck 0.5.0",
  "itertools 0.14.0",
