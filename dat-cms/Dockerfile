@@ -8,8 +8,8 @@ COPY Cargo.toml Cargo.lock ./
 COPY .cargo ./.cargo
 COPY src ./src
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry,id=global-registry \
-    --mount=type=cache,target=/usr/local/cargo/git,id=global-git \
+RUN --mount=type=cache,target=/usr/local/cargo/registry,id=global-registry-${TARGETARCH} \
+    --mount=type=cache,target=/usr/local/cargo/git,id=global-git-${TARGETARCH} \
     RUST_TARGET="$(uname -m)-unknown-linux-musl" && \
     RUSTFLAGS="-C target-feature=+crt-static" \
     cargo build --release --target "${RUST_TARGET}" && \
