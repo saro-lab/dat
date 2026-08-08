@@ -28,10 +28,10 @@ export const ja = {
     menu_tool: 'ツール',
     menu_tool_bytes: 'バイト変換ツール',
     menu_tool_time: 'Unixtime 変換ツール',
+    menu_projects: 'プロジェクト',
+    external_link: '新しいタブで開きます',
     nav_prev: '前へ',
     nav_next: '次へ',
-    now: '現在',
-    live: 'リアルタイム',
 
 
     platform_support: 'サポートプラットフォーム',
@@ -108,15 +108,7 @@ export const ja = {
     input_base64: 'Base64を入力',
     input_hex: 'Hexを入力',
 
-    year: '年',
-    month: '月',
-    day: '日',
-    hour: '時',
-    minute: '分',
-    second: '秒',
     seconds: '秒',
-    millisecond: 'ミリ秒',
-    unixtime_secs_ms: 'unixtime 秒 / ミリ秒',
 
     default: 'デフォルト',
     none: 'なし',

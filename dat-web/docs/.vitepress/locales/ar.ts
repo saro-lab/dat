@@ -28,10 +28,10 @@ export const ar = {
     menu_tool: 'الأداة',
     menu_tool_bytes: 'محول البايتات',
     menu_tool_time: 'محول Unixtime',
+    menu_projects: 'المشاريع',
+    external_link: 'يفتح في علامة تبويب جديدة',
     nav_prev: 'السابق',
     nav_next: 'التالي',
-    now: 'الآن',
-    live: 'مباشر',
 
 
     platform_support: 'دعم المنصات',
@@ -108,15 +108,7 @@ export const ar = {
     input_base64: 'أدخل Base64',
     input_hex: 'أدخل Hex',
 
-    year: 'سنة',
-    month: 'شهر',
-    day: 'يوم',
-    hour: 'ساعة',
-    minute: 'دقيقة',
-    second: 'ثانية',
     seconds: 'ثوانٍ',
-    millisecond: 'مللي ثانية',
-    unixtime_secs_ms: 'unixtime ثوانٍ / مللي ثانية',
 
     default: 'افتراضي',
     none: 'لا شيء',

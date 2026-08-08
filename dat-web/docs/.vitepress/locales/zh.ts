@@ -28,10 +28,10 @@ export const zh = {
     menu_tool: '工具',
     menu_tool_bytes: '字节转换器',
     menu_tool_time: 'Unixtime 转换器',
+    menu_projects: '项目',
+    external_link: '在新标签页中打开',
     nav_prev: '上一篇',
     nav_next: '下一篇',
-    now: '现在',
-    live: '实时',
 
 
     platform_support: '平台支持',
@@ -108,15 +108,7 @@ export const zh = {
     input_base64: '输入 Base64',
     input_hex: '输入 Hex',
 
-    year: '年',
-    month: '月',
-    day: '日',
-    hour: '时',
-    minute: '分',
-    second: '秒',
     seconds: '秒',
-    millisecond: '毫秒',
-    unixtime_secs_ms: 'unixtime 秒 / 毫秒',
 
     default: '默认值',
     none: '无',

@@ -28,10 +28,10 @@ export const hi = {
     menu_tool: 'उपकरण',
     menu_tool_bytes: 'बाइट कन्वर्टर',
     menu_tool_time: 'Unixtime कन्वर्टर',
+    menu_projects: 'परियोजनाएँ',
+    external_link: 'नए टैब में खुलता है',
     nav_prev: 'पिछला',
     nav_next: 'अगला',
-    now: 'अभी',
-    live: 'लाइव',
 
 
     platform_support: 'प्लेटफ़ॉर्म समर्थन',
@@ -108,15 +108,7 @@ export const hi = {
     input_base64: 'Base64 दर्ज करें',
     input_hex: 'Hex दर्ज करें',
 
-    year: 'वर्ष',
-    month: 'माह',
-    day: 'दिन',
-    hour: 'घंटा',
-    minute: 'मिनट',
-    second: 'सेकंड',
     seconds: 'सेकंड',
-    millisecond: 'मिलीसेकंड',
-    unixtime_secs_ms: 'unixtime सेकंड / मिलीसेकंड',
 
     default: 'डिफ़ॉल्ट',
     none: 'कोई नहीं',

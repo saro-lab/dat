@@ -20,12 +20,28 @@ export type NavLink = {
    * carry would hand the rest a link straight into the 404.
    */
   locales?: string[]
+  /** Icon shown left of the label, e.g. `/logo/dat.svg`. */
+  icon?: string
+}
+
+/** A page on a sibling site: leaves the docs, so it has no place in the reading order. */
+export type NavExternal = {
+  /**
+   * Full target URL, always un-prefixed by a locale. Our 15 languages are not
+   * everyone's 15, and a locale the target does not carry is a 404 — its own
+   * entry point sends the reader to the right language.
+   */
+  external: string
+  /** Proper noun shown as-is, e.g. `SARO Lab`. */
+  title?: string
+  titleKey?: MessageKey
+  icon?: string
 }
 
 /** A non-clickable heading that groups the links after it. */
 export type NavGroup = { labelKey: MessageKey }
 
-export type NavEntry = NavLink | NavGroup
+export type NavEntry = NavLink | NavExternal | NavGroup
 
 export type NavSection = {
   titleKey: MessageKey
@@ -36,9 +52,18 @@ export function isGroup(entry: NavEntry): entry is NavGroup {
   return 'labelKey' in entry
 }
 
+export function isExternal(entry: NavEntry): entry is NavExternal {
+  return 'external' in entry
+}
+
+/** A page of this site — the only kind of entry that has a path to compare against. */
+export function isLink(entry: NavEntry): entry is NavLink {
+  return !isGroup(entry) && !isExternal(entry)
+}
+
 /** Whether this entry should show up in the given locale. */
 export function inLocale(entry: NavEntry, locale: string): boolean {
-  return isGroup(entry) || !entry.locales || entry.locales.includes(locale)
+  return !isLink(entry) || !entry.locales || entry.locales.includes(locale)
 }
 
 /** `navSections` with entries the current locale does not carry filtered out. */
@@ -108,14 +133,25 @@ export const navSections: NavSection[] = [
     titleKey: 'menu_tool',
     entries: [
       { path: '/tool/bytes', titleKey: 'menu_tool_bytes' },
-      { path: '/tool/time', titleKey: 'menu_tool_time' },
+      /* The converter itself now lives in SARO Lab; the page here is on its way out. */
+      { external: 'https://lab.saro.me/tool/infinite-unixtime', titleKey: 'menu_tool_time' },
+    ],
+  },
+  /* Sibling sites, kept last: this is where a reader leaves for the rest of
+     SARO Lab, so it sits below everything this site itself can answer. */
+  {
+    titleKey: 'menu_projects',
+    entries: [
+      { external: 'https://lab.saro.me/', title: 'SARO Lab', icon: '/logo/saro-lab.svg' },
+      { external: 'https://ticketing.saro.me/', title: 'Ticketing', icon: '/logo/ticketing.svg' },
+      { external: 'https://nabi.saro.me/', title: 'NABI NOTE', icon: '/logo/nabi-note.svg' },
     ],
   },
 ]
 
 /** Every page in reading order, flattened out of `navSections`. */
 export const pageOrder: NavLink[] = navSections.flatMap(
-  (section) => section.entries.filter((entry) => !isGroup(entry)) as NavLink[],
+  (section) => section.entries.filter(isLink) as NavLink[],
 )
 
 /**

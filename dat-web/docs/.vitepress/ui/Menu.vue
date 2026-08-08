@@ -13,6 +13,21 @@
               <div v-if="isGroup(entry)" :key="entry.labelKey" class="menu-group">
                 {{ t(entry.labelKey) }}
               </div>
+              <!-- 사이트 밖으로 나가는 항목. 주소에 로케일을 붙이지 않는다 —
+                   상대가 우리 15개 언어를 다 갖고 있지 않아, 없는 언어는 404가 된다. -->
+              <div v-else-if="isExternal(entry)" :key="entry.external" class="menu-row">
+                <a
+                  :href="entry.external"
+                  class="menu-item menu-out"
+                  target="_blank"
+                  rel="noreferrer"
+                  :title="t('external_link')"
+                >
+                  <img v-if="entry.icon" class="menu-icon" :src="entry.icon" alt="" width="16" height="16" />
+                  <span class="menu-label">{{ entry.title || t(entry.titleKey!) }}</span>
+                  <span translate="no" class="material-symbols-outlined menu-out-icon">open_in_new</span>
+                </a>
+              </div>
               <div v-else :key="entry.path" class="menu-row" :class="{ sub: entry.sub }">
                 <a
                   :href="`${root}${entry.path}`"
@@ -20,7 +35,8 @@
                   :class="{ on: entry.path === currentPath }"
                   :aria-current="entry.path === currentPath ? 'page' : undefined"
                 >
-                  {{ entry.title || t(entry.titleKey!) }}
+                  <img v-if="entry.icon" class="menu-icon" :src="entry.icon" alt="" width="16" height="16" />
+                  <span class="menu-label">{{ entry.title || t(entry.titleKey!) }}</span>
                 </a>
               </div>
             </template>
@@ -33,7 +49,7 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import { isGroup, useCurrentPath, useNavSections } from '../src/nav'
+import { isExternal, isGroup, useCurrentPath, useNavSections } from '../src/nav'
 import { useRoot, useTranslate } from '../src/langs'
 
 const onMenu = defineModel({
@@ -70,7 +86,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         color: color-mix(in srgb, var(--c-text-1) 50%, transparent);
     }
     .menu-item {
-        @apply block px-2 py-[0.3rem] rounded-md text-[0.84rem] font-medium transition-colors duration-150;
+        @apply flex items-center gap-1.5 px-2 py-[0.3rem] rounded-md text-[0.84rem] font-medium transition-colors duration-150;
         color: var(--c-text-2);
         text-decoration: none;
 
@@ -85,6 +101,18 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         @apply font-semibold;
         color: var(--c-link-1);
         background-color: color-mix(in srgb, var(--c-link-1) 12%, transparent);
+    }
+    /* 프로젝트 마크는 자기 색을 갖고 있으므로 라벨만 테마를 따르고 마크는 그대로 둔다 */
+    .menu-icon {
+        @apply w-4 h-4 shrink-0;
+    }
+    .menu-label {
+        @apply flex-1 min-w-0;
+    }
+    /* 외부로 나가는 항목 : 현재 문서가 될 수 없으므로 on 상태가 없고,
+       대신 아이콘으로 "여기를 떠난다"를 미리 알린다 */
+    .menu-out-icon {
+        @apply text-[0.85rem]! opacity-45;
     }
     /* 하위 항목은 들여쓰기 대신 세로 가이드 레일로 묶는다 (행이 붙어 있어 선이 이어진다) */
     .menu-row.sub {

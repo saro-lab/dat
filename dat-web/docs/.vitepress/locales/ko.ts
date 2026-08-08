@@ -28,10 +28,10 @@ export const ko = {
     menu_tool: '도구',
     menu_tool_bytes: '바이트 변환기',
     menu_tool_time: 'Unixtime 변환기',
+    menu_projects: '프로젝트',
+    external_link: '새 탭에서 열립니다',
     nav_prev: '이전 문서',
     nav_next: '다음 문서',
-    now: '지금',
-    live: '실시간',
 
 
     platform_support: '지원 플랫폼',
@@ -108,15 +108,7 @@ export const ko = {
     input_base64: 'Base64 입력',
     input_hex: 'Hex 입력',
 
-    year: '년',
-    month: '월',
-    day: '일',
-    hour: '시',
-    minute: '분',
-    second: '초',
     seconds: '초',
-    millisecond: '밀리초',
-    unixtime_secs_ms: 'unixtime 초 / 밀리초',
 
     default: '기본값',
     none: '없음',

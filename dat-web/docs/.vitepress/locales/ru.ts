@@ -28,10 +28,10 @@ export const ru = {
     menu_tool: 'Инструмент',
     menu_tool_bytes: 'Конвертер байтов',
     menu_tool_time: 'Конвертер Unixtime',
+    menu_projects: 'Проекты',
+    external_link: 'Откроется в новой вкладке',
     nav_prev: 'Назад',
     nav_next: 'Далее',
-    now: 'Сейчас',
-    live: 'Live',
 
 
     platform_support: 'Поддержка платформ',
@@ -108,15 +108,7 @@ export const ru = {
     input_base64: 'введите Base64',
     input_hex: 'введите Hex',
 
-    year: 'Год',
-    month: 'Месяц',
-    day: 'День',
-    hour: 'Час',
-    minute: 'Минута',
-    second: 'Секунда',
     seconds: 'Секунды',
-    millisecond: 'Миллисекунда',
-    unixtime_secs_ms: 'unixtime секунды / миллисекунды',
 
     default: 'По умолчанию',
     none: 'Нет',

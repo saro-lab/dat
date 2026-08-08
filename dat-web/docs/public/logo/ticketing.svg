@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Ticketing</title>
+  <defs>
+    <linearGradient id="ink" gradientUnits="userSpaceOnUse" x1="20" y1="20" x2="236" y2="236">
+      <stop offset="0" stop-color="#c9846b"/>
+      <stop offset="1" stop-color="#9c5a44"/>
+    </linearGradient>
+    <mask id="perf">
+      <rect x="37" y="67" width="182" height="122" rx="12" fill="#fff"/>
+      <path d="M84.32 67 V189" fill="none" stroke="#000" stroke-width="11" stroke-linecap="round" stroke-dasharray="2 18"/>
+    </mask>
+  </defs>
+  <g transform="translate(128 128) scale(0.99) translate(-128 -128)">
+    <g transform="rotate(10 128 214)"><rect x="37" y="67" width="182" height="122" rx="12" fill="#eed6cb"/></g>
+    <g transform="rotate(5 128 214)"><rect x="37" y="67" width="182" height="122" rx="12" fill="#e0bdad"/></g>
+    <g transform="rotate(-5 128 214)" mask="url(#perf)">
+      <rect x="37" y="67" width="182" height="122" rx="12" fill="url(#ink)"/>
+      <rect x="103" y="95" width="94" height="14" rx="7" fill="#ffffff"/>
+      <rect x="103" y="121" width="70" height="14" rx="7" fill="#ffffff"/>
+      <rect x="103" y="147" width="46" height="14" rx="7" fill="#ffffff"/>
+    </g>
+  </g>
+</svg>

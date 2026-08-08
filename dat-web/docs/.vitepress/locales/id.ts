@@ -28,10 +28,10 @@ export const id = {
     menu_tool: 'Alat',
     menu_tool_bytes: 'Konverter Byte',
     menu_tool_time: 'Konverter Unixtime',
+    menu_projects: 'Proyek',
+    external_link: 'Terbuka di tab baru',
     nav_prev: 'Sebelumnya',
     nav_next: 'Berikutnya',
-    now: 'Sekarang',
-    live: 'Langsung',
 
 
     platform_support: 'Dukungan Platform',
@@ -108,15 +108,7 @@ export const id = {
     input_base64: 'masukkan Base64',
     input_hex: 'masukkan Hex',
 
-    year: 'Tahun',
-    month: 'Bulan',
-    day: 'Hari',
-    hour: 'Jam',
-    minute: 'Menit',
-    second: 'Detik',
     seconds: 'Detik',
-    millisecond: 'Milidetik',
-    unixtime_secs_ms: 'unixtime detik / milidetik',
 
     default: 'Default',
     none: 'Tidak Ada',

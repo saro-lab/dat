@@ -28,10 +28,10 @@ export const ur = {
     menu_tool: 'ٹول',
     menu_tool_bytes: 'بائٹس کنورٹر',
     menu_tool_time: 'Unixtime کنورٹر',
+    menu_projects: 'منصوبے',
+    external_link: 'نئے ٹیب میں کھلتا ہے',
     nav_prev: 'پچھلا',
     nav_next: 'اگلا',
-    now: 'ابھی',
-    live: 'لائیو',
 
 
     platform_support: 'پلیٹ فارم سپورٹ',
@@ -108,15 +108,7 @@ export const ur = {
     input_base64: 'Base64 درج کریں',
     input_hex: 'Hex درج کریں',
 
-    year: 'سال',
-    month: 'مہینہ',
-    day: 'دن',
-    hour: 'گھنٹہ',
-    minute: 'منٹ',
-    second: 'سیکنڈ',
     seconds: 'سیکنڈ',
-    millisecond: 'ملی سیکنڈ',
-    unixtime_secs_ms: 'unixtime سیکنڈ / ملی سیکنڈ',
 
     default: 'ڈیفالٹ',
     none: 'کوئی نہیں',

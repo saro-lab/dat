@@ -28,10 +28,10 @@ export const bn = {
     menu_tool: 'টুল',
     menu_tool_bytes: 'বাইট কনভার্টার',
     menu_tool_time: 'Unixtime কনভার্টার',
+    menu_projects: 'প্রকল্প',
+    external_link: 'নতুন ট্যাবে খোলে',
     nav_prev: 'পূর্ববর্তী',
     nav_next: 'পরবর্তী',
-    now: 'এখন',
-    live: 'লাইভ',
 
 
     platform_support: 'প্ল্যাটফর্ম সাপোর্ট',
@@ -108,15 +108,7 @@ export const bn = {
     input_base64: 'Base64 লিখুন',
     input_hex: 'Hex লিখুন',
 
-    year: 'বছর',
-    month: 'মাস',
-    day: 'দিন',
-    hour: 'ঘণ্টা',
-    minute: 'মিনিট',
-    second: 'সেকেন্ড',
     seconds: 'সেকেন্ড',
-    millisecond: 'মিলিসেকেন্ড',
-    unixtime_secs_ms: 'unixtime সেকেন্ড / মিলিসেকেন্ড',
 
     default: 'ডিফল্ট',
     none: 'নেই',
