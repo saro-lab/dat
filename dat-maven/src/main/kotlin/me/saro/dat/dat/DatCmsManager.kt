@@ -119,9 +119,8 @@ class DatCmsManager private constructor(
                     )
                 }
                 val newCertificates = body.substring(iof + 1).trim()
-                // 인증서 적용 실패의 원인(CERT_*/KEY_*)을 버리지 않고 체이닝한다.
                 val renew = try {
-                    manager.imports(newCertificates, true)
+                    manager.imports(newCertificates, false)
                 } catch (e: Exception) {
                     return DatException(DatErrorCode.CMS_IMPORT_FAILED, "cannot apply received certificates", e)
                 }
