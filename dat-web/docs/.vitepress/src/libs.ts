@@ -7,7 +7,7 @@ const DAT_VERSION = '4.6';
 export const libList: Library[] = [
     // libraries
     _cargo('dat', `${DAT_VERSION}.1`, '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
-    _maven('me.saro:dat', `${DAT_VERSION}.0`, '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
+    _maven('me.saro:dat', `${DAT_VERSION}.1`, '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
     _npm('saro-dat', `${DAT_VERSION}.0`, '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
     _pypi('saro-dat', `${DAT_VERSION}.0`, '/libs/pypi-saro-dat', `${REPO_BASE}/dat-pypi`),
     _nuget('saro-dat', `${DAT_VERSION}.0`, '/libs/nuget-saro-dat', `${REPO_BASE}/dat-nuget`),
