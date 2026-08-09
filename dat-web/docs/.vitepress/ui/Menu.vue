@@ -13,8 +13,6 @@
               <div v-if="isGroup(entry)" :key="entry.labelKey" class="menu-group">
                 {{ t(entry.labelKey) }}
               </div>
-              <!-- 사이트 밖으로 나가는 항목. 주소에 로케일을 붙이지 않는다 —
-                   상대가 우리 15개 언어를 다 갖고 있지 않아, 없는 언어는 404가 된다. -->
               <div v-else-if="isExternal(entry)" :key="entry.external" class="menu-row">
                 <a
                   :href="entry.external"
@@ -76,7 +74,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 @reference 'tailwindcss';
 
 .g-menu {
-    /* 섹션 라벨 : 본문 위계와 섞이지 않도록 작고 넓은 자간의 중립색 캡션으로 둔다 */
     .menu-title {
         @apply px-2 mb-1 text-[0.7rem] font-semibold uppercase tracking-[0.09em];
         color: var(--c-muted);
@@ -96,36 +93,26 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             text-decoration: none;
         }
     }
-    /* 현재 문서 : 색·굵기·면을 함께 바꿔 스캔할 때 한눈에 잡히게 */
     .menu-item.on {
         @apply font-semibold;
         color: var(--c-link-1);
         background-color: color-mix(in srgb, var(--c-link-1) 12%, transparent);
     }
-    /* 프로젝트 마크는 자기 색을 갖고 있으므로 라벨만 테마를 따르고 마크는 그대로 둔다 */
     .menu-icon {
         @apply w-4 h-4 shrink-0;
     }
     .menu-label {
         @apply flex-1 min-w-0;
     }
-    /* 외부로 나가는 항목 : 현재 문서가 될 수 없으므로 on 상태가 없고,
-       대신 아이콘으로 "여기를 떠난다"를 미리 알린다 */
     .menu-out-icon {
         @apply text-[0.85rem]! opacity-45;
     }
-    /* 하위 항목은 들여쓰기 대신 세로 가이드 레일로 묶는다 (행이 붙어 있어 선이 이어진다) */
     .menu-row.sub {
         @apply ml-2 pl-1.5;
         border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
     }
 
-    /* ── desktop: fixed left sidebar ─────────────────────────────────── */
     @variant min-[60rem] {
-        /* Capped as well as floored: as a flex item the sidebar would otherwise
-           size to its longest label on a single line, and languages with long
-           compound terms (pt, es, fr, ru) pushed it far past the width the
-           layout allows, squeezing the article. Past the cap, labels wrap. */
         @apply min-w-[13rem] max-w-[16rem];
 
         .g-menu-backdrop,
@@ -138,7 +125,6 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         }
     }
 
-    /* ── small screens: centered sitemap modal ───────────────────────── */
     @variant max-[60rem] {
         &:not(.g-menu-on) {
             @apply hidden;

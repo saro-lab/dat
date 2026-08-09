@@ -77,8 +77,6 @@ class DatCryptoAesGcmNonce private constructor(
             cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, bytes, 0, NONCE_LEN))
             cipher.doFinal(bytes, NONCE_LEN, bytes.size - NONCE_LEN)
         } catch (e: AEADBadTagException) {
-            // AEADBadTagException 이 그대로 공개 API 밖으로 새어 나가던 자리다.
-            // parseWithoutVerifying 경로에서는 이것이 유일한 무결성 검사다.
             throw DatException(DatErrorCode.CRYPTO_TAG_MISMATCH, "gcm authentication tag mismatch", e)
         } catch (e: DatException) {
             throw e

@@ -53,8 +53,6 @@ class TestCertificate < Minitest::Test
     assert_equal "", payload_empty.secure
     puts "#{tag} Verify DAT"
 
-    # 다른 인증서로 검증하면 서명만 안 맞는다. "실패했다"가 아니라 "위조로 실패했다"
-    # 를 단언한다 — 만료·형식 오류로 잘못 재매핑되면 여기서 잡힌다.
     err = assert_raises(Saro::Dat::Error) do
       Saro::Dat::DatManager._parse(fail_cert, dat_1)
     end
@@ -70,7 +68,6 @@ class TestCertificate < Minitest::Test
           begin
             cert_test(fail_cert, i, sa, ca)
           rescue OpenSSL::Cipher::CipherError
-            # Skipping if environment doesn't support GCM as noted in previous session
           end
         end
       end

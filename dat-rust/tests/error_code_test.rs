@@ -1,13 +1,3 @@
-//! 오류 코드 회귀 안전망 (error.pre2.md).
-//!
-//! 코드 문자열은 모든 공식 클라이언트가 공유하는 공개 계약이다. 여기서 단언하는 것은
-//! "실패했다"가 아니라 **"어느 코드로 실패했다"** 이다 — 재매핑 사고는 전자로는
-//! 절대 안 잡힌다. 특히 이 체계를 만든 세 가지 이유를 고정한다:
-//!
-//! 1. 만료 / 형식 오류 / 서명 위조가 갈리는가
-//! 2. 서명 불일치 / 백엔드 실패가 갈리는가
-//! 3. "발급할 인증서 없음"의 다섯 가지 사유가 갈리는가
-
 use dat::certificate::DatCertificate;
 use dat::crypto::{DatCrypto, DatCryptoAlgorithm};
 use dat::error::{DatError, DatRetry};
@@ -19,7 +9,6 @@ use std::str::FromStr;
 const SIG: DatSignatureAlgorithm = DatSignatureAlgorithm::EcdsaP256;
 const CRY: DatCryptoAlgorithm = DatCryptoAlgorithm::IvAes256Gcm;
 
-/// 발급창이 열려 있는 정상 매니저.
 fn issuable_manager(cid: u64) -> DatManager {
     let now = now_unix_timestamp();
     let manager = DatManager::new();
@@ -29,8 +18,6 @@ fn issuable_manager(cid: u64) -> DatManager {
     manager
 }
 
-/// 성공 타입에 `Debug` 를 요구하지 않는다 — `DatSignature`/`DatCrypto` 는 키 재료를
-/// 들고 있어서 의도적으로 `Debug` 를 구현하지 않는다.
 fn err_of<T>(r: Result<T, DatError>) -> DatError {
     match r {
         Ok(_) => panic!("expected an error, got Ok"),
@@ -42,14 +29,11 @@ fn code_of<T>(r: Result<T, DatError>) -> &'static str {
     err_of(r).code()
 }
 
-// ---- 1. 만료 / 형식 오류 / 서명 위조 ----
-
 #[test]
 fn expired_token_is_not_malformed() {
     let manager = issuable_manager(1);
     let dat = manager.issue("p", "s").unwrap();
 
-    // expire 필드만 과거로 바꾼다. 나머지 구조는 그대로다.
     let rest = dat.splitn(2, '.').nth(1).unwrap();
     let expired = format!("{}.{}", now_unix_timestamp() - 1, rest);
 
@@ -58,7 +42,6 @@ fn expired_token_is_not_malformed() {
 
 #[test]
 fn expire_exactly_now_is_expired() {
-    // 정각도 만료다 (interop: expire > now 여야 유효).
     let manager = issuable_manager(1);
     let dat = manager.issue("p", "s").unwrap();
     let rest = dat.splitn(2, '.').nth(1).unwrap();
@@ -73,16 +56,12 @@ fn malformed_token_shapes() {
     let dat = manager.issue("p", "s").unwrap();
     let parts: Vec<&str> = dat.split('.').collect();
 
-    // 파트 수 부족
     assert_eq!(code_of(manager.parse("1.2.3".to_string())), "DAT_TOKEN_MALFORMED");
-    // 파트 수 초과
     assert_eq!(code_of(manager.parse(format!("{dat}.extra"))), "DAT_TOKEN_MALFORMED");
-    // expire 가 10진수가 아님 — 만료가 아니라 형식 오류다
     assert_eq!(
         code_of(manager.parse(format!("+{}.{}", parts[0], parts[1..].join(".")))),
         "DAT_TOKEN_MALFORMED"
     );
-    // cid 가 16진수가 아님
     assert_eq!(
         code_of(manager.parse(format!("{}.zz.{}", parts[0], parts[2..].join(".")))),
         "DAT_TOKEN_MALFORMED"
@@ -101,7 +80,6 @@ fn empty_signature_is_sig_malformed_not_mismatch() {
 
 #[test]
 fn forged_signature_is_sig_mismatch() {
-    // 같은 cid 를 다른 키로 발급하면 서명만 안 맞는다.
     let now = now_unix_timestamp();
     let victim = issuable_manager(7);
     let attacker = DatManager::new();
@@ -118,12 +96,10 @@ fn forged_signature_is_sig_mismatch() {
 
 #[test]
 fn tampered_secure_is_crypto_tag_mismatch() {
-    // 서명 검증을 건너뛰는 경로에서는 GCM 태그가 유일한 무결성 검사다.
     let manager = issuable_manager(1);
     let dat = manager.issue("plain", "secure-payload").unwrap();
     let mut parts: Vec<String> = dat.split('.').map(str::to_string).collect();
 
-    // secure 의 마지막 base64 문자를 뒤집는다.
     let secure = parts[3].clone();
     let last = secure.chars().last().unwrap();
     let flipped = if last == 'A' { 'B' } else { 'A' };
@@ -133,8 +109,6 @@ fn tampered_secure_is_crypto_tag_mismatch() {
     assert_eq!(err.code(), "DAT_CRYPTO_TAG_MISMATCH");
     assert!(err.security_event());
 }
-
-// ---- 2. 인증서 조회 ----
 
 #[test]
 fn unknown_cid_is_cert_not_found() {
@@ -159,19 +133,15 @@ fn duplicate_cid_on_import() {
 #[test]
 fn malformed_certificate_shapes() {
     assert_eq!(code_of(DatCertificate::from_str("a.b.c")), "DAT_CERT_MALFORMED");
-    // 8 파트지만 cid 가 16진수가 아님
     assert_eq!(
         code_of(DatCertificate::from_str("zz.1.2.3.ECDSA-P256.IV-AES256-GCM.AAAA.AAAA")),
         "DAT_CERT_MALFORMED"
     );
-    // 시간 산술 오버플로
     assert_eq!(
         code_of(DatCertificate::from(1, u64::MAX, 1, 0, DatSignature::generate(SIG).unwrap(), DatCrypto::generate(CRY))),
         "DAT_CERT_MALFORMED"
     );
 }
-
-// ---- 3. "발급할 인증서 없음" 다섯 갈래 ----
 
 #[test]
 fn no_certificate_at_all() {
@@ -179,7 +149,6 @@ fn no_certificate_at_all() {
     let err = manager.issue("p", "s").unwrap_err();
 
     assert_eq!(err.code(), "DAT_MANAGER_NO_CERTIFICATE");
-    // CMS 접속 문제일 수 있으므로 기다려 볼 값어치가 있다.
     assert_eq!(err.retry(), DatRetry::Transient);
 }
 
@@ -194,7 +163,6 @@ fn issuance_window_not_yet_open_is_transient() {
     let err = manager.issue("p", "s").unwrap_err();
     assert_eq!(err.code(), "DAT_MANAGER_NO_ISSUABLE_CERTIFICATE");
     assert_eq!(err.cause().unwrap().code(), "DAT_CERT_NOT_YET_ISSUABLE");
-    // 기다리면 풀리는 유일한 사유다.
     assert_eq!(err.retry(), DatRetry::Transient);
 }
 
@@ -202,7 +170,6 @@ fn issuance_window_not_yet_open_is_transient() {
 fn issuance_window_closed_is_permanent() {
     let now = now_unix_timestamp();
     let manager = DatManager::new();
-    // 발급창은 닫혔지만 ttl 이 남아 검증은 된다.
     manager
         .import_certificates(vec![DatCertificate::generate(1, now - 500, 100, 3600, SIG, CRY).unwrap()], true)
         .unwrap();
@@ -224,12 +191,9 @@ fn verify_only_certificate_cannot_issue() {
 
     let err = manager.issue("p", "s").unwrap_err();
     assert_eq!(err.code(), "DAT_MANAGER_NO_ISSUABLE_CERTIFICATE");
-    // 배포 설정 실수다 — 기다려도 안 풀린다.
     assert_eq!(err.cause().unwrap().code(), "DAT_CERT_VERIFY_ONLY");
     assert_eq!(err.retry(), DatRetry::Permanent);
 }
-
-// ---- 키 · 알고리즘 · 인자 ----
 
 #[test]
 fn unknown_algorithm_names() {
@@ -249,7 +213,6 @@ fn wrong_key_size_is_key_invalid() {
 
 #[test]
 fn hmac_verify_only_export_is_structurally_unsupported() {
-    // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SIG_KEY_MISSING 과 다르다.
     let hmac = DatSignature::generate(DatSignatureAlgorithm::HmacSha256Mfs).unwrap();
     assert_eq!(code_of(hmac.export_verify_only_key()), "DAT_KEY_VERIFY_ONLY_UNSUPPORTED");
 }
@@ -270,13 +233,10 @@ fn ciphertext_shorter_than_iv() {
 
 #[test]
 fn empty_secure_payload_is_not_an_error() {
-    // 빈 입력 → 빈 출력. 모든 공식 클라이언트 공통이며 어떤 코드도 내지 않는다.
     let crypto = DatCrypto::generate(CRY);
     assert!(crypto.encrypt(&[]).unwrap().is_empty());
     assert!(crypto.decrypt(vec![]).unwrap().is_empty());
 }
-
-// ---- 코드 체계 자체의 불변식 ----
 
 #[test]
 fn every_code_is_well_formed() {
@@ -302,7 +262,6 @@ fn every_code_is_well_formed() {
             code.chars().all(|c| c.is_ascii_uppercase() || c == '_'),
             "{code} must be SCREAMING_SNAKE_CASE"
         );
-        // 메시지가 아니라 코드가 Display 의 머리에 온다.
         assert!(e.to_string().starts_with(code));
     }
 }
@@ -315,7 +274,6 @@ fn state_signals_are_not_failures() {
 
 #[test]
 fn permanent_cms_errors_must_not_be_retried() {
-    // 401 에 60초마다 영원히 재시도하던 것이 이 분류의 존재 이유다.
     for e in [DatError::CmsUnauthorized, DatError::CmsForbidden, DatError::CmsEndpointNotFound] {
         assert_eq!(e.retry(), DatRetry::Permanent, "{}", e.code());
     }

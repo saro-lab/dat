@@ -8,11 +8,6 @@ module Saro
     class Dat
       attr_reader :dat, :expire, :cid, :plain, :secure, :signature, :format
 
-      # 파싱이 실패한 이유. 성공이면 nil 이다.
-      #
-      # 예전에는 빈 `rescue StandardError` 가 모든 실패를 삼키고 @format=false
-      # 하나만 남겼다. 어느 필드가 왜 틀렸는지가 전부 사라져 호출부는
-      # "Invalid DAT: Format" 밖에 볼 수 없었다.
       attr_reader :error
 
       def initialize(dat_str)
@@ -30,18 +25,12 @@ module Saro
           return
         end
 
-        # 1) 먼저 구조를 확정한다. 파트가 5개가 아니면 그건 만료된 토큰이 아니라
-        #    애초에 토큰이 아니다.
-        #    split 의 limit 을 -1 로 준다: 기본값은 뒤쪽 빈 필드를 버려서
-        #    "a.b.c.d.e." (6필드) 가 5파트로 보였고, 빈 서명("a.b.c.d.")은
-        #    4파트로 보여 서명 오류를 구조 오류로 오인하게 만들었다.
         parts = @dat.split('.', -1)
         if parts.length != 5
           @error = Saro::Dat::Error.new(Saro::Dat::ErrorCode::TOKEN_MALFORMED, "expected exactly 5 dot-separated fields")
           return
         end
 
-        # 2) 구조가 맞은 뒤에야 값을 본다. 필드마다 어디서 틀렸는지 코드를 붙인다.
         begin
           @expire = Saro::Dat::Util.parse_u64(parts[0])
         rescue Saro::Dat::Error => e
@@ -70,8 +59,6 @@ module Saro
           return
         end
 
-        # 빈 서명은 구조 오류가 아니라 서명 오류다 (error.pre2.md: DAT_SIG_MALFORMED
-        # 가 "빈 서명"을 포함한다). 위조(SIG_MISMATCH)와도 구분된다.
         if parts[4].empty?
           @error = Saro::Dat::Error.new(Saro::Dat::ErrorCode::SIG_MALFORMED, "signature field is empty")
           return
@@ -92,7 +79,6 @@ module Saro
         @format = true
       end
 
-      # 파싱에 실패했으면 그 코드로 던진다.
       def raise_if_invalid!
         raise @error if @error
         nil

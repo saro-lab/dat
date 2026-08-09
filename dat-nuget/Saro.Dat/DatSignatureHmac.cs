@@ -20,8 +20,6 @@ public class DatSignatureHmac : IDatSignature, IDisposable
             throw new DatException(DatErrorCode.ConfigArgumentInvalid, "signature key bytes are null");
         if (GetKeySize(algorithm) != key.Length)
         {
-            // 예전에는 ECDSA 와 HMAC 의 키 크기 오류가 **완전 동일 문구**였다.
-            // 코드는 같되(KEY_INVALID) detail 로 어느 쪽인지 구분한다.
             throw new DatException(DatErrorCode.KeyInvalid,
                 $"hmac key must be {GetKeySize(algorithm)} bytes for {algorithm.ToText()}, got {key.Length}");
         }
@@ -55,8 +53,6 @@ public class DatSignatureHmac : IDatSignature, IDisposable
 
     public bool Verify(byte[] body, byte[] signature)
     {
-        // Checked outside the catch: a disposed key must not read as "signature
-        // did not match".
         if (_disposed) throw new DatException(DatErrorCode.ManagerDisposed, nameof(DatSignatureHmac));
         try
         {
@@ -69,9 +65,6 @@ public class DatSignatureHmac : IDatSignature, IDisposable
         }
         catch (Exception e)
         {
-            // 예전에는 여기 catch-all 이 false 를 돌려줘 **프로그래밍 오류를 서명
-            // 불일치로 위장**했다. 잘못된 키 타입·손상된 핸들·라이브러리 버그가
-            // 전부 위조 시도로 보고되던 자리다.
             throw new DatException(DatErrorCode.SigBackend, "hmac verification failed to run", e);
         }
     }
@@ -81,11 +74,8 @@ public class DatSignatureHmac : IDatSignature, IDisposable
         if (_disposed) throw new DatException(DatErrorCode.ManagerDisposed, nameof(DatSignatureHmac));
         if (verifyOnly)
         {
-            // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SIG_KEY_MISSING 과 다르다.
             throw new DatException(DatErrorCode.KeyVerifyOnlyUnsupported, _algorithm.ToText());
         }
-        // A copy, not the live key: DatCryptoAesGcmNonce.ToBytes does the same.
-        // Handing out _key lets a caller mutate the signing key in place.
         return (byte[])_key.Clone();
     }
 

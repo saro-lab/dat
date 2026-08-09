@@ -131,14 +131,12 @@ class DatSignature:
             return encode_base64_url_str(self.verifying_key)
         else:
             if verify_only or not self.signing_key:
-                # Public Key를 Raw Bytes(Uncompressed)로 추출
                 public_bytes = self.verifying_key.public_bytes(
                     encoding=serialization.Encoding.X962,
                     format=serialization.PublicFormat.UncompressedPoint
                 )
                 return encode_base64_url_str(public_bytes)
             else:
-                # Private Key 'd' 값을 고정된 길이의 바이트로 추출
                 private_numbers = self.signing_key.private_numbers()
                 d_bytes = private_numbers.private_value.to_bytes(self._config["privateLen"], 'big')
 
@@ -174,9 +172,6 @@ class DatSignature:
 
         sig_bytes = decode_base64_url(signature) if isinstance(signature, str) else signature
 
-        # InvalidSignature(불일치) 만 False 로 돌려준다. 그 밖의 예외 — 잘못된 키
-        # 타입, 손상된 핸들, 라이브러리 버그 — 를 여기서 삼키면 프로그래밍 오류가
-        # 위조 시도로 보고된다. 그래서 SIG_BACKEND 로 갈라 낸다.
         if self._is_hmac:
             try:
                 h = self._hmac_verify_proto.copy()
@@ -189,7 +184,6 @@ class DatSignature:
                 raise DatError(E.SIG_BACKEND, "hmac verification failed to run", e) from e
         else:
             try:
-                # Raw (R|S) -> DER 변환 후 검증
                 der_sig = self._raw_to_der_signature(sig_bytes)
                 self.verifying_key.verify(der_sig, body, self._ecdsa_algorithm)
                 return True
@@ -207,7 +201,6 @@ class DatSignature:
     def support_verify_only(self) -> bool:
         return self.pair()
 
-    # --- 유틸리티: Web Crypto (Raw R|S) <-> OpenSSL (DER) 변환 ---
     def _der_to_raw_signature(self, signature: bytes) -> bytes:
         r, s = decode_dss_signature(signature)
         size = self._raw_len

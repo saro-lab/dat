@@ -29,20 +29,17 @@ int main(void) {
 
     int loop_size = 10000;
 
-    /* "가나다" UTF-8: 9 bytes */
     static const char GANA[] = "\xEA\xB0\x80\xEB\x82\x98\xEB\x8B\xA4";
     char rand_buf[101];
     rand_string(rand_buf, 100);
 
-    /* text = "가나다" + rand_string */
     char text[200];
     memcpy(text, GANA, 9);
-    memcpy(text + 9, rand_buf, 101); /* includes null */
+    memcpy(text + 9, rand_buf, 101);
     size_t text_len = 9 + 100;
 
     printf("text: %s\n", text);
 
-    /* === base64_zero_copy_test === */
     dat_sbuf_t encode_buf;
     sbuf_init(&encode_buf, 1000);
 
@@ -74,7 +71,6 @@ int main(void) {
     sbuf_free(&encode_buf);
     sbuf_free(&decode_buf);
 
-    /* === base64_copy_test === */
     size_t total_len = 0;
 
     clock_gettime(CLOCK_MONOTONIC, &t0);
@@ -105,7 +101,6 @@ int main(void) {
     }
     clock_gettime(CLOCK_MONOTONIC, &t1);
     printf("Base64 copy encode * %d : %lldms\n", loop_size, ms_elapsed(t0, t1));
-    /* Rust prints decode as string */
     if (dec_copy) printf("decode: %.*s\n", (int)dec_copy_len, dec_copy);
     printf("len: %zu\n", total_len);
 

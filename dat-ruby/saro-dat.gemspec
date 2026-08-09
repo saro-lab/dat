@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "saro-dat"
-  spec.version       = "4.6.0"
+  spec.version       = "4.6.1"
   spec.authors       = ["marker"]
   spec.email         = ["j@saro.me"]
 
@@ -17,8 +17,6 @@ Gem::Specification.new do |spec|
 
   spec.metadata["keywords"] = "dat, distributed, access, token, web, session, security, authentication"
 
-  # Specify which files should be added to the gem when it is released.
-  # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{\A(?:test|spec|features|_pypi)/}) }
   end

@@ -4,8 +4,6 @@
 #include <time.h>
 #include <stdint.h>
 
-/* ── sbuf ──────────────────────────────────────────────────────────── */
-
 dat_error_t sbuf_init(dat_sbuf_t* buf, size_t cap) {
     if (cap == 0) cap = 16;
     buf->data = (char*)malloc(cap + 1);
@@ -64,8 +62,6 @@ char* sbuf_take(dat_sbuf_t* buf) {
     return d;
 }
 
-/* ── bbuf ──────────────────────────────────────────────────────────── */
-
 dat_error_t bbuf_init(dat_bbuf_t* buf, size_t cap) {
     if (cap == 0) cap = 16;
     buf->data = (uint8_t*)malloc(cap);
@@ -110,12 +106,9 @@ uint8_t* bbuf_take(dat_bbuf_t* buf, size_t* len_out) {
     return d;
 }
 
-/* ── Base64 URL-safe no-pad ────────────────────────────────────────── */
-
 static const char B64_ENC[64] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
-/* Decode table: 255 = invalid */
 static const uint8_t B64_DEC[256] = {
     255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
     255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,255,
@@ -198,7 +191,6 @@ dat_error_t decode_base64_url_out(const char* b64, size_t b64_len, dat_bbuf_t* o
     size_t i = 0;
     while (i < b64_len) {
         uint8_t c0, c1, c2, c3;
-        /* skip padding */
         while (i < b64_len && b64[i] == '=') i++;
         if (i >= b64_len) break;
         c0 = B64_DEC[(unsigned char)b64[i++]];
@@ -206,7 +198,6 @@ dat_error_t decode_base64_url_out(const char* b64, size_t b64_len, dat_bbuf_t* o
 
         while (i < b64_len && b64[i] == '=') i++;
         if (i >= b64_len) {
-            /* only one char left - should not happen in valid base64 */
             return DAT_CONFIG_ARGUMENT_INVALID;
         }
         c1 = B64_DEC[(unsigned char)b64[i++]];
@@ -235,13 +226,11 @@ dat_error_t decode_base64_url_out_str(const char* b64, size_t b64_len, dat_sbuf_
     dat_error_t e = sbuf_ensure(out, dec_len);
     if (e) return e;
 
-    /* Reuse bbuf logic by treating sbuf's char* as uint8_t* */
     dat_bbuf_t tmp;
     tmp.data = (uint8_t*)(out->data + out->len);
     tmp.len  = 0;
     tmp.cap  = dec_len;
 
-    /* inline decode without realloc since we pre-ensured space */
     const char* src = b64;
     size_t src_len = b64_len;
     uint8_t* p = tmp.data;
@@ -290,11 +279,6 @@ dat_error_t decode_base64_url(const char* b64, size_t b64_len, uint8_t** out_dat
     return DAT_SUCCESS;
 }
 
-/* ── to_hex_u64_out ───────────────────────────────────────────────── */
-
-/* Port of Rust's to_hex_u64_out: write digits back-to-front, then shift forward.
- * 예전에는 void 라서 버퍼 확장 실패가 조용히 사라졌고, 호출부는 잘린 문자열을
- * 정상으로 취급했다. 이제 할당 실패를 그대로 올린다. */
 dat_error_t to_hex_u64_out(uint64_t no, dat_sbuf_t* out) {
     static const char HEX_LC[16] = "0123456789abcdef";
     if (no == 0) {
@@ -308,8 +292,6 @@ dat_error_t to_hex_u64_out(uint64_t no, dat_sbuf_t* out) {
     }
     return sbuf_push_bytes(out, tmp + cursor, (size_t)(16 - cursor));
 }
-
-/* ── now_unix_timestamp ───────────────────────────────────────────── */
 
 uint64_t now_unix_timestamp(void) {
     return (uint64_t)time(NULL);
@@ -330,7 +312,7 @@ int parse_u64_strict(const char* s, size_t len, int base, uint64_t* out) {
         else if (base == 16 && c >= 'A' && c <= 'F') d = (uint64_t)(c - 'A' + 10);
         else return 0;
         if (d >= (uint64_t)base) return 0;
-        if (acc > limit || (acc == limit && d > last)) return 0; /* overflow */
+        if (acc > limit || (acc == limit && d > last)) return 0;
         acc = acc * (uint64_t)base + d;
     }
 

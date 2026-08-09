@@ -14,14 +14,10 @@ class TestExampleCms(unittest.TestCase):
             DatCmsManager.builder()
             .uri("http://localhost:8088")
             .verify_only(False)
-            #.interval_off() # sync off
             .interval_seconds(1)
             .token("12345678901b")
             .build()
         )
-
-        # manual sync
-        # manager.sync()
 
         try:
             plain = "Unicode 유니코드 ユニコード 万国码 يونيكود यूनिकोड Юникод 🦄💻"
@@ -30,11 +26,9 @@ class TestExampleCms(unittest.TestCase):
             print("plain : " + plain)
             print("secure : " + secure)
 
-            # issue dat
             dat = manager.issue(plain, secure)
             print("dat : " + dat)
 
-            # parse dat
             payload = manager.parse(dat)
 
             payload_plain = payload.plain

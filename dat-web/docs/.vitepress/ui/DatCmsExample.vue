@@ -221,7 +221,6 @@ import {
 import CodeBox from "./CodeBox.vue";
 import {useTranslate} from "../src/langs";
 const {t} = useTranslate();
-// help texts contain {key} placeholders that resolve to site-wide translations
 const help = (key: string) => t(key).replace(/\{(\w+)\}/g, (_, k) => t(k));
 
 const logList = ref<LogItem[]>([]);
@@ -447,7 +446,6 @@ async function makeCode() {
   _cronDatTtl = _cronDatTtl.length ? _cronDatTtl : datTtlDefault;
 
   if (!_isKube) {
-    // CRON:0 0/10 * * * *,POST:/cert/HMAC-SHA512-MFS/IV-AES256-GCM/3600/222/111
     let singleNode = `${_sa},${_ca},${_cron},${_cronDelay},${_cronDur},${_cronDatTtl}`;
     options.push(`SINGLE_NODE="${singleNode}"`);
   }
@@ -672,8 +670,6 @@ onMounted(() => {
 <style scoped>
 @reference 'tailwindcss';
 
-/* 제목 바로 아래 붙는 외부 링크 — 본문 링크가 아니라 메타 정보라서
-   본문보다 작게, 아이콘을 앞세워 한 줄로 묶는다 */
 .cms-links {
   @apply flex flex-wrap gap-x-4 gap-y-1 mt-1;
 
@@ -690,8 +686,6 @@ onMounted(() => {
   }
 }
 
-/* 이 컴포넌트는 이미 유리 패널 하나 안에 들어 있어, 구획을 상자로 또 나누지
-   않고 아이콘 + 괘선만으로 끊는다. 위 여백이 구획의 경계를 대신한다. */
 .cms-head {
   @apply mt-9;
 }

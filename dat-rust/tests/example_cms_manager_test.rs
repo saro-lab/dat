@@ -33,27 +33,13 @@ mod dat_cms {
         Ok(())
     }
 
-    // manual text
     #[tokio::test]
-    /// ```shell
-    /// RUST_LOG=debug cargo test --test example_cms_manager_test --features full dat_cms::test -- --nocapture
-    /// ```
     async fn test() {
-        // init tracing
         tracing_subscriber::fmt()
             .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
             .with_test_writer()
             .init();
 
-        /*
-        # server example
-        TOKEN_MASTER="123456789012" \
-        TOKEN_CERT_FULL="12345678901a,12345678901b" \
-        TOKEN_CERT_VERIFY="12345678901C,12345678901D" \
-        .\dat-cms
-        */
-
-        // init sync before server start
         let manager = DatCmsManager::builder()
             .url("http://localhost:8088").unwrap()
             .interval_off()
@@ -62,7 +48,6 @@ mod dat_cms {
             .build().await;
         DAT_CMS_MANAGER.set(manager).map_err(|_| "failed to set auto sync manager".to_string()).unwrap();
 
-        // test
         let _ = test_auto_sync().await;
 
         tokio::time::sleep(std::time::Duration::from_secs(10)).await

@@ -53,7 +53,6 @@ public class ManagerTest {
         }
     }
 
-    //@Test
     public void tmp() {
         DatManager manager = DatManager.newInstance();
 

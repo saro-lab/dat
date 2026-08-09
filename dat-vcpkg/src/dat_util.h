@@ -45,10 +45,6 @@ dat_error_t decode_base64_url(const char* b64, size_t b64_len, uint8_t** out_dat
 dat_error_t to_hex_u64_out(uint64_t no, dat_sbuf_t* out);
 uint64_t now_unix_timestamp(void);
 
-/* Strict unsigned 64-bit parse (base 10 or 16), matching rust's `parse::<u64>()`
- * and `u64::from_str_radix`. strtoull alone would accept leading whitespace, a
- * '+'/'-' sign (turning "-1" into UINT64_MAX) and a "0x" prefix in base 16.
- * Returns 1 on success, 0 on failure. */
 int parse_u64_strict(const char* s, size_t len, int base, uint64_t* out);
 
-#endif /* DAT_UTIL_H */
+#endif

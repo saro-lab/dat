@@ -2,10 +2,6 @@ using Saro.Dat;
 
 namespace Saro.Dat.Tests;
 
-/// <summary>
-/// Parses interop vectors produced by dat-rust (the reference implementation).
-/// Vector file path comes from the DAT_INTEROP_VECTORS env var; skipped when absent.
-/// </summary>
 public class InteropVectorTest
 {
     [Test]

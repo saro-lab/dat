@@ -13,7 +13,6 @@ def generate_base62(length: int) -> str:
 
 def generate_certificate(cid: int, sa: DatSignatureAlgorithm, ca: DatCryptoAlgorithm) -> DatCertificate:
     now = int(time.time())
-    # (cid, issuance_start, issuance_duration, ttl, signature, crypto) — rust order
     return DatCertificate(cid, now - 10, 110, 1800, DatSignature.generate(sa), DatCrypto.generate(ca))
 
 def cert_test(test: 'TestCertificate', fail_cert: DatCertificate, cid: int, sa: DatSignatureAlgorithm, ca: DatCryptoAlgorithm):

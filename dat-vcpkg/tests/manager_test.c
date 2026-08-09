@@ -36,7 +36,6 @@ static void gen_certificate(dat_manager_t* manager) {
         }
     }
 
-    /* print "Generated \n<cert_lines>" */
     printf("Generated \n");
     for (size_t j = 0; j < cert_count; j++) {
         char* cert_str = NULL;
@@ -69,13 +68,11 @@ int main(void) {
 
     gen_certificate(manager);
 
-    /* export certificates */
     dat_certificate_t** certs = NULL;
     size_t cert_count = 0;
     dat_error_t err = dat_manager_export_certificates(manager, &certs, &cert_count);
     assert(err == DAT_SUCCESS);
 
-    /* issue dats */
     char** dats = (char**)malloc(sizeof(char*) * cert_count);
     assert(dats);
     for (size_t i = 0; i < cert_count; i++) {
@@ -85,7 +82,6 @@ int main(void) {
         dats[i] = dat_token;
     }
 
-    /* export and re-import */
     char* export_str = NULL;
     err = dat_manager_export(manager, false, &export_str);
     assert(err == DAT_SUCCESS);
@@ -103,7 +99,6 @@ int main(void) {
         err = dat_manager_parse(manager2, dats[i], &payload);
         assert(err == DAT_SUCCESS);
 
-        /* DatPayload Display: encode_base64_url(plain) + " " + encode_base64_url(secure) */
         char* plain_b64 = NULL;
         size_t plain_b64_len = 0;
         encode_base64_url(payload->plain_bytes, payload->plain_len, &plain_b64, &plain_b64_len);

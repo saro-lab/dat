@@ -324,7 +324,7 @@ onMounted(() => doHash(new Uint8Array()))
 @reference 'tailwindcss';
 
 textarea {
-  white-space: pre-wrap !important; /* 무조건 줄바꿈을 허용하도록 강제 */
+  white-space: pre-wrap !important;
   word-break: break-all !important;
   @apply font-mono;
 }

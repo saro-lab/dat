@@ -24,7 +24,6 @@ const (
 	EcdsaP521     SignatureAlgorithm = "ECDSA-P521"
 )
 
-// Deprecated: Use EcdsaP256, EcdsaP384, EcdsaP521 instead
 const (
 	P256 = EcdsaP256
 	P384 = EcdsaP384
@@ -74,8 +73,6 @@ func (sk *Signature) hmacSum(data []byte) []byte {
 	return sum
 }
 
-// ecdsaKeyInfo returns the curve and the raw private / uncompressed public key
-// lengths the wire format uses for an ecdsa algorithm.
 func ecdsaKeyInfo(algorithm SignatureAlgorithm) (elliptic.Curve, int, int) {
 	switch algorithm {
 	case EcdsaP256:
@@ -113,7 +110,6 @@ func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []b
 	case EcdsaP256, EcdsaP384, EcdsaP521:
 		curve, privateLen, publicLen := ecdsaKeyInfo(algorithm)
 
-		// The wire format packs the pair as private||public in a single field.
 		if len(privateBytes) == privateLen+publicLen {
 			publicBytes = privateBytes[privateLen:]
 			privateBytes = privateBytes[:privateLen]
@@ -125,8 +121,7 @@ func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []b
 
 		switch {
 		case len(privateBytes) == privateLen:
-			// ParseRawPrivateKey rejects d == 0 and d >= n and derives the
-			// public point itself, so the pair cannot come out inconsistent.
+
 			priv, err := ecdsa.ParseRawPrivateKey(curve, privateBytes)
 			if err != nil {
 				return nil, ErrKeyInvalid.With("signature key material rejected")
@@ -135,8 +130,7 @@ func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []b
 			if err != nil {
 				return nil, ErrKeyInvalid.With("signature key material rejected")
 			}
-			// A public key that does not belong to this private key would only
-			// surface much later, as signatures that never verify.
+
 			if len(publicBytes) > 0 && !bytes.Equal(publicBytes, derived) {
 				return nil, ErrKeyInvalid.With("signature key material rejected")
 			}
@@ -145,7 +139,7 @@ func NewSignatureKey(algorithm SignatureAlgorithm, privateBytes, publicBytes []b
 			sk.privateBytes = privateBytes
 			sk.publicBytes = derived
 		case len(publicBytes) == publicLen:
-			// Rejects points off the curve, compressed points and infinity.
+
 			pub, err := ecdsa.ParseUncompressedPublicKey(curve, publicBytes)
 			if err != nil {
 				return nil, ErrKeyInvalid.With("signature key material rejected")
@@ -265,7 +259,6 @@ func (sk *Signature) ExportKeyOption(verifyOnly bool) ([]byte, error) {
 	}
 }
 
-// Deprecated: Use ExportKey or ExportVerifyOnlyKey
 func (sk *Signature) ToBytes() ([]byte, []byte) {
 	return sk.privateBytes, sk.publicBytes
 }

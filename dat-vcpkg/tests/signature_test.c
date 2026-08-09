@@ -96,7 +96,6 @@ static void test_key(dat_signature_alg_t alg) {
         err = dat_signature_from_key(alg, vo_decoded, vo_decoded_len, &vo_key);
         assert(err == DAT_SUCCESS);
 
-        /* reuse sign_decoded which was from original sign */
         dat_error_t vo_verify_err = dat_signature_verify(vo_key, (const uint8_t*)rand_str, strlen(rand_str), sign_decoded, sign_decoded_len);
         int vo_verify = (vo_verify_err == DAT_SUCCESS);
         assert(vo_verify);
@@ -108,7 +107,6 @@ static void test_key(dat_signature_alg_t alg) {
         dat_signature_free(vo_key);
     }
 
-    /* un_verify: sign with a different key, verify should fail */
     dat_signature_t* other_key = NULL;
     err = dat_signature_new(alg, &other_key);
     assert(err == DAT_SUCCESS);

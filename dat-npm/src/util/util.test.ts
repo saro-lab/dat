@@ -148,6 +148,5 @@ describe('Dat Util', () => {
 
 
     it('DatInteger', () => {
-        // TODO
     });
 });

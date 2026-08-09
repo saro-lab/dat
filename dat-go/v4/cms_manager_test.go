@@ -68,7 +68,6 @@ func TestDatCms(t *testing.T) {
 	}
 
 	manager, err := builder.
-		// IntervalOff(). // disable auto sync
 		Interval(1 * time.Second).
 		Logger(testLogger).
 		Token("12345678901b").
@@ -78,12 +77,8 @@ func TestDatCms(t *testing.T) {
 		t.Fatalf("failed to build manager: %v", err)
 	}
 
-	// manual sync
-	// _ = manager.Sync()
-
 	datCmsManager = manager
 
-	// test
 	err = testAutoSync(t)
 	if err != nil {
 		t.Logf("auto sync test skipped or failed (normal if server is down): %v", err)

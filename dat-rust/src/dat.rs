@@ -60,11 +60,8 @@ impl <'a>TryFrom<&'a str> for Dat {
 impl TryFrom<String> for Dat {
     type Error = DatError;
     fn try_from(dat: String) -> Result<Self, Self::Error> {
-        // expire '.' cid '.' plain '.' secure '.' signature
         let mut parts = dat.split('.');
 
-        // 1) 먼저 구조를 확정한다. 파트가 5개가 아니면 그건 만료된 토큰이 아니라
-        //    애초에 토큰이 아니다. (split 은 항상 최소 1개를 내므로 첫 next 는 Some)
         let expire_str = parts.next().unwrap_or("");
         let cid_str = parts.next().ok_or(DatError::TokenMalformed("expected exactly 5 dot-separated fields"))?;
         let plain = parts.next().ok_or(DatError::TokenMalformed("expected exactly 5 dot-separated fields"))?;
@@ -74,9 +71,6 @@ impl TryFrom<String> for Dat {
             return Err(DatError::TokenMalformed("expected exactly 5 dot-separated fields"));
         }
 
-        // 2) 구조가 맞은 뒤에야 값을 본다. 만료와 형식 오류를 갈라 낸다 — 예전에는
-        //    둘 다 InvalidDat 하나였고, 그래서 호출부가 "토큰을 갱신하라"와
-        //    "세션을 끊어라"를 구분할 수 없었다.
         let expire = parse_u64_dec(expire_str)
             .ok_or(DatError::TokenMalformed("expire field is not a plain decimal u64"))?;
         if expire <= now_unix_timestamp() {
@@ -90,8 +84,6 @@ impl TryFrom<String> for Dat {
             return Err(DatError::SigMalformed("signature field is empty"));
         }
 
-        // 부분 슬라이스의 포인터를 빼는 대신 앞 구간의 길이를 누적해 오프셋을 구한다.
-        // 값은 동일하고 unsafe 가 필요 없다. (+1 은 구분자 '.')
         let plain_pos = expire_str.len() + 1 + cid_str.len() + 1;
         let secure_pos = plain_pos + plain.len() + 1;
         let secure_end = secure_pos + secure.len();

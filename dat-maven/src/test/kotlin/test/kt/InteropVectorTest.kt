@@ -6,10 +6,6 @@ import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.Test
 import java.io.File
 
-/**
- * Parses interop vectors produced by dat-rust (the reference implementation).
- * Vector file path comes from the DAT_INTEROP_VECTORS env var; skipped when absent.
- */
 class InteropVectorTest {
     @Test
     fun parseRustVectors() {

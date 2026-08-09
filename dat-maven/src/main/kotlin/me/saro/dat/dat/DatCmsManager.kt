@@ -27,18 +27,10 @@ class DatCmsManager private constructor(
     private val lock = ReentrantReadWriteLock()
     private val sync = Runnable { sync() }
 
-    /**
-     * 마지막 동기화 실패. 한 번도 성공하지 못했으면 [DatErrorCode.CMS_NOT_SYNCED],
-     * 정상이면 null 이다.
-     *
-     * 최초 sync 실패를 삼키고 "인증서 0개 매니저"를 성공 반환하던 동작은 그대로 두되
-     * (list.md F-3), 실패가 로그로만 남던 것을 조회 가능하게 한다.
-     */
     private val lastErrorRef = AtomicReference<DatException?>(DatException(DatErrorCode.CMS_NOT_SYNCED))
 
     fun getManager() = manager
 
-    /** 마지막 동기화 실패. 재시도 여부는 `lastError()?.retry` 로 판정한다. */
     fun lastError(): DatException? = lastErrorRef.get()
 
     fun getVersion(): Long = version
@@ -55,15 +47,10 @@ class DatCmsManager private constructor(
 
     fun parseWithoutVerifying(dat: String?): DatResult<Payload> = manager.parseWithoutVerifying(dat)
 
-    /**
-     * 동기화를 한 번 수행한다. 실패해도 예외를 던지지 않는다 — 기존 호출부가 갑자기
-     * 예외를 받지 않도록. 실패는 [lastError] 로 조회한다.
-     */
     fun sync() {
         val error = syncOrError()
         when {
             error == null -> lastErrorRef.set(null)
-            // 상태 신호는 실패로 기록하지 않는다 — 이전 동기화가 도는 중일 뿐이다.
             error.retry == DatRetry.STATE -> Unit
             else -> {
                 lastErrorRef.set(error)
@@ -84,15 +71,12 @@ class DatCmsManager private constructor(
                 .header("Authorization", token)
                 .build()
 
-            // 연결 거부·DNS 실패·TLS 실패·타임아웃이 전부 여기로 온다. 전부 일시적이다.
             val result = try {
                 client.send(request, HttpResponse.BodyHandlers.ofString())
             } catch (e: Exception) {
                 return DatException(DatErrorCode.CMS_UNREACHABLE, "cannot reach $uri", e)
             }
 
-            // HTTP 상태를 갈라 낸다. 예전에는 전부 로그 한 줄이라 401(영구)에도
-            // 60초마다 영원히 재시도했다.
             val status = result.statusCode()
             if (status < 200 || status > 299) {
                 return httpStatusError(status)
@@ -104,14 +88,10 @@ class DatCmsManager private constructor(
                 return DatException(DatErrorCode.CMS_MALFORMED, "response has no version line")
             } else if (iof > 0) {
                 val versionLine = body.substring(0, iof).trim()
-                // 예전에는 toLong() 이 그대로 NumberFormatException 을 던져 아래
-                // catch-all 로 빨려 들어갔다.
                 val newVersion = versionLine.toLongOrNull()
                     ?: return DatException(
                         DatErrorCode.CMS_MALFORMED, "version line is not a plain decimal integer"
                     )
-                // 서버가 우리보다 과거 버전을 돌려주면 전체 재동기화 지시다. 오류가
-                // 아니라 상태 신호이며, 아래 imports 가 clear=true 라 그 자체로 처리된다.
                 if (newVersion < version) {
                     log.warn(
                         "{}: server rolled version back {} -> {}",
@@ -208,8 +188,6 @@ class DatCmsManager private constructor(
             scheduler?.apply {
                 scheduleAtFixedRate(cms.sync, intervalSeconds, intervalSeconds, TimeUnit.SECONDS)
             }
-            // 최초 sync 실패는 여전히 build 를 막지 않는다. 다만 이제 조용히 사라지지
-            // 않고 lastError() 로 조회할 수 있다.
             cms.sync()
             return cms
         }

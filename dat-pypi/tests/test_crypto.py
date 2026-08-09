@@ -24,7 +24,6 @@ def algorithm_test(algorithm: DatCryptoAlgorithm):
     decrypted = copy_key.decrypt(encrypted).decode('utf-8')
     print(f"{tag} Decrypted: {decrypted}")
 
-    # empty
     original_text = ""
     encrypted = util.encode_base64_url_str(gen_key.encrypt(original_text))
     print(f"{tag} Encrypted: {encrypted}")

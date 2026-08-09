@@ -12,11 +12,9 @@ use zeroize::Zeroize;
 #[repr(u8)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum DatSignatureAlgorithm {
-    // MMAC SHA + MFS = Maximum(Same Bit) Fixed Secret
     HmacSha256Mfs,
     HmacSha384Mfs,
     HmacSha512Mfs,
-    // ECDSA = Elliptic Curve Digital Signature Algorithm
     EcdsaP256,
     EcdsaP384,
     EcdsaP521,
@@ -114,7 +112,6 @@ impl DatSignature {
     #[inline]
     pub fn export_key_option(&self, verify_only: bool) -> Result<Vec<u8>, DatError> {
         if verify_only && !self.support_verify_only() {
-            // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SigKeyMissing 과 다르다.
             return Err(DatError::KeyVerifyOnlyUnsupported(self.algorithm().to_string()));
         }
         match self {
@@ -157,7 +154,6 @@ impl DatSignature {
     }
 
     pub fn try_clone(&self) -> Result<Self, DatError> {
-        // 개인키가 담긴 임시 버퍼가 그대로 해제되지 않도록 사용 직후 소거한다.
         let mut key = self.export_key_option(!self.signable())?;
         let cloned = Self::from_or_new(false, self.algorithm(), &key);
         key.zeroize();
@@ -165,9 +161,6 @@ impl DatSignature {
     }
 }
 
-/// HMAC 시크릿 원본 버퍼를 소거한 뒤 해제한다.
-/// ECDSA 개인 스칼라와 HMAC 확장 키는 aws-lc-rs 가 자체적으로 소거한다.
-/// drop 시점에만 동작하므로 sign/verify 핫패스에는 어떤 비용도 추가되지 않는다.
 impl Drop for DatSignature {
     fn drop(&mut self) {
         if let HmacShaMfs(_, _, key_b) = self {

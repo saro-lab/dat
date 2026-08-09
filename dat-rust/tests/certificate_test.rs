@@ -42,7 +42,6 @@ fn test() {
 
     signature_alg_arr.iter().for_each(|sign_alg| {
         crypto_alg_arr.iter().for_each(|crypto_alg| {
-            // random
             (1..20).for_each(|i| {
                 let plain = rand_string();
                 let secure = rand_string();
@@ -52,7 +51,6 @@ fn test() {
                         e
                     }).is_ok())
             });
-            // empty
             assert!(unit(fail_certificate, 0, *sign_alg, *crypto_alg, "".to_string(), "".to_string()).is_ok())
         });
     });

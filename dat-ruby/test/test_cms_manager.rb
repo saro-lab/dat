@@ -7,12 +7,10 @@ class TestExampleCms < Minitest::Test
     manager = Saro::Dat::DatCmsManager.builder
       .uri("http://localhost:8088")
       .verify_only(false)
-      #.interval_off # disable auto sync
       .interval_seconds(1)
       .token("12345678901b")
       .build
 
-    # manual sync
     manager.sync
 
     begin
@@ -22,11 +20,9 @@ class TestExampleCms < Minitest::Test
       puts "plain : " + plain
       puts "secure : " + secure
 
-      # issue dat
       dat = manager.issue(plain, secure)
       puts "dat : " + dat
 
-      # parse dat
       payload = manager.parse(dat)
 
       payload_plain = payload.plain
@@ -37,7 +33,6 @@ class TestExampleCms < Minitest::Test
 
       assert_equal plain, payload_plain
       assert_equal secure, payload_secure
-
 
     rescue => e
       puts "ignored error: #{e.message}"

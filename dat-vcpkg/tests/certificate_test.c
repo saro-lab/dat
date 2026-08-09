@@ -22,10 +22,8 @@ static void unit(
     const char* plain,
     const char* secure
 ) {
-    /* tag: "dat.<sig>.<crypto>.<hex_cid>" */
     char tag[128];
     char hex_cid[17];
-    /* hex cid: no leading zeros */
     if (cid == 0) {
         snprintf(hex_cid, sizeof(hex_cid), "0");
     } else {
@@ -97,14 +95,12 @@ int main(void) {
         dat_signature_alg_t sig_alg = DAT_SIGNATURE_ALG_LIST[sa];
         for (size_t ca = 0; ca < DAT_CRYPTO_ALG_COUNT; ca++) {
             dat_crypto_alg_t crypto_alg = DAT_CRYPTO_ALG_LIST[ca];
-            /* 19 random, cid = 1..19 */
             for (uint64_t i = 1; i < 20; i++) {
                 char plain[101], secure_str[101];
                 rand_string(plain, 100);
                 rand_string(secure_str, 100);
                 unit(fail_cert, i, sig_alg, crypto_alg, plain, secure_str);
             }
-            /* empty, cid = 0 */
             unit(fail_cert, 0, sig_alg, crypto_alg, "", "");
         }
     }

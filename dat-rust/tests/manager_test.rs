@@ -37,22 +37,18 @@ fn test() {
     let plain = rand_string();
     let secure = rand_string();
 
-    // generate certificate
     gen_certificate(&manager).unwrap();
 
-    // generate dats
     let certificates: Vec<DatCertificate> = manager.export_certificates().unwrap();
     let dats: Vec<String> = certificates.iter().map(|key| {
         let dat: String = DatManager::_issue(&key, &plain, &secure).unwrap();
         dat
     }).collect::<Vec<String>>();
 
-    // copy certificates
     let certificates = manager.export(false);
     let manager2: DatManager = DatManager::new();
     manager2.import(&certificates.unwrap(), true).unwrap();
 
-    // verify
     let tag = "dat.manager";
     for dat in dats {
         println!("{tag}.{}", dat);

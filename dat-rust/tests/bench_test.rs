@@ -102,7 +102,6 @@ async fn benchmark(loop_size: i64) -> Result<(), DatError> {
     Ok(())
 }
 
-// cargo test --color=always --package dat --test bench_test --profile release -- test --exact --nocapture
 #[tokio::test(flavor = "multi_thread")]
 async fn test() {
     if cfg!(debug_assertions) {

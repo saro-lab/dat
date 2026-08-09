@@ -37,8 +37,6 @@ class TestBench < Minitest::Test
       duration_ms = (Time.now - start_time) * 1000
       puts "#{pre} Issue * #{loop_size} : #{duration_ms.to_i}ms"
 
-
-      # 2. Parse Benchmark
       start_time = Time.now
       last_payload = nil
 
@@ -56,7 +54,6 @@ class TestBench < Minitest::Test
       duration_ms = (Time.now - start_time) * 1000
       puts "#{pre} Parse * #{loop_size} : #{duration_ms.to_i}ms"
 
-      # 검증
       assert_equal plain, last_payload.plain
       assert_equal secure, last_payload.secure
     end

@@ -65,7 +65,6 @@ describe('Dat Certificate', () => {
             }
         }
 
-        // empty data
         const emptyTestCertificate = await generate(0, "ECDSA-P256", "IV-AES128-GCM")
         const emptyDat = await DatManager.issue(emptyTestCertificate, DatArrayBuffer.from(''), (DatArrayBuffer.from('')));
         const emptyPayload = await DatManager.parse(emptyTestCertificate, emptyDat);

@@ -26,18 +26,13 @@ public class ExampleCmsManagerTest
         using var loggerFactory = CreateLoggerFactory();
         var logger = loggerFactory.CreateLogger<DatCmsManager>();
 
-        // singleton
         DatCmsManager manager = await DatCmsManager.Builder()
             .Host("localhost")
             .Port(8088)
-            //.IntervalOff() // auto sync off
             .IntervalSeconds(1)
             .Token("12345678901b")
             .Logger(logger)
             .BuildAsync();
-
-        // manual sync
-        //await manager.Sync();
 
         try
         {
@@ -47,11 +42,9 @@ public class ExampleCmsManagerTest
             Console.WriteLine("plain : " + plain);
             Console.WriteLine("secure : " + secure);
 
-            // issue dat
             string dat = manager.Issue(plain, secure);
             Console.WriteLine("dat : " + dat);
 
-            // parse dat
             Payload payload = manager.Parse(dat);
 
             string payloadPlain = payload.Plain;
@@ -67,7 +60,6 @@ public class ExampleCmsManagerTest
             Console.WriteLine(ex);
         }
 
-        // wait
         await Task.Delay(5 * 1000);
     }
 }

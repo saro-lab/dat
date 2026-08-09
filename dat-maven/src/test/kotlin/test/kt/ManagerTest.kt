@@ -55,7 +55,6 @@ class ManagerTest {
         }
     }
 
-    //@Test
     fun tmp() {
         val manager = newInstance()
 

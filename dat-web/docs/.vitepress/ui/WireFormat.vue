@@ -38,21 +38,16 @@
 import { computed, ref } from 'vue'
 
 export type WireSegment = {
-  /** Field name printed inside the band, e.g. `expire`. */
   name: string
-  /** Type and encoding printed under the name, e.g. `uint64 (dec)`. */
   type: string
-  /** Shown in the caption line while the band is hovered or focused. */
   note?: string
   kind?: 'meta' | 'plain' | 'secure' | 'sig'
-  /** Relative band width; defaults to 1 so every field is equally wide. */
   width?: number
 }
 
 const props = defineProps<{
   segments: WireSegment[]
   title?: string
-  /** Caption shown while nothing is hovered, e.g. `hover a field for details`. */
   hint?: string
 }>()
 
@@ -88,8 +83,6 @@ const caption = computed(() => {
     color: color-mix(in srgb, var(--c-text-1) 45%, transparent);
 }
 
-/* 띠 색은 필드의 성격을 나눈다: 메타(만료·CID)는 중립, plain은 액센트,
-   secure는 암호화 구간이라 예비색(chart-3), 서명은 링크색으로 잠금 느낌. */
 .wf-seg {
     --wf-color: var(--c-muted);
     @apply flex flex-col items-center justify-center rounded-md px-2 py-2 text-center cursor-default

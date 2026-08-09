@@ -35,15 +35,12 @@ int main(void) {
     assert(memcmp(secure, SECURE, payload->secure_len) == 0);
 
     printf("PASS DAT %s\n", dat);
-    /* payload bytes are length-delimited, not NUL-terminated — "%s" would read
-     * past the end of the buffer (caught by AddressSanitizer). */
     printf("PASS PLAIN %.*s\n", (int)payload->plain_len, plain);
     printf("PASS SECURE %.*s\n", (int)payload->secure_len, secure);
 
     free(dat);
     dat_payload_free(payload);
     dat_manager_free(manager);
-    /* import_certificates borrows the array; the caller keeps ownership. */
     dat_certificate_free(cert);
 
     return 0;

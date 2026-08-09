@@ -117,7 +117,6 @@ static void loops(int multi_thread, int loop_size,
         clock_gettime(CLOCK_MONOTONIC, &t1);
         printf("%s Issue * %d : %lldms\n", pre, loop_size, ms_elapsed(t0, t1));
 
-        /* parse */
         dat_payload_t* last_payload = NULL;
 
         clock_gettime(CLOCK_MONOTONIC, &t0);

@@ -19,7 +19,6 @@ public class ExampleTest {
 
     @Test
     public void selfTest() {
-        // Singleton Manager
         DatManager manager = DatManager.newInstance();
 
         long unixTime = Unixtime.now();
@@ -35,19 +34,15 @@ public class ExampleTest {
 
         manager.imports(List.of(certificate), false);
 
-
-        // example data
         String plainData = "plain data 유니코드 !!! ABCD";
         String secureData = ">! secure data 암호화 데이터 @@@@";
 
         System.out.println("plain : " + plainData);
         System.out.println("secure : " + secureData);
 
-        // issue dat
         String dat = manager.issue(plainData, secureData).getOrThrow();
         System.out.println("dat : " + dat);
 
-        // parse dat
         Payload payload = manager.parse(dat).getOrThrow();
 
         String payloadPlain = payload.getPlain();
@@ -60,15 +55,10 @@ public class ExampleTest {
         assert secureData.equals(payloadSecure);
     }
 
-    // @Test
     public void useDatCms() throws IOException, InterruptedException {
-        // BEFORE: install dat-cms
-        // See: https://dat.saro.me/svc/docker-saro-lab-dat-cms
 
-        // Singleton Manager
         DatManager manager = DatManager.newInstance();
 
-        // get certificate from dat-cms
         HttpClient client = HttpClient.newHttpClient();
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8088/certificates"))
@@ -77,22 +67,18 @@ public class ExampleTest {
         System.out.println("get certificate :");
         System.out.println(body);
 
-        // import certificate
         manager.imports(body, false);
         System.out.println("certificate " + manager.exportsIds().size() + " imported.");
 
-        // example data
         String plainData = "plain data 유니코드 !!! ABCD";
         String secureData = ">! secure data 암호화 데이터 @@@@";
 
         System.out.println("plain : " + plainData);
         System.out.println("secure : " + secureData);
 
-        // issue dat
         String dat = manager.issue(plainData, secureData).getOrThrow();
         System.out.println("dat : " + dat);
 
-        // parse dat
         Payload payload = manager.parse(dat).getOrThrow();
 
         String payloadPlain = payload.getPlain();
@@ -105,12 +91,8 @@ public class ExampleTest {
         assert secureData.equals(payloadSecure);
     }
 
-
-    //@Test
     public void useDatFormat() {
 
-
-        // Singleton Manager
         DatManager manager = DatManager.newInstance();
 
         String format = "0.P256.I5P_FNPSCiQrw12CXj8qYkBH_v3wFYmXBtTpmED59bs.AES128GCMN.SVz-zzee5hz9OzEHxQgEaA.1.17781627851.1800\n" +
@@ -124,22 +106,17 @@ public class ExampleTest {
                 "8.P256.iOEL5ERwtTmmmp7A4sVhDkTedhi4e6F53wG2xDRDEoE.AES128GCMN.VgojardW72K2jkbqNafegw.1.17781627851.1800\n" +
                 "9.P256.VPGAAvJhJ1KXkdPvz1AiWEHiCVR9u8KME0AOUso3-vI.AES128GCMN.Mfx6GnQZUzC0N4q0eB6PXQ.1.17781627851.1800";
 
-        // import
         manager.imports(format, false);
 
-
-        // example data
         String plainData = "plain data 유니코드 !!!";
         String secureData = ">! secure data 암호화 데이터";
 
         System.out.println("plain : " + plainData);
         System.out.println("secure : " + secureData);
 
-        // to dat
         String dat = manager.issue(plainData, secureData).getOrThrow();
         System.out.println("dat : " + dat);
 
-        // dat to payload
         Payload payload = manager.parse(dat).getOrThrow();
 
         String payloadPlain = payload.getPlain();

@@ -52,7 +52,6 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
                 $"ecdsa key length matches neither private+public ({privateKeySize + publicKeySize}) nor public ({publicKeySize}) for {alg.ToText()}, got {key.Length}");
         }
 
-        // 공개키 복원 (Uncompressed 포맷 04 + X + Y 처리)
         int coordSize = GetCoordSize(alg);
         if (pubKeyBytes[0] != 0x04)
         {
@@ -67,7 +66,6 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
         };
         try
         {
-            // 곡선 위에 없는 점, d 가 [1,n-1] 밖, 개인키·공개키 쌍 불일치가 전부 여기서 걸린다.
             ecdsa.ImportParameters(parameters);
         }
         catch (Exception e)
@@ -82,8 +80,6 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
     public byte[] Sign(byte[] body)
     {
         if (_disposed) throw new DatException(DatErrorCode.ManagerDisposed, nameof(DatSignatureEcdsa));
-        // 런타임에 개인키가 없는 것이다. 알고리즘의 구조적 한계인
-        // KEY_VERIFY_ONLY_UNSUPPORTED 와 다르다.
         if (!_hasPrivate) throw new DatException(DatErrorCode.SigKeyMissing, "this key is verify-only");
         try
         {
@@ -97,8 +93,6 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
 
     public bool Verify(byte[] body, byte[] signature)
     {
-        // Thrown, not folded into "false": a disposed key must not read as a
-        // signature mismatch.
         if (_disposed) throw new DatException(DatErrorCode.ManagerDisposed, nameof(DatSignatureEcdsa));
         try
         {
@@ -106,7 +100,6 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
         }
         catch (CryptographicException e)
         {
-            // 검증 연산 자체가 실패한 것이지 서명이 안 맞는 게 아니다.
             throw new DatException(DatErrorCode.SigBackend, "ecdsa verification failed to run", e);
         }
     }
@@ -127,7 +120,6 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
         byte[] priv = parameters.D!;
         int fieldSize = GetPrivateKeySize(_algorithm);
 
-        // Pad or trim private key to field size
         byte[] paddedPriv = new byte[fieldSize];
         if (priv.Length > fieldSize)
         {
@@ -188,17 +180,9 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
     public bool Signable() => _hasPrivate;
     public bool SupportVerifyOnly() => true;
 
-    /// <summary>
-    /// Produces an independent key holding its own native ECDSA handle. The
-    /// caller owns the copy and is responsible for disposing it.
-    /// </summary>
     public object Clone() => FromKey(_algorithm, ExportKey());
     IDatSignature IDatSignature.Clone() => (IDatSignature)Clone();
 
-    /// <summary>
-    /// Releases the native ECDSA handle. Certificates dispose the keys they own,
-    /// so an import loop no longer leaks one handle per refresh.
-    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;
@@ -206,4 +190,3 @@ public class DatSignatureEcdsa : IDatSignature, IDisposable
         _ecdsa.Dispose();
     }
 }
-

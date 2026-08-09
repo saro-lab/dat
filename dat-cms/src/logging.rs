@@ -25,11 +25,6 @@ pub fn init(config: &LogConfig) {
             .build(&config.file_dir)
             .expect("Failed to create file appender");
 
-        // Same level as the console layer. Without a filter this layer records
-        // TRACE from every dependency, and in debug mode that includes the
-        // sea-orm statement log, whose INSERT text carries signature_key /
-        // crypto_key. Release builds stay at INFO so keys can never reach disk
-        // even if statement logging is turned on some other way.
         let level = if config.debug { LevelFilter::DEBUG } else { LevelFilter::INFO };
 
         if config.json {

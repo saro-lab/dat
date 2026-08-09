@@ -29,10 +29,6 @@ pub async fn list<C: ConnectionTrait>(cmd: ListCertificatesQuery, db: &C) -> Api
     if CACHE_EXPIRE.load(Ordering::Acquire) < now {
         let mut certs_write = CACHE_CERTIFICATES.write().await;
         if CACHE_EXPIRE.load(Ordering::Acquire) < now {
-            // 저장된 행이 깨져 있으면 그건 DB 문제다 — 인증서 규격 위반 코드를
-            // 그대로 올리면 클라이언트가 "내가 보낸 인증서가 잘못됐나" 로 읽는다.
-            // 행 하나만 깨져도 목록 전체가 실패하는 것은 그대로 두되(스킵은 동작
-            // 변경이라 별도 결정), 어느 행이 왜 깨졌는지는 로그에 남긴다.
             let new_certs = dat_cms_cert::Entity::find()
                 .filter(dat_cms_cert::Column::Expire.gte(now))
                 .order_by_id_asc()
@@ -127,17 +123,11 @@ async fn generate_cid<C: ConnectionTrait>(db: &C) -> ApiResult<i64> {
             return Ok(cid);
         }
     }
-    // 1000번을 뽑아도 빈 cid 가 없다 — 난수가 아니라 저장소 상태의 문제다.
     Err(Api::code(codes::STORE_UNKNOWN)
         .details(serde_json::Value::from("cannot find an unused cid after 1000 attempts")))?
 }
 
-/// 저장된 인증서 행이 손상됐을 때의 코드.
-///
-/// `DAT_CERT_*`/`DAT_KEY_*` 를 그대로 올리면 400 계열로 읽혀 클라이언트가 자기
-/// 입력을 의심하게 된다. 실제로는 우리 DB 의 행이 깨진 것이므로 STORE 다.
 fn corrupt_row(ver: i64, cid: i64, err: ApiError) -> ApiError {
-    // 원인이 된 dat 코드는 details 로 보존한다 — 체이닝을 버리지 않는다.
     let cause = err.0.downcast_ref::<DatError>().map(|e| e.code()).unwrap_or("unknown");
     tracing::error!(
         "{}: corrupt certificate row ver={ver} cid={cid:x} cause={cause}: {:#}",

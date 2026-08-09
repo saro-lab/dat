@@ -39,11 +39,8 @@ import { useRoot } from '../src/langs'
 
 const props = defineProps<{
   title?: string
-  /** Sentence printed above the bars. */
   desc?: string
-  /** Footnote printed under the bars. */
   note?: string
-  /** Unit printed in the tooltip, defaults to `ops/s`. */
   unit?: string
 }>()
 
@@ -65,7 +62,6 @@ const rows = computed(() => {
   }))
 })
 
-/** Environment and workload only make it to the page when both were recorded. */
 const envLine = computed(() => [BENCH_WORKLOAD, BENCH_ENV].filter(Boolean).join(' · '))
 </script>
 
@@ -73,7 +69,6 @@ const envLine = computed(() => [BENCH_WORKLOAD, BENCH_ENV].filter(Boolean).join(
 @reference 'tailwindcss';
 
 .bench {
-    /* 툴팁 배경이 --c-text-1이므로 글자는 캔버스색이어야 두 모드 모두 읽힌다. */
     --tip-fg: var(--c-bg);
     @apply rounded-lg p-3.5;
     background: color-mix(in srgb, currentColor 5%, transparent);

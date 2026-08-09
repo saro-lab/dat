@@ -21,7 +21,6 @@ const char* dat_crypto_alg_to_str(dat_crypto_alg_t alg) {
 }
 
 dat_error_t dat_crypto_alg_from_str(const char* s, dat_crypto_alg_t* out) {
-    /* NULL 인자는 "알 수 없는 알고리즘"이 아니라 호출자의 실수다. */
     if (!s || !out) return DAT_CONFIG_ARGUMENT_INVALID;
     if (strcmp(s, "IV-AES128-GCM") == 0) { *out = DAT_CRYPTO_IV_AES128_GCM; return DAT_SUCCESS; }
     if (strcmp(s, "IV-AES256-GCM") == 0) { *out = DAT_CRYPTO_IV_AES256_GCM; return DAT_SUCCESS; }
@@ -38,8 +37,6 @@ dat_error_t dat_crypto_new(dat_crypto_alg_t alg, dat_crypto_t** out) {
     if (!c) return DAT_INTERNAL_UNKNOWN;
     c->alg     = alg;
     c->key_len = key_len_for(alg);
-    /* RNG 실패였는데 ENCRYPT_ERROR 를 돌려주고 있었다. 암·복호 연산이 아니라
-     * 난수 생성이 실패한 것이므로 내부 실패다. */
     if (RAND_bytes(c->key, (int)c->key_len) != 1) {
         OPENSSL_cleanse(c, sizeof(*c));
         free(c);
@@ -50,7 +47,6 @@ dat_error_t dat_crypto_new(dat_crypto_alg_t alg, dat_crypto_t** out) {
 }
 
 dat_error_t dat_crypto_from_key(dat_crypto_alg_t alg, const uint8_t* key, size_t key_len, dat_crypto_t** out) {
-    /* NULL 인자(호출자 실수)와 키 길이 불일치(키 재료 문제)는 다른 오류다. */
     if (!key || !out) return DAT_CONFIG_ARGUMENT_INVALID;
     size_t expected = key_len_for(alg);
     if (key_len != expected) return DAT_KEY_INVALID;
@@ -65,8 +61,6 @@ dat_error_t dat_crypto_from_key(dat_crypto_alg_t alg, const uint8_t* key, size_t
 
 void dat_crypto_free(dat_crypto_t* crypto) {
     if (!crypto) return;
-    /* D-4: this struct holds the raw AES key; wipe it before handing the memory
-     * back to the allocator. Free path only, so no effect on throughput. */
     OPENSSL_cleanse(crypto, sizeof(*crypto));
     free(crypto);
 }
@@ -76,7 +70,6 @@ dat_crypto_alg_t dat_crypto_algorithm(const dat_crypto_t* crypto) {
 }
 
 size_t dat_crypto_key_base64_len(const dat_crypto_t* crypto) {
-    /* AES128: 16 bytes → ceil(16*4/3)=22; AES256: 32 bytes → ceil(32*4/3)=43 */
     return (crypto->alg == DAT_CRYPTO_IV_AES128_GCM) ? 22 : 43;
 }
 
@@ -98,7 +91,7 @@ dat_error_t dat_crypto_encrypt_to_bbuf(const dat_crypto_t* crypto,
                                         const uint8_t* data, size_t data_len,
                                         dat_bbuf_t* out) {
     if (data_len == 0) return DAT_SUCCESS;
-    if (data_len > INT_MAX) return DAT_CRYPTO_DATA_INVALID; /* EVP_EncryptUpdate takes int */
+    if (data_len > INT_MAX) return DAT_CRYPTO_DATA_INVALID;
 
     size_t out_len = DAT_CRYPTO_IV_LEN + data_len + DAT_CRYPTO_TAG_LEN;
     dat_error_t e = bbuf_ensure(out, out_len);
@@ -106,12 +99,11 @@ dat_error_t dat_crypto_encrypt_to_bbuf(const dat_crypto_t* crypto,
 
     uint8_t* buf = out->data + out->len;
 
-    /* iv 난수 생성 실패는 연산 실패가 아니라 환경 실패다. */
     if (RAND_bytes(buf, DAT_CRYPTO_IV_LEN) != 1)
         return DAT_INTERNAL_UNKNOWN;
 
     EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    if (!ctx) return DAT_INTERNAL_UNKNOWN;   /* 컨텍스트 할당 실패 */
+    if (!ctx) return DAT_INTERNAL_UNKNOWN;
 
     int ok = 1;
     int len = 0, flen = 0;
@@ -159,15 +151,12 @@ dat_error_t dat_crypto_decrypt(const dat_crypto_t* crypto,
         *out_len = 0;
         return DAT_SUCCESS;
     }
-    /* 길이가 규격 밖인 것과 태그가 안 맞는 것은 다른 오류다. 전자는 깨진 입력이고
-     * 후자는 변조 증거다. */
     if (data_len < DAT_CRYPTO_IV_LEN + DAT_CRYPTO_TAG_LEN) return DAT_CRYPTO_DATA_INVALID;
-    if (data_len > INT_MAX) return DAT_CRYPTO_DATA_INVALID; /* EVP_DecryptUpdate takes int */
+    if (data_len > INT_MAX) return DAT_CRYPTO_DATA_INVALID;
 
     const uint8_t* iv         = data;
     const uint8_t* ciphertext = data + DAT_CRYPTO_IV_LEN;
     size_t ct_len             = data_len - DAT_CRYPTO_IV_LEN - DAT_CRYPTO_TAG_LEN;
-    /* tag is at the end: data[IV_LEN + ct_len .. data_len] */
     uint8_t tag[DAT_CRYPTO_TAG_LEN];
     memcpy(tag, data + DAT_CRYPTO_IV_LEN + ct_len, DAT_CRYPTO_TAG_LEN);
 
@@ -188,9 +177,6 @@ dat_error_t dat_crypto_decrypt(const dat_crypto_t* crypto,
     int final_ok = EVP_DecryptFinal_ex(ctx, plaintext + len, &flen);
     EVP_CIPHER_CTX_free(ctx);
 
-    /* ok 는 셋업 단계(EVP 호출)의 성공 여부, final_ok 는 태그 대조 결과다.
-     * 셋업이 깨진 것은 백엔드 문제이고, 태그가 안 맞는 것은 변조·잘못된 키다 —
-     * parse_without_verify 경로에서는 이것이 유일한 무결성 검사다. */
     if (!ok) {
         free(plaintext);
         return DAT_CRYPTO_BACKEND;

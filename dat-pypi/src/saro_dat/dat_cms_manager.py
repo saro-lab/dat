@@ -42,17 +42,10 @@ class DatCmsManager:
         self._verify_only = verify_only
         self._manager = dat_manager or DatManager()
         self._version = 0
-        # Two locks on purpose: _state_lock guards the timer/stopped lifecycle and
-        # is only ever held for a few instructions, while _sync_lock is held for
-        # the whole HTTP round trip. Sharing one lock made stop() block for the
-        # full network timeout behind an in-flight sync.
         self._state_lock = threading.Lock()
         self._sync_lock = threading.Lock()
         self._timer: Optional[threading.Timer] = None
         self._stopped = False
-        #: 마지막 동기화 실패. 한 번도 성공하지 못했으면 DAT_CMS_NOT_SYNCED, 정상이면 None.
-        #: 최초 sync 실패를 삼키고 "인증서 0개 매니저"를 성공 반환하던 동작은 그대로
-        #: 두되(list.md F-3), 실패가 로그로만 남던 것을 조회 가능하게 한다.
         self._last_error: Optional[DatError] = DatError(E.CMS_NOT_SYNCED)
 
         self.sync()
@@ -81,19 +74,13 @@ class DatCmsManager:
                 self._timer = None
 
     def last_error(self) -> Optional[DatError]:
-        """마지막 동기화 실패. 재시도 여부는 ``err.retry`` 로 판정한다."""
         return self._last_error
 
     def sync(self):
-        """실패를 삼키되 코드로 분류해 ``last_error()`` 에 남긴다.
-
-        기존 호출부가 갑자기 예외를 받지 않도록 예외를 밖으로 던지지는 않는다.
-        """
         try:
             self._sync_or_raise()
             self._last_error = None
         except DatError as e:
-            # 상태 신호는 실패로 기록하지 않는다 — 이전 동기화가 도는 중일 뿐이다.
             if e.retry is not DatRetry.STATE:
                 self._last_error = e
                 logger.error("[CRITICAL] DAT CMS SYNC %s: %s", self._uri, e)
@@ -115,11 +102,8 @@ class DatCmsManager:
             try:
                 response_cm = urllib.request.urlopen(request, timeout=10)
             except urllib.error.HTTPError as e:
-                # HTTP 상태를 갈라 낸다. 예전에는 전부 로그 한 줄이라 401(영구)에도
-                # 60초마다 영원히 재시도했다.
                 raise _http_status_error(e.code) from e
             except urllib.error.URLError as e:
-                # DNS 실패·연결 거부·TLS 실패·타임아웃이 전부 여기로 온다. 전부 일시적이다.
                 raise DatError(E.CMS_UNREACHABLE, f"cannot reach {self._uri}", e) from e
 
             with response_cm as response:
@@ -145,28 +129,17 @@ class DatCmsManager:
                 if not new_version_str:
                     raise DatError(E.CMS_MALFORMED, "version line is empty")
 
-                # Strict decimal parse, same as rust's `ver.parse::<u64>()`.
-                # int() would accept " 12 ", "+12" and "1_2".
                 try:
                     new_version = parse_u64(new_version_str)
                 except DatError as e:
                     raise DatError(E.CMS_MALFORMED, "version line is not a plain decimal u64", e) from e
 
-                # 서버가 우리보다 과거 버전을 돌려주면 전체 재동기화 지시다. 오류가
-                # 아니라 상태 신호이며, 아래 imports 가 clear=True 라 그 자체로 처리된다.
                 if new_version < self._version:
                     logger.warning("%s: %d -> %d", E.CMS_VERSION_RESET, self._version, new_version)
 
-                # clear=True: the CMS response is the authoritative set, so it
-                # replaces the local one instead of being merged into it.
-                # Merging kept old CIDs around, and re-importing the same
-                # payload then failed on "Duplicate CID" forever, pinning the
-                # version and re-fetching the same body every cycle.
-                # (rust: DatCmsManager::sync -> manager.import(&certs, true))
                 try:
-                    renew_count = self._manager.imports(new_certificates, True)
+                    renew_count = self._manager.imports(new_certificates, False)
                 except DatError as e:
-                    # 인증서 적용 실패의 원인(CERT_*/KEY_*)을 버리지 않고 체이닝한다.
                     raise DatError(E.CMS_IMPORT_FAILED, "cannot apply received certificates", e) from e
 
                 self._version = new_version

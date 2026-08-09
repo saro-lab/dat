@@ -10,12 +10,9 @@ class TestExample(unittest.TestCase):
     def test_issue_and_parse(self):
         dat_manager = DatManager()
 
-        # create certificate
         now = int(time.time())
-        # (cid, issuance_start, issuance_duration, ttl, signature, crypto) — rust order
         cert = DatCertificate(0, now - 10, 20, 1800, DatSignature.generate(DatSignatureAlgorithm.ECDSA_P256), DatCrypto.generate(DatCryptoAlgorithm.IV_AES128_GCM))
 
-        # import certificate
         dat_manager.import_certificates([cert])
 
         plain = "Unicode 유니코드 ユニコード 万国码 يونيكود यूनिकोड Юникод 🦄💻"
@@ -35,5 +32,3 @@ class TestExample(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-

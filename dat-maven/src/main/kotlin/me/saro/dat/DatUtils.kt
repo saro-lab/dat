@@ -36,10 +36,6 @@ class DatUtils {
             return DE_BASE64_URL.decode(str)
         }
 
-        /**
-         * Strict unsigned decimal parse matching rust's `parse::<u64>()`.
-         * Kotlin's `toULongOrNull` also accepts a leading `+`, which rust rejects.
-         */
         internal fun parseU64OrNull(s: String): ULong? {
             if (s.isEmpty()) {
                 return null
@@ -52,9 +48,6 @@ class DatUtils {
             return s.toULongOrNull()
         }
 
-        /**
-         * Strict unsigned hex parse matching rust's `u64::from_str_radix(s, 16)`.
-         */
         internal fun parseU64HexOrNull(s: String): ULong? {
             if (s.isEmpty()) {
                 return null
@@ -79,8 +72,6 @@ class DatUtils {
             }
             val moldLen = mold.size
             val rv = CharArray(size)
-            // SecureRandom, not ThreadLocalRandom: this is a public helper on a
-            // token library and gets reached for secret/id generation.
             val random = RANDOM
             for (i in rv.indices) {
                 rv[i] = mold[random.nextInt(moldLen)]

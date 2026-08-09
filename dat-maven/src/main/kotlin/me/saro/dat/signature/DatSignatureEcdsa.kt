@@ -63,8 +63,6 @@ class DatSignatureEcdsa private constructor(
                 key.sliceArray(privateKeySize until key.size)
             }
 
-            // 곡선 위에 없는 점·압축 점·인코딩 오류가 여기서 걸린다. 예전에는
-            // BouncyCastle 의 원본 예외가 그대로 공개 API 밖으로 나갔다.
             val verifyingKey = try {
                 val point = spec.curve.decodePoint(verifyKeyByte)
                 kf.generatePublic(ECPublicKeySpec(point, spec))
@@ -150,8 +148,6 @@ class DatSignatureEcdsa private constructor(
     private val threadSignature: ThreadLocal<Signature> = ThreadLocal.withInitial { getSignature(algorithm) }
 
     override fun verify(body: ByteArray, signature: ByteArray): Boolean {
-        // SignatureException(길이·DER 불일치) 만 false 로 돌려준다. 그 밖의 예외를
-        // 여기서 삼키면 프로그래밍 오류가 위조 시도로 보고된다.
         return try {
             val instant: Signature = threadSignature.get()
             instant.initVerify(verifyingKey)

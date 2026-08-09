@@ -24,7 +24,6 @@ class TestDatCrypto < Minitest::Test
     puts "#{tag} Decrypted: #{decrypted}"
     assert_equal original_text, decrypted
 
-    # empty
     original_text_empty = ""
     encrypted_empty = Saro::Dat::Util.encode_base64_url_str(gen_key.encrypt(original_text_empty))
     puts "#{tag} Encrypted: #{encrypted_empty}"
@@ -41,8 +40,6 @@ class TestDatCrypto < Minitest::Test
         begin
           algorithm_test(algorithm)
         rescue OpenSSL::Cipher::CipherError
-          # Skipping if environment doesn't support GCM as noted in previous session
-          # But for the sake of "same output", we should at least try
         end
       end
     end

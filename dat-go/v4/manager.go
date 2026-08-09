@@ -21,11 +21,6 @@ func NewManager() *Manager {
 	}
 }
 
-// noIssuableCause 는 발급 가능한 인증서가 없을 때 왜 없는지 가려낸다.
-//
-// 예전에는 이 다섯 가지가 ErrSigningKeyNotExists 하나였다. 대응이 전부 다르다 —
-// 발급창 전이면 기다리면 되고, verify-only 뿐이면 배포 설정 실수이며,
-// 0건이면 CMS 접속 문제다.
 func noIssuableCause(certificates []*Certificate) error {
 	now := NowUnixTimestamp()
 	signableSeen, notYet, ended := false, false, false
@@ -46,7 +41,7 @@ func noIssuableCause(certificates []*Certificate) error {
 	case !signableSeen:
 		return ErrCertVerifyOnly
 	case notYet:
-		// 유일하게 일시적인 사유다. 하나라도 있으면 이것을 앞세운다.
+
 		return ErrCertNotYetIssuable
 	case ended:
 		return ErrCertIssuanceEnded
@@ -134,8 +129,6 @@ func (m *Manager) Export(verifyOnly bool) string {
 	return sb.String()
 }
 
-// ExportCertificates returns deep copies: slices.Clone would hand out the
-// manager's live *Certificate values, whose keys the caller could then mutate.
 func (m *Manager) ExportCertificates() ([]*Certificate, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -245,7 +238,6 @@ func (m *Manager) IssueWithCertificate(certificate *Certificate, plain, secure s
 		return "", err
 	}
 
-	// 20: max expire digits, 180: max base64 signature length
 	buf := make([]byte, 0, 20+len(certificate.cidPreCopy)+
 		base64URL.EncodedLen(len(plain))+1+base64URL.EncodedLen(len(encrypted))+1+180)
 	buf = strconv.AppendUint(buf, NowUnixTimestamp()+certificate.DatTtlSeconds, 10)
@@ -265,7 +257,6 @@ func (m *Manager) IssueWithCertificate(certificate *Certificate, plain, secure s
 }
 
 func (m *Manager) ParseWithCertificate(certificate *Certificate, dat *Dat) (Payload, error) {
-	// SigMismatch(위조) 와 SigBackend(연산 실패) 를 구분해서 그대로 올린다.
 	if err := certificate.SignatureKey.Verify(dat.BodyBytes(), dat.Signature); err != nil {
 		return Payload{}, err
 	}

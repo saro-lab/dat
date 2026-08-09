@@ -35,7 +35,6 @@ const REPO_ICON: Partial<Record<LibraryRepository, string>> = {
 const root = useRoot();
 const libs = ref<Library[]>(getAllLibraries());
 
-/** Shuffled once per visit so no single language is permanently listed first. */
 onMounted(() => {
   libs.value = [...libs.value].sort(() => Math.random() - 0.5);
 });

@@ -21,8 +21,6 @@ export class DatCertificate {
         this.cid = DatInteger.toCid(cid, `Invalid cid(Certificate ID) is HEX ${cid}`)
         this.signature = signature;
         this.crypto = crypto;
-        // These three are u64 in the reference implementation: 0 is a legal value,
-        // the upper bound is u64::MAX, and both sums are checked additions there.
         datIssuanceStartSeconds = DatInteger.toBigInt(datIssuanceStartSeconds, `Invalid: issuedAt is positive int or 0 ${datIssuanceStartSeconds}`, 0n, DatInteger.U64_MAX);
         datIssuanceDurationSeconds = DatInteger.toBigInt(datIssuanceDurationSeconds, `Invalid: datIssueEnd is positive int or 0 ${datIssuanceDurationSeconds}`, 0n, DatInteger.U64_MAX);
         datTtlSeconds = DatInteger.toBigInt(datTtlSeconds, `Invalid: datTtl is positive int or 0 ${datTtlSeconds}`, 0n, DatInteger.U64_MAX);
@@ -55,7 +53,6 @@ export class DatCertificate {
         if (parts.length !== 8) {
             throw new DatError(DatErrorCodes.CERT_MALFORMED, "expected exactly 8 dot-separated fields");
         }
-        // 필드 파싱 실패는 인증서가 깨진 것이지 호출자의 인자 문제가 아니다.
         const field = <T>(fn: () => T, name: string): T => {
             try {
                 return fn();
@@ -75,10 +72,6 @@ export class DatCertificate {
         return new DatCertificate(cid, datIssuanceStartSeconds, datIssuanceDurationSeconds, datTtlSeconds, signatureKey, cryptoKey);
     }
 
-    // Both compare whole seconds against whole seconds, like the reference
-    // implementation. `Unixtime.now().after(x, true)` compares a millisecond
-    // `now` against `x * 1000`, so anything past `x.000` counted as after —
-    // certificates went un-issuable and expired up to a second early.
     issuable(): boolean {
         if (!this.signable()) {
             return false;

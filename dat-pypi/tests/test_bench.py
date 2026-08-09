@@ -32,7 +32,6 @@ async def loops(multi_thread: bool, loop_size: int, certificates: list[DatCertif
         last_dat = ""
 
         if multi_thread:
-            # 파이썬의 GIL 우회를 위해 ProcessPoolExecutor 사용 (실제 멀티코어 활용)
             with ThreadPoolExecutor() as executor:
                 futures = [executor.submit(run_issue, cert, plain, secure) for _ in range(loop_size)]
                 for fut in futures:
@@ -44,7 +43,6 @@ async def loops(multi_thread: bool, loop_size: int, certificates: list[DatCertif
         duration_ms = (time.perf_counter() - start) * 1000
         print(f"{pre} Issue * {loop_size} : {duration_ms:.0f}ms")
 
-        # 2. Parse Benchmark
         start = time.perf_counter()
         last_payload = None
 
@@ -60,7 +58,6 @@ async def loops(multi_thread: bool, loop_size: int, certificates: list[DatCertif
         duration_ms = (time.perf_counter() - start) * 1000
         print(f"{pre} Parse * {loop_size} : {duration_ms:.0f}ms")
 
-        # 검증
         assert last_payload.plain == plain
         assert last_payload.secure == secure
 
@@ -78,7 +75,6 @@ async def benchmark(loop_size: int):
 
     for sa in DatSignatureAlgorithm:
         for ca in DatCryptoAlgorithm:
-            # (cid, issuance_start, issuance_duration, ttl, signature, crypto) — rust order
             certificates.append(DatCertificate(0, now - 10, 610, 60, DatSignature.generate(sa), DatCrypto.generate(ca)))
 
     await loops(True, loop_size, certificates, plain, secure)

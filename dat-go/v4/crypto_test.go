@@ -78,13 +78,12 @@ func encryptAndDecrypt(t *testing.T, alg dat.CryptoAlgorithm, randStr string) er
 func TestCrypto(t *testing.T) {
 	algs := []dat.CryptoAlgorithm{dat.IvAes128Gcm, dat.IvAes256Gcm}
 	for _, alg := range algs {
-		// random
 		for i := 0; i < 20; i++ {
 			if err := encryptAndDecrypt(t, alg, randStringCrypto()); err != nil {
 				t.Fatal(err)
 			}
 		}
-		// empty
+
 		if err := encryptAndDecrypt(t, alg, ""); err != nil {
 			t.Fatal(err)
 		}

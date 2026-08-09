@@ -29,8 +29,6 @@ export class DatCrypto {
         key: CryptoKey,
         config: CryptoConfig = getCryptoConfig(algorithm),
     ) {
-        // Same cross-check as `imports`, for keys handed in directly: WebCrypto is
-        // happy to encrypt with an AES-128 key under an IV-AES256-GCM label.
         const keyLength = (key?.algorithm as AesKeyAlgorithm|undefined)?.length;
         if (typeof keyLength === 'number' && keyLength !== config.length) {
             throw new DatError(DatErrorCodes.KEY_INVALID, `${algorithm} key must be ${config.length / 8} bytes, got ${keyLength / 8}`);
@@ -51,9 +49,6 @@ export class DatCrypto {
     static async imports(algorithm: string, base64: string): Promise<DatCrypto> {
         const config = getCryptoConfig(algorithm);
         const bytes = DatArrayBuffer.fromBase64Url(base64)
-        // WebCrypto accepts any valid AES length, so the declared algorithm has to
-        // be cross-checked or a 16-byte key would silently import as AES-128
-        // under an IV-AES256-GCM label.
         if (bytes.byteLength * 8 !== config.length) {
             throw new DatError(DatErrorCodes.KEY_INVALID, `${algorithm} key must be ${config.length / 8} bytes, got ${bytes.byteLength}`);
         }
@@ -104,9 +99,6 @@ export class DatCrypto {
                     { name: this.config.name, iv: bytes.subarray(0, 12) }, this.key, bytes.subarray(12)
                 );
             } catch (e) {
-                // WebCrypto 는 태그 불일치를 무정보 DOMException(OperationError) 으로 던진다.
-                // 그 예외가 그대로 공개 API 밖으로 나가던 자리다. parseWithoutVerify 경로에서는
-                // 이것이 유일한 무결성 검사다.
                 throw new DatError(DatErrorCodes.CRYPTO_TAG_MISMATCH, "gcm authentication tag mismatch", e);
             }
         }

@@ -11,7 +11,6 @@ _U64_MAX = 0xFFFFFFFFFFFFFFFF
 
 
 def _u64(name: str, value: int) -> int:
-    """Mirrors rust's u64 parameter domain for the certificate timings."""
     if not isinstance(value, int) or isinstance(value, bool):
         raise DatError(E.CERT_MALFORMED, f"{name} must be an integer")
     if value < 0 or value > _U64_MAX:
@@ -29,11 +28,6 @@ class DatCertificate:
             signature_key: DatSignature,
             crypto_key: DatCrypto
     ):
-        """Argument order matches dat-rust's ``DatCertificate::from``:
-        ``(cid, start, duration, ttl, signature_key, crypto_key)``.
-
-        The third argument is a *duration*, not an absolute end timestamp.
-        """
         self.cid = _u64("cid", cid)
         self._signature_key = signature_key
         self._crypto_key = crypto_key
@@ -72,7 +66,6 @@ class DatCertificate:
         if len(parts) != 8:
             raise DatError(E.CERT_MALFORMED, "expected exactly 8 dot-separated fields")
 
-        # 필드 파싱 실패는 인증서가 깨진 것이지 호출자의 인자 문제가 아니다.
         def _field(fn, raw, name):
             try:
                 return fn(raw)

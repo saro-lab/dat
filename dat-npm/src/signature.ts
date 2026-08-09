@@ -99,7 +99,6 @@ export class DatSignature {
                 const privateBytes = bytes.slice(0, privateLen);
                 const publicBytes = bytes.slice(privateLen);
 
-                // Import public key
                 verifyingKey = await crypto.subtle.importKey(
                     "raw", publicBytes,
                     { name: "ECDSA", namedCurve: config.namedCurve! },
@@ -107,8 +106,6 @@ export class DatSignature {
                     ["verify"]
                 );
 
-                // Import private key using JWK to include X, Y from publicBytes
-                // uncompressed point format: 0x04 || X || Y
                 const xBytes = publicBytes.slice(1, 1 + (publicLen - 1) / 2);
                 const yBytes = publicBytes.slice(1 + (publicLen - 1) / 2);
 
@@ -144,7 +141,6 @@ export class DatSignature {
 
     async exports(verifyOnly: boolean = false): Promise<string> {
         if (verifyOnly && !this.supportVerifyOnly()) {
-            // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SIG_KEY_MISSING 과 다르다.
             throw new DatError(DatErrorCodes.KEY_VERIFY_ONLY_UNSUPPORTED, this.algorithm);
         }
         if (this.config.name === "HMAC") {
@@ -155,7 +151,6 @@ export class DatSignature {
                 const bytes = await crypto.subtle.exportKey("raw", this.verifyingKey);
                 return DatArrayBuffer.toBase64Url(bytes);
             } else {
-                // Export private (raw) + public (raw uncompressed)
                 const jwk = await crypto.subtle.exportKey("jwk", this.signingKey);
                 const key = DatArrayBuffer.concat(DatArrayBuffer.fromBase64Url(jwk.d!), await crypto.subtle.exportKey("raw", this.verifyingKey))
                 return DatArrayBuffer.toBase64Url(key);

@@ -82,8 +82,6 @@ impl DatCertificate {
 
     pub fn export(&self, verify_only: bool) -> Result<String, DatError> {
         let mut ib = itoa::Buffer::new();
-        // cid[16].dat_issuance_start_seconds[20].dat_issuance_duration_seconds[20].dat_ttl_seconds[20].signature.crypto
-        // spare size = 4 + 16 + 20  + 20 + 20 = 80
         let mut v: String = String::with_capacity(
             80 +
                 self.signature.key_base64_len() + self.crypto.key_base64_len()
@@ -101,7 +99,6 @@ impl DatCertificate {
         v.push('.');
         v.push_str(self.crypto.algorithm().as_str());
         v.push('.');
-        // 키 재료가 담긴 임시 버퍼는 base64 로 옮긴 직후 소거한다. (반환되는 문자열은 호출부 책임)
         let mut signature_key = self.signature.export_key_option(verify_only)?;
         encode_base64_url_out(&signature_key, &mut v);
         signature_key.zeroize();

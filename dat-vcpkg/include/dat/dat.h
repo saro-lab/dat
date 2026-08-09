@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-/* dat_error_t 와 코드 문자열·재시도 분류는 여기서 온다. */
 #include "dat_error.h"
 
 #ifdef __cplusplus
@@ -50,7 +49,6 @@ typedef struct dat_signature dat_signature_t;
 typedef struct dat_certificate dat_certificate_t;
 typedef struct dat_manager dat_manager_t;
 
-/* Crypto */
 dat_error_t dat_crypto_new(dat_crypto_alg_t alg, dat_crypto_t** out);
 dat_error_t dat_crypto_from_key(dat_crypto_alg_t alg, const uint8_t* key, size_t key_len, dat_crypto_t** out);
 void dat_crypto_free(dat_crypto_t* crypto);
@@ -60,7 +58,6 @@ dat_error_t dat_crypto_export_key(const dat_crypto_t* crypto, uint8_t** key, siz
 dat_error_t dat_crypto_encrypt(const dat_crypto_t* crypto, const uint8_t* data, size_t data_len, uint8_t** out, size_t* out_len);
 dat_error_t dat_crypto_decrypt(const dat_crypto_t* crypto, const uint8_t* data, size_t data_len, uint8_t** out, size_t* out_len);
 
-/* Signature */
 dat_error_t dat_signature_new(dat_signature_alg_t alg, dat_signature_t** out);
 dat_error_t dat_signature_from_key(dat_signature_alg_t alg, const uint8_t* key, size_t key_len, dat_signature_t** out);
 void dat_signature_free(dat_signature_t* sig);
@@ -74,7 +71,6 @@ bool dat_signature_signable(const dat_signature_t* sig);
 bool dat_signature_support_verify_only(const dat_signature_t* sig);
 dat_error_t dat_signature_clone(const dat_signature_t* sig, dat_signature_t** out);
 
-/* Certificate */
 dat_error_t dat_certificate_create(uint64_t cid,
                                    uint64_t dat_issuance_start_seconds,
                                    uint64_t dat_issuance_duration_seconds,
@@ -94,7 +90,6 @@ dat_signature_alg_t dat_certificate_signature_algorithm(const dat_certificate_t*
 dat_crypto_alg_t dat_certificate_crypto_algorithm(const dat_certificate_t* cert);
 uint64_t dat_certificate_cid(const dat_certificate_t* cert);
 
-/* Manager */
 dat_manager_t* dat_manager_new(void);
 void dat_manager_free(dat_manager_t* manager);
 dat_error_t dat_manager_issue(dat_manager_t* manager, const char* plain, const char* secure, char** out);
@@ -103,16 +98,6 @@ dat_error_t dat_manager_parse_without_verify(dat_manager_t* manager, const char*
 dat_error_t dat_manager_export_cids(dat_manager_t* manager, uint64_t** cids, size_t* count);
 dat_error_t dat_manager_export(dat_manager_t* manager, bool verify_only, char** out);
 dat_error_t dat_manager_export_certificates(dat_manager_t* manager, dat_certificate_t*** certs, size_t* count);
-/* 발급 가능한 인증서가 없을 때 **왜** 없는지 묻는다. 발급 가능하면 DAT_SUCCESS.
- *
- * 예전에는 이 다섯 가지가 DAT_ERROR_MANAGER_ERROR 하나였다. 대응이 전부 다르다 —
- * 발급창 전이면 기다리면 되고(CERT_NOT_YET_ISSUABLE, 일시적), verify-only 뿐이면
- * 배포 설정 실수이며(CERT_VERIFY_ONLY), 0건이면 CMS 접속 문제다
- * (MANAGER_NO_CERTIFICATE).
- *
- * C 에는 예외 체이닝이 없어 dat_manager_issue() 가 돌려주는 코드 하나에 사유를
- * 실을 수 없다. 다른 공식 클라이언트와 코드 문자열을 맞추기 위해 issue() 는 계속
- * DAT_MANAGER_NO_ISSUABLE_CERTIFICATE 를 돌려주고, 사유는 이 함수로 따로 묻는다. */
 dat_error_t dat_manager_issuable_cause(dat_manager_t* manager);
 
 dat_error_t dat_manager_import(dat_manager_t* manager, const char* format, bool clear, size_t* count_out);
@@ -125,4 +110,4 @@ dat_error_t dat_manager_parse_without_verify_with_cert(const dat_certificate_t* 
 }
 #endif
 
-#endif /* DAT_H */
+#endif

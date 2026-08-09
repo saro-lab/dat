@@ -1,10 +1,5 @@
 namespace Saro.Dat.Tests;
 
-/// <summary>
-/// The manager holds native ECDSA handles through its certificates. Importing on
-/// a CMS refresh loop used to clone every held certificate and never release the
-/// previous ones, so the handles accumulated for as long as the process ran.
-/// </summary>
 public class DisposeTest
 {
     private static DatCertificate Generate(long cid) => DatCertificate.Generate(
@@ -20,7 +15,6 @@ public class DisposeTest
 
         manager.Dispose();
 
-        // The manager disposed its own copy; the caller's instance is untouched.
         Assert.DoesNotThrow(() => DatManager.Issue(cert, "plain", "secure"));
     }
 
@@ -32,7 +26,6 @@ public class DisposeTest
         manager.Imports([cert], true);
         manager.Dispose();
 
-        // 해제된 매니저는 락의 ObjectDisposedException 이 아니라 이 체계의 코드로 거부한다.
         Assert.That(Assert.Throws<DatException>(() => manager.ExportsIds())!.Code,
             Is.EqualTo(DatErrorCode.ManagerDisposed));
     }
@@ -52,7 +45,6 @@ public class DisposeTest
         var cert = Generate(1);
         cert.Dispose();
 
-        // 예전에는 crypto 쪽이 해제를 보지 않아 "서명은 죽고 복호화는 살아있는" 상태였다.
         Assert.That(Assert.Throws<DatException>(() => DatManager.Issue(cert, "plain", "secure"))!.Code,
             Is.EqualTo(DatErrorCode.ManagerDisposed));
     }
@@ -66,12 +58,9 @@ public class DisposeTest
             using var cert = Generate(1);
             string exported = cert.Exports(false);
 
-            // What a CMS sync loop does: the same bundle over and over.
             for (int i = 0; i < 50; i++) manager.Imports(exported, false);
 
             Assert.That(manager.ExportsIds(), Has.Count.EqualTo(1));
-            // Still usable after all those imports, i.e. the surviving certificate
-            // was never the one disposed.
             Assert.DoesNotThrow(() => manager.Issue("plain", "secure"));
         }
         finally { manager.Dispose(); }

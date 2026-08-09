@@ -40,5 +40,5 @@ func ToHexFromU64Out(n uint64, out *string) {
 }
 
 func ToUTF8(b []byte) (string, error) {
-	return string(b), nil // Go strings are always UTF-8 or can contain any bytes, but usually we just convert
+	return string(b), nil
 }

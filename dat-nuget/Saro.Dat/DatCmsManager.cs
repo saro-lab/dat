@@ -8,17 +8,12 @@ public class DatCmsManager : IDisposable
     private long _version;
     private readonly DatManager _manager;
     private readonly HttpClient _client;
-    // Only a client this instance created is disposed; an injected one belongs to
-    // the caller and is very likely shared.
     private readonly bool _ownsClient;
     private readonly PeriodicTimer? _timer;
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ILogger? _logger;
     private int _disposed;
-    // 마지막 동기화 실패. 최초 sync 실패를 삼키고 "인증서 0개 매니저"를 성공 반환하던
-    // 동작은 그대로 두되(list.md F-3), 실패가 로그로만 남던 것을 조회 가능하게 한다.
-    // 실측 결과 401·500·응답 손상 8/8 시나리오에서 BuildAsync 가 무증상이었다.
     private volatile DatException? _lastError = new(DatErrorCode.CmsNotSynced);
 
     private const string DatCmsApiVersion = "v1";
@@ -50,10 +45,6 @@ public class DatCmsManager : IDisposable
 
     public DatManager GetManager() => _manager;
 
-    /// <summary>
-    /// 마지막 동기화 실패. 한 번도 성공하지 못했으면 DAT_CMS_NOT_SYNCED, 정상이면 null.
-    /// 재시도 여부는 <c>LastError?.Retry</c> 로 판정한다.
-    /// </summary>
     public DatException? LastError => _lastError;
 
     public long GetVersion() => Interlocked.Read(ref _version);
@@ -77,7 +68,6 @@ public class DatCmsManager : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // Normal shutdown
         }
         catch (Exception e)
         {
@@ -95,7 +85,6 @@ public class DatCmsManager : IDisposable
         }
         catch (DatException e)
         {
-            // 상태 신호는 실패로 기록하지 않는다 — 이전 동기화가 도는 중일 뿐이다.
             if (e.Retry == DatRetry.State)
             {
                 _logger?.LogDebug("{Code}: {Url}", e.Code, _uri);
@@ -106,7 +95,6 @@ public class DatCmsManager : IDisposable
         }
         catch (OperationCanceledException)
         {
-            // 종료 중이다. 실패로 기록하지 않는다.
         }
         catch (Exception e)
         {
@@ -116,10 +104,6 @@ public class DatCmsManager : IDisposable
         }
     }
 
-    /// <summary>
-    /// 실패를 코드로 던진다. <see cref="Sync"/> 는 이것을 잡아 <see cref="LastError"/> 에
-    /// 담기만 한다 — BuildAsync 가 계속 성공 반환하는 기존 동작을 유지하기 위해서다.
-    /// </summary>
     private async Task SyncOrThrow()
     {
         if (!await _lock.WaitAsync(0))
@@ -141,19 +125,15 @@ public class DatCmsManager : IDisposable
             }
             catch (HttpRequestException e)
             {
-                // DNS 실패·연결 거부·TLS 실패가 전부 여기로 온다. 전부 일시적이다.
                 throw new DatException(DatErrorCode.CmsUnreachable, $"cannot reach {_uri}", e);
             }
             catch (TaskCanceledException e) when (!_cts.IsCancellationRequested)
             {
-                // 취소가 아니라 타임아웃이다.
                 throw new DatException(DatErrorCode.CmsUnreachable, $"request to {_uri} timed out", e);
             }
 
             using (response)
             {
-                // HTTP 상태를 갈라 낸다. 예전에는 전부 하나의 문자열이라 401(영구)에도
-                // 60초마다 영원히 재시도했다.
                 if (!response.IsSuccessStatusCode)
                 {
                     throw HttpStatusError((int)response.StatusCode);
@@ -176,7 +156,6 @@ public class DatCmsManager : IDisposable
                         throw new DatException(DatErrorCode.CmsMalformed, "version line is not a plain decimal integer");
                     }
 
-                    // 서버가 우리보다 과거 버전을 돌려주면 전체 재동기화 지시다.
                     if (newVersion < version)
                     {
                         _logger?.LogWarning("{Code}: {from} -> {to}", DatErrorCode.CmsVersionReset, version, newVersion);
@@ -190,7 +169,6 @@ public class DatCmsManager : IDisposable
                     }
                     catch (DatException e)
                     {
-                        // 인증서 적용 실패의 원인(CERT_*/KEY_*)을 버리지 않고 체이닝한다.
                         throw new DatException(DatErrorCode.CmsImportFailed, "cannot apply received certificates", e);
                     }
 
@@ -226,8 +204,6 @@ public class DatCmsManager : IDisposable
         _timer?.Dispose();
         _cts.Dispose();
         _lock.Dispose();
-        // The manager and its certificates were created here, so their native key
-        // handles are released here too.
         _manager.Dispose();
         if (_ownsClient) _client.Dispose();
     }
@@ -236,8 +212,6 @@ public class DatCmsManager : IDisposable
 
     public class DatCmsManagerBuilder
     {
-        // null until injected: the default client is created in BuildAsync so the
-        // built manager knows it owns it.
         private HttpClient? _client;
         private Uri _uri = new("http://localhost:8088");
         private string _token = "";

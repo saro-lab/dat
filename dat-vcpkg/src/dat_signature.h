@@ -12,7 +12,6 @@ typedef enum {
     DAT_SIG_FAMILY_HMAC
 } dat_sig_family_t;
 
-/* EVP_PKEY, forward declared so this internal header stays OpenSSL-free. */
 struct evp_pkey_st;
 
 struct dat_signature {
@@ -25,9 +24,6 @@ struct dat_signature {
             uint8_t pub_bytes[DAT_SIG_ECDSA_PUB_MAX];
             size_t  pub_len;
             int     has_private;
-            /* Built once at construction and then only read, so sign/verify do
-             * not rebuild the key on every call. Immutable + provider-native,
-             * which is what makes concurrent use from several threads safe. */
             struct evp_pkey_st* pkey;
         } ecdsa;
         struct {
@@ -37,4 +33,4 @@ struct dat_signature {
     };
 };
 
-#endif /* DAT_SIGNATURE_H */
+#endif

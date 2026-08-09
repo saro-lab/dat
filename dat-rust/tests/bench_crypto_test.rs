@@ -35,7 +35,7 @@ async fn crypto_copy_test() {
             encode = key.encrypt(text.as_bytes()).unwrap();
             len = len + encode.len();
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy encode * {loop_size} : {}ms", duration.as_millis());
         println!("encode: {}", encode_base64_url(&encode));
 
@@ -44,7 +44,7 @@ async fn crypto_copy_test() {
             decode = key.decrypt(encode.clone()).unwrap();
             len = len + encode.len();
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("${tag} copy encode * {loop_size} : {}ms", duration.as_millis());
         let decode_text = String::from_utf8_lossy(&*decode).to_string();
         println!("decode: {}", decode_text);

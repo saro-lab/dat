@@ -22,8 +22,6 @@ describe('DAT Example Test', () => {
         let payload = await manager.parse(dat);
         console.log(`payload: ${payload.plain} / ${payload.secure}`);
 
-
-        // get certificate
         let certificates = await manager.exports();
         await manager.imports(certificates, true);
 

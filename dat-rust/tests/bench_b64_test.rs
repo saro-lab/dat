@@ -28,7 +28,7 @@ async fn base64_zero_copy_test() {
         unsafe { encode.as_mut_vec().set_len(0) };
         encode_base64_url_out(&text, &mut encode)
     }
-    let duration = start.elapsed(); // 경과 시간 계산
+    let duration = start.elapsed();
     println!("Base64 zero copy encode * {loop_size} : {}ms", duration.as_millis());
     println!("encode: {}", encode);
 
@@ -37,7 +37,7 @@ async fn base64_zero_copy_test() {
         unsafe { decode.as_mut_vec().set_len(0) };
         decode_base64_url_out_str(&encode, &mut decode).unwrap();
     }
-    let duration = start.elapsed(); // 경과 시간 계산
+    let duration = start.elapsed();
     println!("Base64 zero copy encode * {loop_size} : {}ms", duration.as_millis());
     println!("decode: {}", decode);
 
@@ -67,7 +67,7 @@ async fn base64_copy_test() {
         encode = encode_base64_url(&text);
         len = len + encode.len();
     }
-    let duration = start.elapsed(); // 경과 시간 계산
+    let duration = start.elapsed();
     println!("Base64 copy encode * {loop_size} : {}ms", duration.as_millis());
     println!("encode: {}", encode);
 
@@ -76,7 +76,7 @@ async fn base64_copy_test() {
         decode = String::from_utf8(decode_base64_url(&encode).unwrap()).unwrap();
         len = len + encode.len();
     }
-    let duration = start.elapsed(); // 경과 시간 계산
+    let duration = start.elapsed();
     println!("Base64 copy encode * {loop_size} : {}ms", duration.as_millis());
     println!("decode: {}", decode);
     println!("len: {}", len);

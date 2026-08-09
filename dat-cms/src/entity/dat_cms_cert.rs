@@ -10,7 +10,6 @@ use sea_orm::sea_query::StringLen;
 use sea_orm::{ActiveModelBehavior, Set};
 use serde::{Deserialize, Serialize};
 
-// https://www.sea-ql.org/SeaORM/docs/generate-entity/column-types/
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]
 #[sea_orm(table_name = "z_saro_dat_cms_cert_v4")]
 pub struct Model {
@@ -87,9 +86,6 @@ impl ActiveModel {
             issuance_start: Set(issuance_start),
             issuance_duration: Set(issuance_duration),
             dat_ttl: Set(dat_ttl),
-            // A DAT issued at the very end of the issuance window stays valid for
-            // dat_ttl more seconds, so the certificate must outlive the window by
-            // that much or a verifier bootstrapping afterwards cannot verify it.
             expire: Set(issuance_start + issuance_duration + dat_ttl),
             ..Default::default()
         })

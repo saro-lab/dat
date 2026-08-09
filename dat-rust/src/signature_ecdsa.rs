@@ -33,8 +33,6 @@ pub(crate) fn from_or_new_ecdsa(new: bool, algorithm: DatSignatureAlgorithm, key
         let public_key = UnparsedPublicKey::new(va, Vec::from(key_pair.public_key().as_ref()));
         (Some(key_pair), public_key)
     } else if key.len() == private_len + public_len {
-        // 여기서 거부되는 것은 길이가 아니라 재료다 — 곡선 위에 없는 점,
-        // d 가 [1,n-1] 밖, 개인키·공개키 쌍 불일치.
         let key_pair = EcdsaKeyPair::from_private_key_and_public_key(sa, &key[..private_len], &key[private_len..])
             .map_err(|_| DatError::KeyInvalid("ecdsa private/public key material rejected"))?;
         let public_key = UnparsedPublicKey::new(va, Vec::from(key_pair.public_key().as_ref()));
@@ -74,7 +72,5 @@ pub(crate) fn sign_ecdsa(key_pair: &Option<EcdsaKeyPair>, data: &[u8]) -> Result
 
 
 pub(crate) fn verify_ecdsa(public_key: &UnparsedPublicKey<Vec<u8>>, body: &[u8], sign: &[u8]) -> Result<(), DatError> {
-    // aws-lc-rs 는 위조와 내부 오류를 같은 Unspecified 로 돌려주므로 더 나눌 수 없다.
-    // 보수적으로 불일치(보안 이벤트)로 본다 — 반대로 두면 위조가 묻힌다.
     public_key.verify(body, sign).map_err(|_| DatError::SigMismatch)
 }

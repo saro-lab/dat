@@ -1,11 +1,5 @@
 namespace Saro.Dat.Tests;
 
-/// <summary>
-/// dat-rust parses the numeric fields with u64::from_str / u64::from_str_radix,
-/// which accept digits and nothing else. long.Parse and Convert.ToInt64 used to
-/// accept a leading sign, surrounding whitespace and a "0x" prefix, so inputs
-/// every other port rejects decoded here.
-/// </summary>
 public class StrictParseTest
 {
     private static DatCertificate Generate() => DatCertificate.Generate(
@@ -19,8 +13,8 @@ public class StrictParseTest
         return string.Join('.', parts);
     }
 
-    [TestCase(" ")]     // leading whitespace
-    [TestCase("+")]     // explicit sign
+    [TestCase(" ")]
+    [TestCase("+")]
     public void DatExpireRejectsNonDigits(string prefix)
     {
         using var cert = Generate();
@@ -61,10 +55,10 @@ public class StrictParseTest
         Assert.That(payload.Secure, Is.EqualTo("secure"));
     }
 
-    [TestCase(1, " 100")]       // issuance start, leading whitespace
-    [TestCase(1, "+100")]       // issuance start, explicit sign
-    [TestCase(2, "-1")]         // duration, negative
-    [TestCase(3, "6 0")]        // ttl, embedded whitespace
+    [TestCase(1, " 100")]
+    [TestCase(1, "+100")]
+    [TestCase(2, "-1")]
+    [TestCase(3, "6 0")]
     public void CertificateFieldsRejectNonDigits(int index, string value)
     {
         using var cert = Generate();

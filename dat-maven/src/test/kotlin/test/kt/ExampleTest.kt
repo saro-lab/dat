@@ -17,7 +17,6 @@ import java.util.List
 class ExampleTest {
     @Test
     fun selfTest() {
-        // Singleton Manager
         val manager = newInstance()
 
         val unixTime = now()
@@ -33,19 +32,15 @@ class ExampleTest {
 
         manager.imports(List.of<DatCertificate>(certificate), false)
 
-
-        // example data
         val plainData = "plain data 유니코드 !!! ABCD"
         val secureData = ">! secure data 암호화 데이터 @@@@"
 
         println("plain : " + plainData)
         println("secure : " + secureData)
 
-        // issue dat
         val dat = manager.issue(plainData, secureData).getOrThrow()
         println("dat : " + dat)
 
-        // parse dat
         val payload = manager.parse(dat).getOrThrow()
 
         val payloadPlain = payload.plain
@@ -58,17 +53,11 @@ class ExampleTest {
         assert(secureData == payloadSecure)
     }
 
-    // @Test
     @Throws(IOException::class, InterruptedException::class)
     fun useDatCms() {
-        // BEFORE: install dat-cms
-        // See: https://dat.saro.me/svc/docker-saro-lab-dat-cms
-
-        // Singleton Manager
 
         val manager = newInstance()
 
-        // get certificate from dat-cms
         val client = HttpClient.newHttpClient()
         val request = HttpRequest.newBuilder()
             .uri(URI.create("http://localhost:8088/certificates"))
@@ -77,22 +66,18 @@ class ExampleTest {
         println("get certificate :")
         println(body)
 
-        // import certificate
         manager.imports(body, false)
         println("certificate " + manager.exportsIds().size + " imported.")
 
-        // example data
         val plainData = "plain data 유니코드 !!! ABCD"
         val secureData = ">! secure data 암호화 데이터 @@@@"
 
         println("plain : " + plainData)
         println("secure : " + secureData)
 
-        // issue dat
         val dat = manager.issue(plainData, secureData).getOrThrow()
         println("dat : " + dat)
 
-        // parse dat
         val payload = manager.parse(dat).getOrThrow()
 
         val payloadPlain = payload.plain
@@ -105,11 +90,7 @@ class ExampleTest {
         assert(secureData == payloadSecure)
     }
 
-
-    //@Test
     fun useDatFormat() {
-        // Singleton Manager
-
 
         val manager = newInstance()
 
@@ -125,22 +106,17 @@ class ExampleTest {
                     "8.P256.iOEL5ERwtTmmmp7A4sVhDkTedhi4e6F53wG2xDRDEoE.AES128GCMN.VgojardW72K2jkbqNafegw.1.17781627851.1800\n" +
                     "9.P256.VPGAAvJhJ1KXkdPvz1AiWEHiCVR9u8KME0AOUso3-vI.AES128GCMN.Mfx6GnQZUzC0N4q0eB6PXQ.1.17781627851.1800"
 
-        // import
         manager.imports(format, false)
 
-
-        // example data
         val plainData = "plain data 유니코드 !!!"
         val secureData = ">! secure data 암호화 데이터"
 
         println("plain : " + plainData)
         println("secure : " + secureData)
 
-        // to dat
         val dat = manager.issue(plainData, secureData).getOrThrow()
         println("dat : " + dat)
 
-        // dat to payload
         val payload = manager.parse(dat).getOrThrow()
 
         val payloadPlain = payload.plain

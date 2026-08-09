@@ -59,26 +59,20 @@ import { computed } from 'vue'
 
 export type CertPhase = {
   label: string
-  /** Relative width of the band. */
   weight: number
-  /** `issue` is the only band that can mint new tokens; `ttl` only verifies. */
   kind?: 'delay' | 'issue' | 'ttl' | 'expired' | 'plain'
-  /** Small caption printed under the band. */
   note?: string
 }
 
 const props = defineProps<{
   phases: CertPhase[]
-  /** Boundary captions, left to right — one more than `phases` when every edge is named. */
   marks?: string[]
   title?: string
-  /** Sentence printed under the whole timeline. */
   caption?: string
 }>()
 
 const marks = computed(() => props.marks ?? [])
 
-/** Cumulative boundary positions in percent: `[0, …, 100]`. */
 const bounds = computed(() => {
   const total = props.phases.reduce((sum, p) => sum + (p.weight || 0), 0) || 1
   const out = [0]
@@ -90,7 +84,6 @@ const bounds = computed(() => {
   return out
 })
 
-/** The first and last marks hug the ends so they never overflow the canvas. */
 function markAlign(i: number): string {
   if (i === 0) {
     return 'start'
@@ -145,9 +138,6 @@ function markAlign(i: number): string {
 .ct-bars {
     @apply flex items-stretch gap-0.5;
 }
-/* 구간 색은 권한의 성격을 나눈다: delay는 아직 아무것도 못 하는 대기,
-   issue는 발급 가능(액센트), ttl은 발급은 끝났지만 검증은 되는 잔여 구간,
-   expired는 완전히 끝난 뒤라 중립으로 눌러 둔다. */
 .ct-bar {
     @apply relative flex items-center justify-center rounded-md px-2 basis-0 min-w-0;
     --ct-color: var(--c-muted);

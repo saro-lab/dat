@@ -65,27 +65,20 @@ import { computed } from 'vue'
 
 export type ArchKind = 'client' | 'issuer' | 'verifier' | 'service' | 'plain'
 
-/** A plain string takes the group's `kind`/`icon`; an object overrides them per box. */
 export type ArchItem =
   | string
   | {
       label: string
       kind?: ArchKind
-      /** Material Symbols name for this box only. */
       icon?: string
-      /** Small badge inside the box, e.g. the box's DAT permission. */
       note?: string
     }
 
 export type ArchGroup = {
-  /** Dashed-box caption, e.g. `Service`. Omit for a bare column such as the client. */
   title?: string
-  /** One rounded box per entry. */
   items: ArchItem[]
   kind?: ArchKind
-  /** Material Symbols name used by every box that doesn't set its own. */
   icon?: string
-  /** Draws a certificate-distribution rail from the CMS down onto this group. */
   cert?: boolean
 }
 
@@ -96,23 +89,19 @@ export type ArchLink = {
 
 export type ArchCms = {
   label: string
-  /** Small caption under the CMS box. */
   note?: string
-  /** Label printed above the distribution rail, e.g. `certificate sync`. */
   linkLabel?: string
   icon?: string
 }
 
 const props = defineProps<{
   groups: ArchGroup[]
-  /** `links[i]` sits between `groups[i]` and `groups[i + 1]`. */
   links?: ArchLink[]
   cms?: ArchCms
 }>()
 
 const links = computed(() => props.links ?? [])
 
-/** Fills each box in with the group's defaults so the template reads one shape. */
 function boxes(group: ArchGroup) {
   return group.items.map((item) => {
     const box = typeof item === 'string' ? {label: item} : item
@@ -125,15 +114,12 @@ function boxes(group: ArchGroup) {
   })
 }
 
-/** Groups and the gaps between them interleave, so `n` groups need `2n - 1` columns. */
 const colCount = computed(() => Math.max(props.groups.length * 2 - 1, 1))
 
-/** 1-based grid column of each group that receives certificates from the CMS. */
 const certCols = computed(() =>
   props.groups.flatMap((g, i) => (g.cert ? [i * 2 + 1] : [])),
 )
 
-/** The rail spans from the first cert group to the last, inclusive. */
 const railSpan = computed(() => {
   const cols = certCols.value
   if (!cols.length) {
@@ -150,9 +136,6 @@ const railSpan = computed(() => {
     @apply overflow-x-auto rounded-lg;
     background: color-mix(in srgb, currentColor 5%, transparent);
 }
-/* 내용 폭으로 잡되 컨테이너보다 좁으면 100%로 늘려 가운데 정렬을 유지한다.
-   overflow 중인 flex/grid를 center로 두면 양쪽으로 삐져나가 시작 쪽이 스크롤로
-   닿지 않는 자리에 갇힌다 — min-width로 그 상황을 원천 차단한다. */
 .arch {
     @apply grid justify-center items-end px-4 py-5;
     width: max-content;
@@ -180,7 +163,6 @@ const railSpan = computed(() => {
     color: var(--c-text-2);
 }
 
-/* 레일에서 그룹으로 내려꽂히는 수직 스텁 — 끝에 삼각형 화살촉을 붙인다. */
 .arch-rail-v {
     @apply relative mx-auto;
     width: 1.5px;
@@ -197,8 +179,6 @@ const railSpan = computed(() => {
     }
 }
 
-/* 인증서를 받는 열은 위로 붙여 레일 화살촉이 상자 윗면에 정확히 닿게 하고,
-   나머지 열(클라이언트 등)은 세로 가운데로 맞춰 옆의 화살표와 눈높이를 맞춘다. */
 .arch-col {
     @apply flex flex-col justify-center shrink-0 self-center;
 
@@ -207,8 +187,6 @@ const railSpan = computed(() => {
     }
 }
 
-/* 라벨은 줄바꿈하지 않으므로 열 너비를 라벨에 맞춰 늘린다 — 고정 폭으로 두면
-   14개 언어 중 긴 문장이 양옆 상자 위로 삐져나간다. */
 .arch-link {
     @apply relative flex flex-col justify-end shrink-0 self-center px-2;
     min-width: 7rem;
@@ -247,7 +225,6 @@ const railSpan = computed(() => {
     @apply flex flex-col gap-1.5 rounded-xl p-2.5 pt-2;
     border: 1.5px dashed color-mix(in srgb, currentColor 25%, transparent);
 
-    /* 제목 없는 단독 열(클라이언트 등)은 점선 상자로 묶을 게 없다 */
     &.plain,
     &.client {
         @apply border-transparent p-1;
@@ -260,7 +237,6 @@ const railSpan = computed(() => {
         border-color: color-mix(in srgb, var(--c-link-1) 55%, transparent);
         background: color-mix(in srgb, var(--c-link-1) 5%, transparent);
     }
-    /* 역할이 섞인 상자를 담는 중립 테두리 — 안쪽 상자 색이 주인공이다. */
     &.service {
         @apply gap-2 p-3 pt-2;
         border-color: color-mix(in srgb, currentColor 32%, transparent);
@@ -284,7 +260,6 @@ const railSpan = computed(() => {
     }
 }
 
-/* 상자 안 권한 배지 — 같은 그룹 안에서 발급/검증을 구분해 읽게 한다. */
 .arch-tag {
     @apply rounded px-1.5 py-0.5 font-semibold;
     font-size: 10px;

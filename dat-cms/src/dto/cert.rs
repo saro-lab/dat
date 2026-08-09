@@ -33,8 +33,6 @@ pub struct ListCertificatesQuery {
     pub verify_only: bool,
 }
 
-/// Upper bound for certificate timing parameters (~10 years), keeping
-/// `issuance_start + duration + ttl` far away from i64 overflow.
 pub const MAX_SECONDS: i64 = 315_360_000;
 
 #[derive(Clone)]
@@ -47,11 +45,6 @@ pub struct RegisterCertificateCommand {
 }
 
 impl RegisterCertificateCommand {
-    /// 알고리즘 이름이 우리가 아는 것인지 본다.
-    ///
-    /// **미지원 알고리즘은 클라이언트 입력 오류이므로 400 이다.** 예전에는 이 검증이
-    /// 없어 서비스 계층까지 내려갔고, 거기서 난 `DAT_CONFIG_ALG_UNSUPPORTED` 가
-    /// 500 으로 보고됐다. 여기서 `DAT_REQ_ALG_UNSUPPORTED` 로 바꿔 400 으로 내보낸다.
     pub fn validate_algorithms(&self) -> ApiResult<()> {
         for (kind, name) in [
             ("signature", &self.signature_algorithm),
@@ -70,9 +63,6 @@ impl RegisterCertificateCommand {
         Ok(())
     }
 
-    /// These land in the DB as-is and are later cast with `as u64`, so a negative
-    /// value would become an astronomical timestamp. The upper bound keeps both
-    /// `now + delay` and `issuance_start + duration + ttl` from wrapping i64.
     pub fn validate(&self) -> Result<(), &'static str> {
         if self.certificate_propagation_delay_seconds < 0 {
             return Err("certificate_propagation_delay_seconds must not be negative");

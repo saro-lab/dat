@@ -22,7 +22,6 @@ async fn ecdsa() {
     let mut text = "가나다".to_string();
     text.push_str(&rand_string());
     let mut sign = Box::from(vec![0u8; 0]);
-    //println!("text: {}", text);
 
     println!("ECDSA");
 
@@ -37,18 +36,16 @@ async fn ecdsa() {
             sign = key.sign(text.as_bytes()).unwrap();
             len = len + 1;
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy sign * {loop_size} : {}ms", duration.as_millis());
-        //println!("sign: {}", encode_base64_url(&sign));
 
         let start = Instant::now();
         for _ in 0..loop_size {
             key.verify(text.as_bytes(), &*sign).unwrap();
             len = len + 1;
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy verify * {loop_size} : {}ms", duration.as_millis());
-        //println!("len: {}", len);
 
         assert_eq!(loop_size * 2, len);
 
@@ -67,7 +64,6 @@ async fn ring() {
 
     let mut text = "가나다".to_string();
     text.push_str(&rand_string());
-    //println!("text: {}", text);
 
     println!("RING");
 
@@ -86,18 +82,12 @@ async fn ring() {
 
         let key_pair = signature::EcdsaKeyPair::from_pkcs8(sa, pkcs8.as_ref(), &rng).unwrap();
 
-        //let pri_key = pkcs8.as_ref().to_vec();
         let pub_key: Vec<u8> = ring::signature::KeyPair::public_key(&key_pair).as_ref().to_vec();
-
-        //println!("{tag} pri_key size: {}", pri_key.len());
-        //println!("{tag} pub_key size: {}", pub_key.len());
 
         let pub_key: signature::UnparsedPublicKey<&Vec<u8>> = signature::UnparsedPublicKey::new(va, &pub_key);
 
 
         let mut len = 0;
-        //let tag = format!("{}", alg);
-        //let key = DatSignatureKey::generate(*alg);
         let mut sign: signature::Signature = key_pair.sign(&rng, text.as_bytes()).unwrap();
 
         let start = Instant::now();
@@ -105,18 +95,16 @@ async fn ring() {
             sign = key_pair.sign(&rng, text.as_bytes()).unwrap();
             len = len + 1;
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy sign * {loop_size} : {}ms", duration.as_millis());
-        //println!("sign: {}", encode_base64_url(&sign));
 
         let start = Instant::now();
         for _ in 0..loop_size {
             pub_key.verify(text.as_bytes(), sign.as_ref()).unwrap();
             len = len + 1;
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy verify * {loop_size} : {}ms", duration.as_millis());
-        //println!("len: {}", len);
 
         assert_eq!(loop_size * 2, len);
     });
@@ -134,7 +122,6 @@ async fn aws() {
 
     let mut text = "가나다".to_string();
     text.push_str(&rand_string());
-    //println!("text: {}", text);
 
     println!("AWS");
 
@@ -154,18 +141,12 @@ async fn aws() {
 
         let key_pair = aws_lc_rs::signature::EcdsaKeyPair::from_pkcs8(sa, pkcs8.as_ref()).unwrap();
 
-        //let pri_key = pkcs8.as_ref().to_vec();
         let pub_key: Vec<u8> = key_pair.public_key().as_ref().to_vec();
-
-        //println!("{tag} pri_key size: {}", pri_key.len());
-        //println!("{tag} pub_key size: {}", pub_key.len());
 
         let pub_key: aws_lc_rs::signature::UnparsedPublicKey<&Vec<u8>> = aws_lc_rs::signature::UnparsedPublicKey::new(va, &pub_key);
 
 
         let mut len = 0;
-        //let tag = format!("{}", alg);
-        //let key = DatSignatureKey::generate(*alg);
         let mut sign: aws_lc_rs::signature::Signature = key_pair.sign(&rng, text.as_bytes()).unwrap();
 
         let start = Instant::now();
@@ -173,18 +154,16 @@ async fn aws() {
             sign = key_pair.sign(&rng, text.as_bytes()).unwrap();
             len = len + 1;
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy sign * {loop_size} : {}ms", duration.as_millis());
-        //println!("sign: {}", encode_base64_url(&sign));
 
         let start = Instant::now();
         for _ in 0..loop_size {
             pub_key.verify(text.as_bytes(), sign.as_ref()).unwrap();
             len = len + 1;
         }
-        let duration = start.elapsed(); // 경과 시간 계산
+        let duration = start.elapsed();
         println!("{tag} copy verify * {loop_size} : {}ms", duration.as_millis());
-        //println!("len: {}", len);
 
         assert_eq!(loop_size * 2, len);
     });

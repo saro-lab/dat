@@ -62,14 +62,8 @@ pub async fn generate_certificate(
         dat_issuance_duration_seconds,
         dat_ttl_seconds,
     };
-    // 알고리즘 이름을 라우트 진입 시점에 검증한다. 예전에는 여기를 지나 서비스
-    // 계층까지 내려가 `DatSignatureAlgorithm::from_str` 이 실패했고, 그 결과 명백한
-    // 클라이언트 입력 오류가 **500** 으로 보고됐다.
-    // 실측: POST /v1/cert/BOGUS-ALG/... -> 500 {"code":"500"}
     cmd.validate_algorithms()?;
     if let Err(reason) = cmd.validate() {
-        // `details` must stay `Value` here: ApiError::into_response downcasts to
-        // the default `Api<Value, Value>`, and any other shape falls through to 500.
         return Err(Api::bad_request().details(serde_json::Value::from(reason)).into());
     }
     let (new_cid, delete_count) = cert_service::register(cmd, db()).await?;

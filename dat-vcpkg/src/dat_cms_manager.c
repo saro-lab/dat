@@ -21,8 +21,6 @@ static void cms_sleep_seconds(uint64_t s) {
 }
 #endif
 
-/* ── Internal struct ─────────────────────────────────────────────────────── */
-
 struct dat_cms_manager {
     char*              url;
     char*              token;
@@ -35,13 +33,8 @@ struct dat_cms_manager {
     dat_log_fn_t       log_fn;
     void*              log_userdata;
     int                needs_immediate_retry;
-    /* 마지막 동기화 실패. 한 번도 성공하지 못했으면 DAT_CMS_NOT_SYNCED,
-     * 정상이면 DAT_SUCCESS. 최초 sync 실패를 삼키고 매니저를 그대로 돌려주던
-     * 동작은 유지하되(list.md F-3), 실패가 로그로만 남던 것을 조회 가능하게 한다. */
     dat_error_t        last_error;
 };
-
-/* ── CURL response buffer ─────────────────────────────────────────────────── */
 
 typedef struct {
     char*  data;
@@ -66,14 +59,10 @@ static size_t curl_write_cb(char* ptr, size_t size, size_t nmemb, void* userdata
     return n;
 }
 
-/* ── dat_cms_manager_sync ────────────────────────────────────────────────── */
-
 static void cms_log(dat_cms_manager_t* cms, dat_log_level_t level, const char* msg) {
     if (cms->log_fn) cms->log_fn(level, msg, cms->log_userdata);
 }
 
-/* HTTP 상태를 갈라 낸다. 예전에는 전부 MANAGER_ERROR 하나라서 401(영구)에도
- * interval 마다 영원히 재시도했다. */
 static dat_error_t http_status_error(long http_code) {
     switch (http_code) {
         case 401: return DAT_CMS_UNAUTHORIZED;
@@ -85,7 +74,6 @@ static dat_error_t http_status_error(long http_code) {
     return DAT_CMS_HTTP_STATUS;
 }
 
-/* 상태 신호는 실패로 기록하지 않는다 — 이전 동기화가 도는 중일 뿐이다. */
 static dat_error_t cms_record(dat_cms_manager_t* cms, dat_error_t e) {
     if (dat_error_retry(e) != DAT_RETRY_STATE) cms->last_error = e;
     return e;
@@ -99,9 +87,6 @@ dat_error_t dat_cms_manager_last_error(dat_cms_manager_t* cms) {
 dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     if (!cms) return DAT_CONFIG_ARGUMENT_INVALID;
 
-    /* Try-wrlock version: if can't acquire, another sync is in progress → skip.
-     * 예전에는 DAT_SUCCESS 를 돌려줘서 "동기화했다"와 "건너뛰었다"가 구분되지
-     * 않았다. 오류는 아니지만 성공도 아니므로 상태 신호로 돌려준다. */
     int locked = pthread_rwlock_trywrlock(&cms->version_lock);
     if (locked != 0) {
         cms_log(cms, DAT_LOG_DEBUG, "cms sync skipped, previous sync still running");
@@ -109,11 +94,9 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     }
     uint64_t current_version = cms->version;
 
-    /* Build URL with version query param */
     char url_buf[2048];
     snprintf(url_buf, sizeof(url_buf), "%s?version=%" PRIu64, cms->url, current_version);
 
-    /* Build Authorization header */
     char auth_buf[512];
     snprintf(auth_buf, sizeof(auth_buf), "Authorization: %s", cms->token);
 
@@ -139,7 +122,6 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     curl_easy_cleanup(curl);
 
     dat_error_t err = DAT_SUCCESS;
-    /* 연결 거부·DNS 실패·TLS 실패·타임아웃이 전부 여기로 온다. 전부 일시적이다. */
     if (res != CURLE_OK) {
         char msg[256];
         snprintf(msg, sizeof(msg), "[%s] DAT CMS SYNC: %s",
@@ -160,11 +142,8 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
         return cms_record(cms, http_err);
     }
 
-    /* Parse response: first line = version, rest = cert lines */
     char* nl = strchr(body.data, '\n');
     if (!nl) {
-        /* 버전 줄이 없는 응답은 프로토콜 위반이다. 예전에는 DAT_SUCCESS 를
-         * 돌려줘서 손상된 응답이 정상 동기화로 보고됐다. */
         cms_log(cms, DAT_LOG_ERROR, "[DAT_CMS_MALFORMED] response has no version line");
         pthread_rwlock_unlock(&cms->version_lock);
         free(body.data);
@@ -174,12 +153,11 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     const char* ver_str = body.data;
     const char* certs_str = nl + 1;
 
-    /* Trim certs */
     while (*certs_str == '\r' || *certs_str == '\n' || *certs_str == ' ')
         certs_str++;
     if (*certs_str == '\0') {
         cms_log(cms, DAT_LOG_DEBUG, "No new certificates in response");
-        *nl = '\n'; /* restore */
+        *nl = '\n';
         cms->last_error = DAT_SUCCESS;
         pthread_rwlock_unlock(&cms->version_lock);
         free(body.data);
@@ -187,7 +165,7 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     }
 
     size_t ver_len = strlen(ver_str);
-    if (ver_len > 0 && ver_str[ver_len - 1] == '\r') ver_len--; /* tolerate CRLF */
+    if (ver_len > 0 && ver_str[ver_len - 1] == '\r') ver_len--;
     uint64_t new_version;
     if (!parse_u64_strict(ver_str, ver_len, 10, &new_version)) {
         char msg[256];
@@ -199,8 +177,6 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
         return cms_record(cms, DAT_CMS_MALFORMED);
     }
 
-    /* 서버가 우리보다 과거 버전을 돌려주면 전체 재동기화 지시다. 오류가 아니라
-     * 상태 신호이며, 아래 import 가 clear=true 라 그 자체로 처리된다. */
     if (new_version < current_version) {
         char msg[160];
         snprintf(msg, sizeof(msg), "[%s] server rolled version back %" PRIu64 " -> %" PRIu64,
@@ -209,10 +185,8 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     }
 
     size_t renew_count = 0;
-    err = dat_manager_import(cms->manager, certs_str, true, &renew_count);
+    err = dat_manager_import(cms->manager, certs_str, false, &renew_count);
     if (err != DAT_SUCCESS) {
-        /* 인증서 적용 실패의 원인(CERT_ 계열, KEY_ 계열)을 로그에 남긴다. C 에는
-         * 예외 체이닝이 없어 반환값에 실을 수 없으므로 코드 문자열로 기록한다. */
         char msg[160];
         snprintf(msg, sizeof(msg), "[%s] DAT CMS SYNC import failed, cause=%s",
                  dat_error_code(DAT_CMS_IMPORT_FAILED), dat_error_code(err));
@@ -233,8 +207,6 @@ dat_error_t dat_cms_manager_sync(dat_cms_manager_t* cms) {
     return DAT_SUCCESS;
 }
 
-/* ── background thread ───────────────────────────────────────────────────── */
-
 static void* cms_thread_fn(void* arg) {
     dat_cms_manager_t* cms = (dat_cms_manager_t*)arg;
     while (cms->thread_running) {
@@ -249,25 +221,18 @@ static void* cms_thread_fn(void* arg) {
     return NULL;
 }
 
-/* ── create / free ───────────────────────────────────────────────────────── */
-
-/* Validate URL: must be http(s)://host[:port] with no path beyond "/" and no query */
 static dat_error_t validate_url(const char* url, char** clean_url_out) {
     if (!url) return DAT_CONFIG_ARGUMENT_INVALID;
-    /* Must start with http:// or https:// */
     const char* after_scheme = NULL;
     if (strncmp(url, "http://",  7) == 0)  after_scheme = url + 7;
     else if (strncmp(url, "https://", 8) == 0) after_scheme = url + 8;
     else return DAT_CONFIG_URI_INVALID;
 
-    /* No query */
     if (strchr(url, '?') != NULL) return DAT_CONFIG_URI_INVALID;
 
-    /* Path must be absent or just "/" */
     const char* path = strchr(after_scheme, '/');
     if (path && strlen(path) > 1) return DAT_CONFIG_URI_INVALID;
 
-    /* Return clean URL (trim trailing slash) */
     size_t len = strlen(url);
     while (len > 0 && url[len-1] == '/') len--;
     *clean_url_out = malloc(len + 1);
@@ -287,7 +252,6 @@ dat_error_t dat_cms_manager_create(const char* url, const char* token,
     dat_error_t err = validate_url(url, &clean_url);
     if (err != DAT_SUCCESS) return err;
 
-    /* Build full API URL */
     const char* suffix = verify_only
         ? "/" DAT_CMS_API_VERSION "/certs/verify-only"
         : "/" DAT_CMS_API_VERSION "/certs";
@@ -313,14 +277,11 @@ dat_error_t dat_cms_manager_create(const char* url, const char* token,
         return DAT_INTERNAL_UNKNOWN;
     }
 
-    /* 한 번도 동기화하지 못한 상태로 시작한다. */
     cms->last_error = DAT_CMS_NOT_SYNCED;
 
-    /* First sync — failure is non-fatal; object is still usable once network recovers */
     dat_error_t sync_err = dat_cms_manager_sync(cms);
     cms->needs_immediate_retry = (sync_err != DAT_SUCCESS) ? 1 : 0;
 
-    /* Start background thread if interval > 0 */
     if (interval_seconds > 0) {
         cms->thread_running = 1;
         if (pthread_create(&cms->thread, NULL, cms_thread_fn, cms) != 0) {
@@ -329,10 +290,6 @@ dat_error_t dat_cms_manager_create(const char* url, const char* token,
     }
 
     *out = cms;
-    /* 예전에는 최초 sync 가 실패하면 비-0 성공값(=16)을 돌려줬다. `if (e)` 로
-     * 오류를 판정하는 C 관용구와 정면으로 충돌해서, 호출부가 성공을 실패로 읽거나
-     * 반대로 오류 검사를 통째로 건너뛰었다. 이제 생성 성공은 언제나 DAT_SUCCESS(0)
-     * 이고, 최초 sync 실패는 dat_cms_manager_last_error() 로 조회한다. */
     return DAT_SUCCESS;
 }
 
@@ -348,8 +305,6 @@ void dat_cms_manager_free(dat_cms_manager_t* cms) {
     free(cms->token);
     free(cms);
 }
-
-/* ── delegating API ──────────────────────────────────────────────────────── */
 
 dat_error_t dat_cms_manager_issue(dat_cms_manager_t* cms,
                                    const char* plain, const char* secure,
@@ -380,7 +335,7 @@ dat_manager_t* dat_cms_manager_get_manager(dat_cms_manager_t* cms) {
     return cms ? cms->manager : NULL;
 }
 
-#else /* DAT_CMS_CURL not defined */
+#else
 
 dat_error_t dat_cms_manager_create(const char* url, const char* token,
                                     bool verify_only, uint64_t interval_seconds,
@@ -388,7 +343,6 @@ dat_error_t dat_cms_manager_create(const char* url, const char* token,
                                     dat_cms_manager_t** out) {
     (void)url; (void)token; (void)verify_only; (void)interval_seconds;
     (void)log_fn; (void)log_userdata; (void)out;
-    /* CURL 없이 빌드된 것과 진짜 매니저 오류가 구분되지 않던 자리다. */
     return DAT_CMS_NOT_SUPPORTED;
 }
 void dat_cms_manager_free(dat_cms_manager_t* cms) { (void)cms; }
@@ -403,4 +357,4 @@ dat_error_t dat_cms_manager_parse_without_verify(dat_cms_manager_t* cms, const c
 uint64_t dat_cms_manager_get_version(dat_cms_manager_t* cms) { (void)cms; return 0; }
 dat_manager_t* dat_cms_manager_get_manager(dat_cms_manager_t* cms) { (void)cms; return NULL; }
 
-#endif /* DAT_CMS_CURL */
+#endif

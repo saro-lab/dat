@@ -20,7 +20,6 @@ const props = defineProps<{
 }>();
 
 const { page } = useData();
-/** Falls back to the current page's library repo link when `href` isn't passed explicitly. */
 const resolvedHref = computed(() => props.href ?? findLibraryByPath(page.value.relativePath)?.repo ?? '');
 </script>
 

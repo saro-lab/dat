@@ -23,7 +23,6 @@ fn test_key(alg: DatSignatureAlgorithm) -> Result<(), DatError> {
     let verify = parse_key.verify(rand_string.as_bytes(), &*decode_base64_url(sign.clone())?).is_ok();
     println!("{tag} Verify {}", rand_string);
     assert!(verify);
-    // verifying only key test
     match alg {
         EcdsaP256 | EcdsaP384 | EcdsaP521 => {
             let key_b = key.export_verify_only_key()?;

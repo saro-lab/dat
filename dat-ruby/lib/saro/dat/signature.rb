@@ -48,8 +48,6 @@ module Saro
         if priv_bn
           group = OpenSSL::PKey::EC::Group.new(curve_name)
 
-          # d must be in [1, n-1]; OpenSSL would otherwise happily build a key
-          # whose signatures can never verify.
           if priv_bn <= 0 || priv_bn >= group.order
             raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::KEY_INVALID, "ecdsa private scalar out of range [1, n-1]")
           end
@@ -64,10 +62,6 @@ module Saro
           ])
           key = OpenSSL::PKey::EC.new(asn1.to_der)
 
-          # Cross-check that the imported public point really belongs to the
-          # private scalar. Without this a mismatched pair imports cleanly and
-          # produces signatures that can never verify (rust's
-          # EcdsaKeyPair::from_private_key_and_public_key rejects it at import).
           begin
             key.check_key
           rescue OpenSSL::PKey::PKeyError, OpenSSL::PKey::ECError => e
@@ -179,15 +173,10 @@ module Saro
         end
       end
 
-      # Verifies a raw (already decoded) signature.
-      # Use #verify_base64 for a base64url-encoded signature: the branch used to
-      # be picked from the string's encoding tag, so a raw signature that merely
-      # carried a UTF-8 tag was silently run through the base64 decoder.
       def verify(body, signature)
         verify_bytes(body, signature)
       end
 
-      # Verifies a base64url-encoded signature.
       def verify_base64(body, signature_base64)
         sig_bytes = begin
           Saro::Dat::Util.decode_base64_url(signature_base64)
@@ -201,33 +190,25 @@ module Saro
         body = normalize_body(body)
         return false if body.nil? || body.empty?
 
-        # Same reason as DatCrypto#decrypt: the raw signature is split in half by
-        # byte offset, which String#[] only honours on a binary string.
         sig_bytes = sig_bytes.b if sig_bytes.is_a?(String) && sig_bytes.encoding != Encoding::BINARY
 
-        # false 는 "서명이 안 맞는다"만 뜻한다. 예전에는 `rescue StandardError => false`
-        # 가 잘못된 키 타입·손상된 핸들·라이브러리 버그까지 전부 삼켜서 프로그래밍
-        # 오류가 위조 시도로 보고됐다. 그래서 연산 실패는 SIG_BACKEND 로 갈라 낸다.
         if @config[:name] == "HMAC"
           begin
             actual_sig = OpenSSL::HMAC.digest(@config[:hash], @verifying_key, body)
           rescue StandardError => e
             raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::SIG_BACKEND, "hmac computation failed", cause: e)
           end
-          # 길이가 다르면 볼 것도 없이 불일치다.
           return false unless sig_bytes.is_a?(String) && actual_sig.bytesize == sig_bytes.bytesize
           OpenSSL.fixed_length_secure_compare(actual_sig, sig_bytes)
         else
           der_sig = begin
             raw_to_der_signature(sig_bytes)
           rescue StandardError
-            # r||s 길이가 곡선과 안 맞는다 = 서명 자체의 형식 오류. 위조가 아니다.
             raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::SIG_MALFORMED, "ecdsa signature is not a valid r||s pair")
           end
           begin
             @verifying_key.dsa_verify_asn1(OpenSSL::Digest.digest(@config[:hash], body), der_sig)
           rescue OpenSSL::PKey::PKeyError, OpenSSL::PKey::ECError
-            # OpenSSL 이 서명을 해독조차 못 한 경우다. 불일치로 본다.
             false
           rescue StandardError => e
             raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::SIG_BACKEND, "ecdsa verification failed to run", cause: e)
@@ -249,7 +230,6 @@ module Saro
 
       private
 
-      # Avoid a needless copy when the body is already UTF-8 encoded bytes.
       def normalize_body(body)
         return body unless body.is_a?(String)
         enc = body.encoding
@@ -262,7 +242,7 @@ module Saro
         r = asn1.value[0].value
         s = asn1.value[1].value
 
-        size = @config[:private_len] # curve byte size: (group.degree + 7) / 8
+        size = @config[:private_len]
         r_bytes = r.to_s(2).rjust(size, "\x00".b)
         s_bytes = s.to_s(2).rjust(size, "\x00".b)
 

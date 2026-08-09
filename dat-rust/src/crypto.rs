@@ -144,9 +144,6 @@ impl DatCrypto {
         }
         let mut secure = data.split_off(IV_LEN);
 
-        // 여기서 나는 실패는 GCM 인증 태그 불일치다 — 변조된 secure 이거나 잘못된
-        // 인증서 키다. parse_without_verify 경로에서는 이것이 유일한 무결성 검사이므로
-        // 백엔드 오류(CryptoBackend)와 반드시 구분한다.
         match self {
             Self::IvAes128Gcm(cipher, _) => {
                 AeadInOut::decrypt_in_place(cipher, data.as_slice().try_into()
@@ -162,9 +159,6 @@ impl DatCrypto {
     }
 }
 
-/// 키 재료를 소거한 뒤 해제한다.
-/// drop 시점에만 동작하므로 encrypt/decrypt 핫패스에는 어떤 비용도 추가되지 않는다.
-/// AES 확장 라운드 키(cipher 내부)는 aes/aes-gcm 의 `zeroize` feature 가 담당한다.
 impl Drop for DatCrypto {
     fn drop(&mut self) {
         match self {
@@ -173,4 +167,3 @@ impl Drop for DatCrypto {
         }
     }
 }
-

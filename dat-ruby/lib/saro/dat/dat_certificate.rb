@@ -15,8 +15,6 @@ module Saro
         @dat_issuance_start_seconds = u64!("dat_issuance_start_seconds", dat_issuance_start_seconds)
         duration = u64!("dat_issuance_duration_seconds", dat_issuance_duration_seconds)
         @dat_ttl_seconds = u64!("dat_ttl_seconds", dat_ttl_seconds)
-        # Ruby 정수는 자동으로 bignum 이 되므로 그냥 더하면 u64 를 넘겨도 조용히
-        # 통과한다. 기준 구현(rust)의 checked_add 와 같은 경계를 여기서 강제한다.
         @dat_issuance_end_seconds = u64!(
           "dat_issuance_start_seconds + dat_issuance_duration_seconds",
           @dat_issuance_start_seconds + duration
@@ -56,7 +54,6 @@ module Saro
           raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CERT_MALFORMED, "expected exactly 8 dot-separated fields")
         end
 
-        # 필드 파싱 실패는 인증서가 깨진 것이지 호출자의 인자 문제가 아니다.
         cid = _field("cid") { Saro::Dat::Util.parse_u64_hex(parts[0]) }
         dat_issuance_start_seconds = _field("issuance_start_seconds") { Saro::Dat::Util.parse_u64(parts[1]) }
         dat_issuance_duration_seconds = _field("issuance_duration_seconds") { Saro::Dat::Util.parse_u64(parts[2]) }
@@ -107,7 +104,6 @@ module Saro
       end
       private_class_method :_field
 
-      # For Ruby conventions
       alias_method :issuable?, :issuable
       alias_method :expired?, :expired
       alias_method :signable?, :signable

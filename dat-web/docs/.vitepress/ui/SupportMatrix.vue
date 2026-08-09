@@ -43,11 +43,9 @@
 import { useRoot } from '../src/langs'
 
 export type MatrixColumn = { key: string; label: string }
-/** `true`/`false`/`'partial'` render as symbols; any other string is printed as-is. */
 export type MatrixCell = boolean | 'partial' | string
 export type MatrixRow = {
   label: string
-  /** Locale-relative path, e.g. `/libs/cargo-dat`. */
   link?: string
   cells: MatrixCell[]
 }
@@ -56,7 +54,6 @@ const props = defineProps<{
   columns: MatrixColumn[]
   rows: MatrixRow[]
   title?: string
-  /** Text for the empty top-left cell. */
   corner?: string
   legend?: { yes?: string; no?: string; partial?: string }
 }>()
@@ -140,8 +137,6 @@ function cellTitle(cell: MatrixCell): string {
     }
 }
 
-/* sticky 열은 뒤로 스크롤되는 칸을 가려야 하므로 반투명이면 안 된다 — 패널이
-   유리 재질이라 완전 불투명 캔버스색이 유일하게 안전한 선택이다. */
 .sm-first {
     @apply sticky left-0 z-10;
     background: var(--c-bg);

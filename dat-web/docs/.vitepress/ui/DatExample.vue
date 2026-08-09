@@ -383,10 +383,6 @@ const mgrCertLogList = ref<LogItem[]>([]);
 const mgrCertList = ref<DatCertificate[]>([]);
 const mgrCertSelectCid = ref('-1');
 
-/* 카드에 뿌릴 값은 여기서 한 번만 만든다. 시각은 시작·종료를 두 줄로 나눠 두는데,
-   카드 폭(≈230px)에 한 줄로 넣으면 초 단위에서 잘려 다음 줄로 넘어가서다.
-   두 시각이 같은 날이면 아래 줄의 날짜를 지운다 — 카드 열두 장에 같은 문자열이
-   반복되면 정작 서로 다른 값이 눈에 들어오지 않는다. */
 const mgrCertCards = computed(() => mgrCertList.value.map(cert => {
   const from = Unixtime.fromSeconds(cert.datIssuanceStartSeconds).format(DATE_FMT);
   const to = Unixtime.fromSeconds(cert.datIssuanceEndSeconds).format(DATE_FMT);
@@ -504,7 +500,6 @@ async function doParseDat() {
   50% { border-color: var(--c-link-1); background-color: color-mix(in srgb, var(--c-link-1) 22%, transparent); }
 }
 
-/* 입력 필드 묶음 — 라벨과 입력을 한 칸으로 보고 격자에 앉힌다 */
 .field-grid {
   @apply grid grid-cols-1 gap-x-4 gap-y-0 mt-1;
   @variant min-sm {
@@ -517,7 +512,6 @@ async function doParseDat() {
   }
 }
 
-/* 계산된 발급 구간 — 입력이 아니라 결과라서 코드 면 위에 모노로 올린다 */
 .readout {
   @apply flex items-center gap-2 rounded-lg px-3 py-2.5 font-mono text-[0.78rem];
   background-color: var(--code-bg);
@@ -559,8 +553,6 @@ async function doParseDat() {
   }
 }
 
-/* 인증서 카드 — 고를 수 있는 대상이므로 칩·라디오와 같은 "켜짐" 면을 쓰되,
-   내용은 CID(모노) → 알고리즘 태그 → 시각 순으로 위계를 세 단으로 나눈다. */
 .cert-card {
   @apply rounded-lg px-3 py-2.5 cursor-pointer select-none transition-colors duration-150;
   background-color: color-mix(in srgb, currentColor 4%, transparent);
@@ -582,7 +574,6 @@ async function doParseDat() {
   .cc-head {
     @apply flex items-center gap-2;
   }
-  /* 발급 가능 여부를 한 점으로 — 카드 열두 장을 훑을 때 글자보다 먼저 읽힌다 */
   .cc-dot {
     @apply w-1.5 h-1.5 rounded-full shrink-0;
     background-color: var(--c-accent-1);
@@ -620,7 +611,6 @@ async function doParseDat() {
       @apply font-mono font-normal text-[0.7rem] break-all;
       color: var(--c-text-2);
     }
-    /* 종료 시각 — 앞의 대시가 시작 시각과 한 쌍임을 만든다 */
     .cc-to::before {
       content: "– ";
       color: var(--c-muted);
@@ -637,7 +627,6 @@ async function doParseDat() {
     border: 1px solid color-mix(in srgb, #e0554a 25%, transparent);
   }
 
-  /* 발급에 쓸 수 없는 인증서 — 지우지 않고 톤만 내려 목록의 리듬을 지킨다 */
   &.off {
     .cc-dot {
       background-color: color-mix(in srgb, var(--c-muted) 55%, transparent);

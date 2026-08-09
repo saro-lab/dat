@@ -7,11 +7,6 @@ import (
 	dat "github.com/saro-lab/dat/dat-go/v4"
 )
 
-// The rules below are the ones dat-rust defines. They are asserted here because
-// a port drifting from them stays invisible until a token issued elsewhere
-// fails to verify.
-
-// Certificate fields accept pure decimal only, like rust's parse::<u64>.
 func TestCertificateNumbersArePureDecimal(t *testing.T) {
 	for _, bad := range []string{"-1", " 100 ", "1_0", "0x10", "zzzz", "1e3", ""} {
 		format := "ff." + bad + ".3600.60.HMAC-SHA256-MFS.IV-AES256-GCM.AAAA.AAAA"
@@ -21,7 +16,6 @@ func TestCertificateNumbersArePureDecimal(t *testing.T) {
 	}
 }
 
-// A dat is expired at its expire second, not one second later.
 func TestDatExpireBoundary(t *testing.T) {
 	now := dat.NowUnixTimestamp()
 	body := func(expire uint64) string {
@@ -37,8 +31,6 @@ func TestDatExpireBoundary(t *testing.T) {
 	}
 }
 
-// A public key that does not belong to the private scalar would otherwise only
-// surface as signatures that never verify.
 func TestEcdsaKeyPairIsCrossChecked(t *testing.T) {
 	first, err := dat.GenerateSignatureKey(dat.EcdsaP256)
 	if err != nil {
@@ -67,8 +59,6 @@ func TestEcdsaKeyPairIsCrossChecked(t *testing.T) {
 	}
 }
 
-// aes.NewCipher takes any of 16/24/32 bytes, so without this check an
-// IV-AES256-GCM certificate carrying a 16 byte key runs as AES-128.
 func TestCryptoKeyLengthMatchesAlgorithm(t *testing.T) {
 	if _, err := dat.NewCryptoKey(dat.IvAes256Gcm, make([]byte, 16)); err == nil {
 		t.Error("16 byte key under IV-AES256-GCM must be rejected")

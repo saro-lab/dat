@@ -18,7 +18,6 @@ import {applyLanguage, languageList, languageRandom} from "../src/langs";
 
 const { localeIndex } = useData();
 
-/** Randomised once per visit so no single language is permanently listed first. */
 const languages = languageRandom();
 const langName = computed<any>(() => languageList[localeIndex.value] || '-');
 const showLangList = ref(false);

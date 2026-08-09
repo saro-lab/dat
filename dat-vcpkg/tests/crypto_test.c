@@ -72,7 +72,6 @@ static void encrypt_and_decrypt(dat_crypto_alg_t alg, const char* rand_str) {
     assert(decrypt_len == rand_len);
     assert(memcmp(decrypt, rand_bytes, rand_len) == 0);
 
-    /* fail decrypt: try with a different key */
     dat_crypto_t* fail_key = NULL;
     err = dat_crypto_new(alg, &fail_key);
     assert(err == DAT_SUCCESS);
@@ -115,13 +114,11 @@ int main(void) {
 
     for (size_t a = 0; a < DAT_CRYPTO_ALG_COUNT; a++) {
         dat_crypto_alg_t alg = DAT_CRYPTO_ALG_LIST[a];
-        /* 19 random */
         for (int i = 1; i < 20; i++) {
             char buf[101];
             rand_string(buf, 100);
             encrypt_and_decrypt(alg, buf);
         }
-        /* empty */
         encrypt_and_decrypt(alg, "");
     }
 

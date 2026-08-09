@@ -1,12 +1,3 @@
-/* Utility classes only ever occur in component templates: every class a markdown
-   page uses is a named one defined further down. Scanning the 300+ content files
-   as well made a one-character doc edit rebuild this entire stylesheet, so the
-   sources are listed explicitly instead of auto-detected.
-
-   Keep content directories out of these globs. `docs/` holds the dynamic-route
-   folder `[lang]/`, and a glob that expands into it feeds square brackets — glob
-   character-class syntax — back to the scanner, which then silently matches
-   nothing at all and emits a stylesheet with no utilities in it. */
 @import "tailwindcss" source(none);
 @source "../ui/*.vue";
 @source "../theme/*.vue";
@@ -16,35 +7,21 @@
         "Malgun Gothic", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
 }
 
-/* ── design tokens ─────────────────────────────────────────────────────────
-   Every surface below is themed only through these, so light and dark differ
-   by one block of values instead of two copies of every rule. */
-/* 라이트 — 원래 dat-web이 쓰던 무지개빛 워시를 캔버스로 되살렸다. 흰 캔버스 위에
-   틸·인디고·시안·핑크·라임 다섯 방울이 화면 모서리에서 번지는 구성이라, 배경이
-   이미 색을 갖고 있다. 그래서 콘텐츠 쪽 색은 한 계열(틸)로 좁혀 워시와 경쟁하지
-   않게 한다 — 링크·제목·컨트롤이 전부 같은 틸이면 무지개 위에서도 위계가 선다.
-   틸은 워시의 지배색이면서 DAT 로고(#373)의 그린과도 이웃한 색이다. */
 html:not(.dark) {
     --c-bg: #ffffff;
     --c-text-1: #1e293b;
     --c-text-2: color-mix(in srgb, var(--c-text-1) 93%, #fff);
-    --c-link-1: #0f766e;   /* 딥 틸 — 흰 바탕에서도 대비가 남는 명도 */
-    --c-link-2: #16988c;   /* hover — 밝아지는 방향 */
-    --c-heading: #12837a;  /* 링크와 같은 계열, 반 단계 위 */
-    --c-accent-1: #4f46e5; /* 워시의 인디고 — 필드 띠 등 보조 강조 */
-    --c-accent-2: #c23b82; /* 워시의 핑크 — 인디고와 교대되는 짝 */
-    --c-muted: #64748b;    /* 캡션 등 중립 요소 */
+    --c-link-1: #0f766e;
+    --c-link-2: #16988c;
+    --c-heading: #12837a;
+    --c-accent-1: #4f46e5;
+    --c-accent-2: #c23b82;
+    --c-muted: #64748b;
 
-    /* 차트·다이어그램 전용 — 링크색(틸)이 "우리 쪽", 슬레이트 바이올렛이 "비교 대상".
-       두 색의 명도를 비슷하게 맞춰야 막대 길이가 아니라 색만으로 편을 나눠 읽는다.
-       chart-3은 암호화된 구간처럼 한 번 더 구분해야 할 때만 꺼내 쓰는 예비색이다. */
-    --c-chart-1: #0f766e;  /* DAT — 링크와 같은 딥 틸 */
-    --c-chart-2: #7d76a0;  /* 비교 대상(JWT) — 채도를 눌러 틸과 경쟁하지 않게 */
-    --c-chart-3: #c23b82;  /* 강조가 한 겹 더 필요한 구간 */
+    --c-chart-1: #0f766e;
+    --c-chart-2: #7d76a0;
+    --c-chart-3: #c23b82;
 
-    /* 페이지 뒤에 깔리는 고정 그라디언트 워시 (body::before) — 이 팔레트의 주인공.
-       원본(0.35~0.45)에서 채도감은 남기고 한 단계 눌렀다(×0.7). 색은 패널 밖
-       여백에서 내고, 본문 영역은 아래 --glass-bg가 흰색으로 눌러 가독성을 지킨다. */
     --bg-image:
         radial-gradient(at 20% 10%, rgba(45, 212, 191, 0.32) 0px, transparent 65%),
         radial-gradient(at 15% 60%, rgba(79, 70, 229, 0.24) 0px, transparent 70%),
@@ -54,12 +31,8 @@ html:not(.dark) {
 
     --divider: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 
-    /* 글자가 앉는 면 — 워시가 파스텔 이상으로 비치지 않도록 패널을 충분히
-       희게(0.72) 올린다. 유리 질감은 blur와 테두리 하이라이트가 이미 내고 있어
-       투명도를 더 잃을 필요가 없다. */
     --glass-bg: rgba(255, 255, 255, 0.72);
     --glass-border: rgba(255, 255, 255, 0.6);
-    /* 마지막 inset은 유리 상단에 맺히는 하이라이트 — 패널의 유리 질감 */
     --glass-shadow: 0 4px 30px rgba(9, 42, 48, 0.05), 0 10px 50px rgba(9, 42, 48, 0.07),
         inset 0 1px 0 rgba(255, 255, 255, 0.7);
     --glass-text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
@@ -85,35 +58,20 @@ html:not(.dark) {
     --ctrl-text-shadow-on: none;
 }
 
-/* 다크 — 로즈골드 이식판의 공식을 그대로 따른다: 고급스러움은 색이 아니라
-   "거의 검정"에서 나온다. 캔버스·패널·코드·컨트롤 같은 면(surface)은 전부
-   무채색에 가까운 그라파이트로 두고, 그린은 링크·제목·선택 상태 같은 콘텐츠
-   액센트에만 아껴 쓴다. 면에 초록 물을 들이면 화면 전체가 초록으로 읽히므로
-   면의 틴트는 감지 한계 수준(+2~3)까지만. 글자는 #eceeed — 순백의 광량 없이
-   대비는 유지. */
 html.dark {
-    /* 배경(캔버스 + 워시)은 이 사이트가 원래 쓰던 값 그대로 되돌렸다. 패널·코드·
-       컨트롤은 뉴트럴 검정 계열로 남아 있어, 색은 패널 밖 여백에서만 돈다. */
     
     --c-text-1: #eceeed;
-    /* 본문은 알파로 눌러 두는데, 다크에서 20%를 빼면 워시가 비치는 패널 위에서
-       획이 뭉개진다. 라이트를 88→93%로 올린 것과 같은 이유로 12%만 뺀다. */
     --c-text-2: color-mix(in srgb, var(--c-text-1) 88%, transparent);
-    /* 그린은 민트가 아니라 옥(jade)으로 — 명도와 채도를 함께 내리고 회색을
-       섞어야 보석 톤이 된다. 옅고 쨍한 민트(#a9d0b4, L74)는 형광에 가깝게
-       읽혀서 L65/S20의 그레이드-제이드로 낮췄다. */
-    --c-link-1: #93b7a1;   /* 뮤트 제이드 */
-    --c-link-2: #b9d6c4;   /* hover — 라이트 모드처럼 밝아지는 방향 */
-    --c-heading: #a6c5b2;  /* 링크와 같은 결, 반 단계 위 */
-    --c-accent-1: #2fa87e; /* 딥 에메랄드 — 필드 띠 등 보조 강조 */
-    --c-accent-2: #8aa86f; /* 딥 올리브 — 에메랄드와 교대되는 짝 */
-    --c-muted: #8b938f;    /* 캡션은 작고 대문자라 4:1에서 5.5:1로 올렸다 */
+    --c-link-1: #93b7a1;
+    --c-link-2: #b9d6c4;
+    --c-heading: #a6c5b2;
+    --c-accent-1: #2fa87e;
+    --c-accent-2: #8aa86f;
+    --c-muted: #8b938f;
 
-    /* 차트·다이어그램 — 라이트와 같은 역할 분담을 어두운 캔버스로 옮겼다.
-       막대는 면적이 넓어 채도가 그대로면 형광으로 뜨므로 둘 다 회색을 섞는다. */
-    --c-chart-1: #93b7a1;  /* DAT — 링크와 같은 뮤트 제이드 */
-    --c-chart-2: #8f89ad;  /* 비교 대상(JWT) */
-    --c-chart-3: #b9899f;  /* 강조가 한 겹 더 필요한 구간 */
+    --c-chart-1: #93b7a1;
+    --c-chart-2: #8f89ad;
+    --c-chart-3: #b9899f;
 
 
 --bg-image:
@@ -123,17 +81,12 @@ html.dark {
 
 --c-bg: #0d1319;
 
-    /* 글자가 앉는 면 — 라이트에서 흰 패널을 0.72까지 올린 것과 같은 처방을 반대
-       방향으로. 0.55에서는 아쿠아·블루 워시가 패널을 뚫고 올라와 본문 대비를
-       갉아먹었다. 0.78로 올리고 색조도 캔버스 쪽(네이비)으로 맞춰, 워시는 패널
-       밖 여백에서만 돌고 글자 밑은 깊은 남색으로 가라앉는다. */
     --glass-bg: rgba(13, 19, 25, 0.78);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-shadow: 0 10px 32px -14px rgba(0, 0, 0, 0.6), 0 28px 70px -24px rgba(0, 0, 0, 0.8),
         inset 0 1px 0 rgba(255, 255, 255, 0.06);
     --glass-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 
-    /* 코드 박스 — 패널보다 한 톤 가라앉힌 에디터 인셋 + 미세 보더 */
     --code-bg: rgba(4, 8, 12, 0.62);
     --code-border: rgba(255, 255, 255, 0.07);
     --quote-bg: rgba(4, 8, 12, 0.42);
@@ -155,31 +108,7 @@ html.dark {
     --ctrl-text-shadow-on: 0 0 1px rgba(185, 214, 196, 0.4);
 }
 
-/* ── ARCHIVED: 웜톤 라이트 팔레트 (ticketing-web 이식판) ───────────────────
-   무지개 워시를 되살리며 교체된 라이트 값들. 다크는 지금도 이 계열을 쓰고
-   있으므로, 라이트를 웜톤으로 되돌리고 싶을 때 여기서 꺼내면 된다.
-
-   html {
-       --c-bg: #f4f3f2;
-       --c-text-1: #322a28;
-       --c-link-1: #9c5a44;  --c-link-2: #b5705a;  --c-heading: #9a5a42;
-       --c-accent-1: #178f6e;  --c-accent-2: #a8763c;  --c-muted: #8a7d78;
-       --bg-image:
-           radial-gradient(at 18% 12%, rgba(134, 128, 124, 0.14) 0px, transparent 60%),
-           radial-gradient(at 80% 22%, rgba(128, 126, 126, 0.1) 0px, transparent 60%),
-           radial-gradient(at 25% 82%, rgba(136, 128, 128, 0.1) 0px, transparent 65%),
-           radial-gradient(at 82% 78%, rgba(144, 136, 128, 0.09) 0px, transparent 60%);
-       --glass-bg: rgba(255, 253, 251, 0.6);  --glass-border: rgba(255, 255, 255, 0.68);
-       --code-bg: rgba(255, 253, 251, 0.74);  --code-border: rgba(74, 48, 38, 0.09);
-       --quote-bg: rgba(255, 253, 251, 0.42);  --quote-border: #c98a72;
-       ctrl 계열: rgba(156, 90, 68, …) / rgba(181, 112, 90, …) 조합.
-   }
-   ───────────────────────────────────────────────────────────────────────── */
-
-/* ── page canvas ───────────────────────────────────────────────────────── */
 html {
-    /* 두 팔레트가 같은 값을 쓰므로 여기 한 번만 — 라이트 블록에만 두면 다크에서
-       변수가 풀리지 않아 border-bottom 선언 자체가 무효가 된다. */
     --divider: 1px solid color-mix(in srgb, currentColor 12%, transparent);
 
     font-family: var(--font-sans);
@@ -188,12 +117,6 @@ html {
     background-color: var(--c-bg);
 }
 
-/* The gradient wash lives on its own fixed layer rather than on a
-   `background-attachment: fixed` root background. As a root background the
-   browser had to re-rasterise all the gradients on every scroll frame, and
-   because `.g-glass` sits above it with a `backdrop-filter`, each of those
-   repaints forced the blur behind every glass panel to be recomputed too. As
-   an out-of-flow layer it is painted once and merely composited afterwards. */
 body::before {
     content: "";
     position: fixed;
@@ -213,7 +136,6 @@ body::before {
     background: color-mix(in srgb, var(--c-link-1) 28%, transparent);
 }
 
-/* ── links ─────────────────────────────────────────────────────────────── */
 a {
     transition: color 0.2s;
 }
@@ -227,7 +149,6 @@ a {
     }
 }
 
-/* 본문 링크만 — hover에서 은은한 밑줄로 링크임을 드러낸다 */
 .md a {
     text-underline-offset: 3px;
     &:hover {
@@ -241,9 +162,6 @@ a {
     color: var(--c-link-2);
 }
 
-/* ── header controls ───────────────────────────────────────────────────────
-   아이콘 글자 크기(≈15px)가 곧 탭 타깃이 되지 않도록, 헤더의 모든 컨트롤에
-   36px 원형 히트 영역을 깐다. hover 배경이 영역을 자연스럽게 드러낸다. */
 .hdr-btn {
     @apply flex items-center justify-center rounded-full cursor-pointer select-none;
     min-width: 2.25rem;
@@ -255,7 +173,6 @@ a {
     }
 }
 
-/* ── layout frames ─────────────────────────────────────────────────────── */
 .g-frame {
     @apply mx-auto;
     @variant max-[46rem] {
@@ -294,7 +211,6 @@ a {
     }
 }
 
-/* ── rendered markdown ─────────────────────────────────────────────────── */
 .md {
     word-break: break-word;
 
@@ -307,9 +223,6 @@ a {
         font-weight: 600;
         letter-spacing: -0.016em;
     }
-    /* 위계: h1 1.4 > h2 1.12 > h3 1 > h4 0.925 — 섹션 위는 넉넉히, 아래는 좁게.
-       무게는 전부 600에서 멈춘다. 한글은 700에서 획이 붙어 뭉툭해지는데, 위계는
-       크기와 여백이 이미 충분히 만들고 있어 무게까지 끌어올릴 이유가 없다. */
     h1 {
         @apply p-0 mt-0 mb-4 text-[1.4rem] leading-snug;
         color: var(--c-heading);
@@ -324,8 +237,6 @@ a {
     h4 {
         @apply p-0 mt-5 mb-2.5 text-[0.925rem];
     }
-    /* h5·h6는 본문 마크다운에서 쓰이지 않고 도구 컴포넌트의 필드 제목으로만
-       등장한다. 그래서 작은 제목이 아니라 마이크로 라벨(.g-label)과 같은 결로. */
     h5,
     h6 {
         @apply p-0 mt-4 mb-1.5 text-[0.72rem] uppercase tracking-[0.07em];
@@ -429,7 +340,6 @@ a {
     }
 }
 
-/* ── code blocks ───────────────────────────────────────────────────────── */
 div[class*="language-"] {
     position: relative;
     max-width: 100%;
@@ -498,10 +408,6 @@ pre {
     }
 }
 
-/* 인라인 코드 — em 기준이라 표·헤딩 어디서든 주변 글자에 비례해 줄어든다.
-   inline-block과 bold를 빼서 행높이를 흔들지 않는 차분한 칩으로.
-   `.g-code-box`는 마크업이 <code>가 아닌 곳(예: DatExample의 값 표시)에서
-   같은 칩을 쓰기 위한 별칭이다. */
 :not(pre) > code,
 .g-code-box {
     @apply font-medium rounded-[0.3rem];
@@ -533,7 +439,6 @@ input {
     }
 }
 
-/* ── form controls ─────────────────────────────────────────────────────── */
 input,
 button,
 textarea {
@@ -607,9 +512,6 @@ input[type="submit"] {
     }
 }
 
-/* The tag chips on the home page and the radio-group labels are one pill control
-   in two kinds of markup, so its surface and selected state are declared once
-   here rather than copied into each component. */
 .g-chip,
 .g-radio-group label {
     @apply inline-flex items-center justify-center cursor-pointer select-none
@@ -636,8 +538,6 @@ input[type="submit"] {
 .g-chip {
     @apply px-2 py-1 mr-2 mt-2;
 
-    /* 언어 아이콘과 라벨 사이 — 칩을 쓰는 마크다운이 유틸 클래스를 들고 있지
-       않도록(그래야 콘텐츠 파일을 스캔하지 않아도 된다) 여기서 붙인다 */
     > span {
         @apply mr-1;
     }
@@ -687,9 +587,6 @@ input[type="submit"] {
     }
 }
 
-/* ── home page (docs/{locale}/index.md) ───────────────────────────────────
-   Identical markup/classes across every locale's index.md, so the rules live
-   here once instead of in a <style scoped> block copied into each one. */
 .hero-title {
     @apply text-[1.5rem] font-semibold tracking-[-0.02em];
     a { color: var(--c-text-1); }
@@ -707,8 +604,6 @@ input[type="submit"] {
 .feature-grid {
     @apply grid grid-cols-1 gap-2 mt-6;
 }
-/* 아이콘 한 칸 + 제목/설명 한 칸. flex 한 줄로 두면 셋이 나란히 서서, 제목이
-   길어질 때 제목만 좁게 접히고 설명이 그 옆에 붙어 읽는 순서가 흐트러진다. */
 .feature-card {
     @apply rounded-lg p-3.5 grid gap-x-3 gap-y-1 items-start;
     grid-template-columns: auto 1fr;
@@ -756,9 +651,6 @@ input[type="submit"] {
     transform: translateX(3px);
 }
 
-/* ── micro label ───────────────────────────────────────────────────────────
-   폼 필드 위·섹션 위에 앉는 작은 라벨. 굵게 키우는 대신 작게·자간을 벌려
-   대문자로 세워, 값(입력·칩·카드)이 화면의 큰 글자를 독점하게 둔다. */
 .g-label,
 .section-title {
     @apply text-[0.7rem] font-semibold uppercase tracking-[0.08em];
@@ -770,8 +662,6 @@ input[type="submit"] {
 .g-label {
     @apply block mt-4 mb-1.5;
 }
-/* 라벨 + 부연(+도움말)을 한 줄에. 라벨이 남는 폭을 전부 먹어 뒤따르는 것들이
-   오른쪽에 붙는다 — justify-between이면 셋 이상일 때 가운데가 떠 보인다. */
 .g-label-row {
     @apply flex items-baseline gap-2 mt-4 mb-1.5;
 
@@ -779,16 +669,11 @@ input[type="submit"] {
         @apply mt-0 mb-0 mr-auto;
     }
 }
-/* 라벨 옆에 붙는 부연(단위·기본값) — 라벨보다 한 톤 더 물러나 있어야 라벨이 산다 */
 .g-label-note {
     @apply text-[0.68rem] font-mono;
     color: color-mix(in srgb, var(--c-muted) 80%, transparent);
 }
 
-/* ── generator panels ──────────────────────────────────────────────────────
-   DatExample·DatCmsExample처럼 도구 패널을 세로로 쌓는 화면의 패널 머리.
-   제목을 키우는 대신 아이콘 → 제목 → 얇은 괘선으로 위계를 만든다. 패널들은
-   서로 독립이라 번호는 붙이지 않는다 — 순서대로 밟아야 하는 것처럼 읽힌다. */
 .g-panel-head {
     @apply flex items-center gap-2.5 pb-3;
     border-bottom: var(--divider);
@@ -804,7 +689,6 @@ input[type="submit"] {
         font-size: 1rem;
     }
 }
-/* `.md` 안에서 h2로 쓰이므로 본문 h2가 얹는 여백·밑줄을 여기서 걷어낸다 */
 .g-panel-title {
     @apply text-[1.02rem] font-semibold tracking-[-0.015em] leading-tight m-0! p-0! border-0!;
     color: var(--c-heading);
@@ -814,8 +698,6 @@ input[type="submit"] {
     color: var(--c-muted);
 }
 
-/* 강조 버튼 — 페이지에서 "지금 누를 것"이 하나일 때만. 면을 채우지 않고
-   브랜드색 테두리+옅은 틴트로만 올려서, 유리 패널 위에서 튀지 않게 한다. */
 button.btn.primary {
     color: var(--ctrl-fg-on);
     background-color: var(--ctrl-bg-on);

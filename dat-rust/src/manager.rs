@@ -15,18 +15,11 @@ pub struct DatManager {
     state: RwLock<DatManagerState>,
 }
 
-/// 락이 poisoned 라는 것은 다른 스레드가 상태를 들고 패닉했다는 뜻이다.
-/// 예전에는 `unwrap()` 으로 그 자리에서 같이 패닉했다 — 이제 오류로 돌려준다.
 #[inline]
 fn poisoned<T>(_: PoisonError<T>) -> DatError {
     DatError::InternalUnknown("dat manager lock is poisoned")
 }
 
-/// 발급 가능한 인증서가 없을 때 **왜** 없는지 가려낸다.
-///
-/// 예전에는 이 다섯 가지가 `"Signing Key Does Not Exist"` 문자열 하나였다.
-/// 대응이 전부 다르다 — 발급창 전이면 기다리면 되고, verify-only 뿐이면 배포 설정
-/// 실수이며, 0건이면 CMS 접속 문제다.
 fn no_issuable_cause(certificates: &[DatCertificate]) -> DatError {
     let now = now_unix_timestamp();
     let (mut signable_seen, mut not_yet, mut ended) = (false, false, false);
@@ -46,7 +39,6 @@ fn no_issuable_cause(certificates: &[DatCertificate]) -> DatError {
     if !signable_seen {
         DatError::CertVerifyOnly
     } else if not_yet {
-        // 유일하게 일시적인 사유다. 하나라도 있으면 이것을 앞세운다.
         DatError::CertNotYetIssuable
     } else if ended {
         DatError::CertIssuanceEnded
@@ -89,8 +81,6 @@ impl DatManager {
     }
 
     pub fn parse<E: Into<DatError>>(&self, dat: impl TryInto<Dat, Error = E>) -> Result<DatPayload, DatError> {
-        // 파싱 실패의 코드를 그대로 올린다. 예전에는 만료·형식 오류·서명 위조가
-        // 여기서 전부 InvalidDat 하나로 뭉개졌다.
         let dat = dat.try_into().map_err(Into::into)?;
         let cid = dat.cid;
         let state = self.read()?;
@@ -112,8 +102,6 @@ impl DatManager {
         }
     }
 
-    /// 오류를 돌려줄 수 없는 시그니처라, poisoned 락에서도 마지막 상태를 그대로 읽는다.
-    /// 읽기 전용이라 관측되는 값은 항상 완결된 인증서 목록이다.
     pub fn export_cids(&self) -> Vec<u64> {
         self.state.read().unwrap_or_else(PoisonError::into_inner)
             .certificates.iter().map(|key| key.cid).collect()
@@ -196,9 +184,6 @@ impl DatManager {
         let plain = plain.as_ref();
         let secure = secure.as_ref();
 
-        // (byte size + 2) * 4 / 3 = base 64 size
-        // 100 is padding: expire + cid + (dot * 4) + (base64 pad 12)...
-        // pad = 60(dot=4, base64_4p3=12, nonce=12, cid=16 spare), expire, cid.len + space 30
         let mut v: String = String::with_capacity(60 + expire.len() + ((plain.len() + secure.len() + 100) * 4 / 3));
         let sk = &certificate.signature;
 
@@ -207,14 +192,11 @@ impl DatManager {
         to_hex_u64_out(certificate.cid, &mut v);
         v.push('.');
 
-        // plain
         encode_base64_url_out(plain, &mut v);
 
-        // secure
         v.push('.');
         encode_base64_url_out(certificate.crypto.encrypt(secure)?, &mut v);
 
-        // signature
         let signature = sk.sign(v.as_bytes())?;
         v.push('.');
         encode_base64_url_out(&*signature, &mut v);
@@ -222,7 +204,6 @@ impl DatManager {
     }
 
     pub fn _parse(certificate: &DatCertificate, dat: Dat) -> Result<DatPayload, DatError> {
-        // SigMismatch(위조) 와 SigBackend(연산 실패) 를 구분해서 그대로 올린다.
         certificate.signature.verify(dat.body_bytes(), &dat.signature)?;
         Self::_parse_without_verify(certificate, dat)
     }

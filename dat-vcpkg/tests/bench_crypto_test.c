@@ -78,7 +78,6 @@ int main(void) {
         for (int i = 0; i < loop_size; i++) {
             free(dec);
             dec = NULL;
-            /* decrypt needs a fresh copy each iteration (decrypt may modify buffer) */
             uint8_t* enc_copy = (uint8_t*)malloc(enc_len);
             memcpy(enc_copy, enc, enc_len);
             err = dat_crypto_decrypt(key, enc_copy, enc_len, &dec, &dec_len);
@@ -87,10 +86,8 @@ int main(void) {
             total_len += enc_len;
         }
         clock_gettime(CLOCK_MONOTONIC, &t1);
-        /* Note: Rust source has "$" prefix on this line — replicate exactly */
         printf("$%s copy encode * %d : %lldms\n", tag, loop_size, ms_elapsed(t0, t1));
 
-        /* Rust prints decoded bytes as lossy utf8 string */
         printf("decode: %.*s\n", (int)dec_len, (char*)dec);
         printf("len: %zu\n", total_len);
 

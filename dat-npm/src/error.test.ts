@@ -10,11 +10,6 @@ import {
     DatSignature,
 } from "./index.js";
 
-// 오류 코드 회귀 안전망 (error.pre2.md).
-//
-// 단언하는 것은 "실패했다"가 아니라 **어느 코드로 실패했다** 이다 — 재매핑 사고는
-// 전자로는 절대 안 잡힌다.
-
 const SIG = "ECDSA-P256";
 const CRY = "IV-AES256-GCM";
 
@@ -30,7 +25,6 @@ async function issuableManager(cid: bigint = 1n): Promise<DatManager> {
     return DatManager.from([await certificate(cid, -10n, 200n, 100n)]);
 }
 
-/** 던져진 값이 DatError 인지 확인하고 코드를 돌려준다. */
 async function codeOf(fn: () => unknown | Promise<unknown>): Promise<string> {
     try {
         await fn();
@@ -60,7 +54,6 @@ describe("만료 / 형식 오류 / 서명 위조", () => {
 
         expect(await codeOf(() => manager.parse(`${now - 1n}.${rest}`)))
             .toBe(DatErrorCodes.TOKEN_EXPIRED);
-        // 정각도 만료다.
         expect(await codeOf(() => manager.parse(`${now}.${rest}`)))
             .toBe(DatErrorCodes.TOKEN_EXPIRED);
     });
@@ -70,12 +63,9 @@ describe("만료 / 형식 오류 / 서명 위조", () => {
         const token = await manager.issue("p", "s");
         const parts = token.split(".");
 
-        // 파트 수 부족 / 초과
         expect(await codeOf(() => manager.parse("1.2.3"))).toBe(DatErrorCodes.TOKEN_MALFORMED);
         expect(await codeOf(() => manager.parse(token + ".extra"))).toBe(DatErrorCodes.TOKEN_MALFORMED);
-        // expire 가 10진수가 아님 — 만료가 아니라 형식 오류다
         expect(await codeOf(() => manager.parse("+" + token))).toBe(DatErrorCodes.TOKEN_MALFORMED);
-        // cid 가 16진수가 아님
         expect(await codeOf(() => manager.parse([parts[0], "zz", ...parts.slice(2)].join("."))))
             .toBe(DatErrorCodes.TOKEN_MALFORMED);
     });
@@ -90,7 +80,6 @@ describe("만료 / 형식 오류 / 서명 위조", () => {
     });
 
     it("위조된 서명은 SIG_MISMATCH 이고 보안 이벤트다", async () => {
-        // 같은 cid 를 다른 키로 발급하면 서명만 안 맞는다.
         const victim = await issuableManager(7n);
         const attacker = await issuableManager(7n);
         const forged = await attacker.issue("p", "s");
@@ -111,7 +100,6 @@ describe("만료 / 형식 오류 / 서명 위조", () => {
         const last = secure[secure.length - 1];
         parts[3] = secure.slice(0, -1) + (last === "A" ? "B" : "A");
 
-        // 서명 검증을 건너뛰는 경로에서는 GCM 태그가 유일한 무결성 검사다.
         const dat = new Dat(parts.join("."));
         const err = await errorOf(() => cert.crypto.decrypt(dat.secureBytes));
         expect(err.code).toBe(DatErrorCodes.CRYPTO_TAG_MISMATCH);
@@ -137,7 +125,6 @@ describe("인증서", () => {
 
     it("깨진 인증서는 CERT_MALFORMED", async () => {
         expect(await codeOf(() => DatCertificate.imports("a.b.c"))).toBe(DatErrorCodes.CERT_MALFORMED);
-        // 8 파트지만 cid 가 16진수가 아님
         expect(await codeOf(() => DatCertificate.imports("zz.1.2.3.ECDSA-P256.IV-AES256-GCM.AAAA.AAAA")))
             .toBe(DatErrorCodes.CERT_MALFORMED);
     });
@@ -147,7 +134,6 @@ describe("발급할 인증서 없음 — 다섯 갈래", () => {
     it("인증서 0건", async () => {
         const err = await errorOf(() => new DatManager().issue("p", "s"));
         expect(err.code).toBe(DatErrorCodes.MANAGER_NO_CERTIFICATE);
-        // CMS 접속 문제일 수 있으므로 기다려 볼 값어치가 있다.
         expect(err.retry).toBe("transient");
     });
 
@@ -161,7 +147,6 @@ describe("발급할 인증서 없음 — 다섯 갈래", () => {
     });
 
     it("발급창 종료 — 기다려도 안 풀린다", async () => {
-        // 발급창은 닫혔지만 ttl 이 남아 검증은 된다.
         const manager = DatManager.from([await certificate(1n, -500n, 100n, 3600n)]);
 
         const err = await errorOf(() => manager.issue("p", "s"));
@@ -198,7 +183,6 @@ describe("키 · 알고리즘 · 인자", () => {
     });
 
     it("HMAC 의 verify-only 는 구조적으로 불가", async () => {
-        // 알고리즘의 구조적 한계다. 런타임에 개인키가 없는 SIG_KEY_MISSING 과 다르다.
         const hmac = await DatSignature.generate("HMAC-SHA256-MFS");
         expect(await codeOf(() => hmac.exports(true))).toBe(DatErrorCodes.KEY_VERIFY_ONLY_UNSUPPORTED);
     });
@@ -215,14 +199,12 @@ describe("키 · 알고리즘 · 인자", () => {
     });
 
     it("빈 secure 페이로드는 오류가 아니다", async () => {
-        // 빈 입력 → 빈 출력. 모든 공식 클라이언트 공통이며 어떤 코드도 내지 않는다.
         const crypto = await DatCrypto.generate(CRY);
         expect((await crypto.encrypt("")).byteLength).toBe(0);
         expect((await crypto.decrypt("")).byteLength).toBe(0);
     });
 
     it("payload 에 number 를 넘기면 조용히 비지 않고 오류가 난다", async () => {
-        // issue(12345, 67890) 이 오류 없이 빈 페이로드를 만들던 자리다.
         const manager = await issuableManager();
         expect(await codeOf(() => manager.issue(12345 as never, 67890 as never)))
             .toBe(DatErrorCodes.CONFIG_ARGUMENT_INVALID);
@@ -244,7 +226,6 @@ describe("코드 체계 자체의 불변식", () => {
     });
 
     it("영구 CMS 오류는 재시도하지 않는다", () => {
-        // 401 에 60초마다 영원히 재시도하던 것이 이 분류의 존재 이유다.
         for (const code of [DatErrorCodes.CMS_UNAUTHORIZED, DatErrorCodes.CMS_FORBIDDEN, DatErrorCodes.CMS_ENDPOINT_NOT_FOUND]) {
             expect(new DatError(code).retry, code).toBe("permanent");
         }

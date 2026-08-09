@@ -4,8 +4,6 @@ use crate::env::ENV;
 use crate::services::cert_service;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
-/// Returns the running scheduler so the caller can shut it down together with
-/// the HTTP server and the database pool. `None` when cron is not configured.
 pub async fn start() -> ApiResult<Option<JobScheduler>> {
     let Some(cron) = ENV.cron.as_ref() else {
         return Ok(None);

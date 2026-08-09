@@ -32,8 +32,6 @@ module Saro
 
       def initialize(algorithm, key_bytes, config = nil)
         @config = config || Saro::Dat.get_crypto_config(algorithm)
-        # OpenSSL accepts any valid AES length, so a 16-byte key would silently
-        # become AES-128 under an IV-AES256-GCM label without this check.
         if key_bytes.bytesize != @config[:length]
           raise Saro::Dat::Error.new(
             Saro::Dat::ErrorCode::KEY_INVALID,
@@ -82,24 +80,16 @@ module Saro
         nonce + ciphertext + tag
       end
 
-      # Decrypts base64url-encoded ciphertext.
       def decrypt_base64(base64_str)
         decrypt(Saro::Dat::Util.decode_base64_url(base64_str))
       end
 
-      # Decrypts raw (already decoded) ciphertext: nonce(12) + ciphertext + tag(16).
-      # Use #decrypt_base64 for encoded input. The branch used to be picked from
-      # the string's encoding tag, so raw ciphertext that merely carried a UTF-8
-      # tag was silently mangled by the base64 decoder.
       def decrypt(data)
         return "".b if data.nil? || data.empty?
 
-        # Slice by bytes, never by characters: String#[] is character-indexed on
-        # a non-binary string, so raw ciphertext carrying a UTF-8 tag would be
-        # split at the wrong offsets.
         data = data.b if data.is_a?(String) && data.encoding != Encoding::BINARY
 
-        if data.bytesize <= 12 + 16 # nonce(12) + tag(16)
+        if data.bytesize <= 12 + 16
           raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CRYPTO_DATA_INVALID, "ciphertext is shorter than iv(12) + tag(16)")
         end
 
@@ -114,10 +104,6 @@ module Saro
         cipher.iv = nonce
         cipher.auth_tag = tag
 
-        # cipher.final 에서 나는 실패는 GCM 인증 태그 불일치다 — 변조된 secure 이거나
-        # 잘못된 인증서 키다. 예전에는 OpenSSL::Cipher::CipherError 가 그대로 공개
-        # API 밖으로 새어 나갔다. 서명 검증을 건너뛰는 경로에서는 이것이 유일한
-        # 무결성 검사이므로 백엔드 오류(CRYPTO_BACKEND)와 반드시 구분한다.
         begin
           res = cipher.update(ciphertext) + cipher.final
         rescue OpenSSL::Cipher::CipherError => e

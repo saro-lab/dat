@@ -44,8 +44,7 @@ public class BenchTest {
             assert secure.equals(payloads.get(0).getSecure());
         }
     }
-    
-    //@Test
+
     public void test() {
         int loop = 10000;
         long now = Unixtime.now();

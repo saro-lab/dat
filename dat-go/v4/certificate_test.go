@@ -78,7 +78,6 @@ func TestCertificate(t *testing.T) {
 
 	for _, signAlg := range signAlgs {
 		for _, cryptoAlg := range cryptoAlgs {
-			// random
 			for i := uint64(1); i < 21; i++ {
 				plain := randStringCert()
 				secure := randStringCert()
@@ -86,7 +85,7 @@ func TestCertificate(t *testing.T) {
 					t.Fatalf("@%v", err)
 				}
 			}
-			// empty
+
 			if err := unitCert(t, failCertificate, 0, signAlg, cryptoAlg, "", ""); err != nil {
 				t.Fatal(err)
 			}

@@ -11,10 +11,6 @@
 #include <limits.h>
 #include <openssl/crypto.h>
 
-/* H-3: a certificate is immutable once constructed, so clone hands out another
- * reference to the same object instead of a deep copy. The refcount is the only
- * mutable state, and several threads touch it (the manager clones under a read
- * lock while another thread frees), so it has to be atomic. */
 #ifndef __STDC_NO_ATOMICS__
 #  include <stdatomic.h>
 #  define DAT_REFCOUNT_T        atomic_uint
@@ -22,8 +18,6 @@
 #  define DAT_REFCOUNT_INC(p)   atomic_fetch_add_explicit(&(p), 1u, memory_order_relaxed)
 #  define DAT_REFCOUNT_DEC(p)   atomic_fetch_sub_explicit(&(p), 1u, memory_order_acq_rel)
 #else
-/* Compilers without C11 atomics (older MSVC): fall back to one process-wide
- * mutex. Refcount updates are rare and O(1), so the contention is irrelevant. */
 #  include <pthread.h>
 static pthread_mutex_t g_refcount_lock = PTHREAD_MUTEX_INITIALIZER;
 static unsigned refcount_add(unsigned* p, int delta) {
@@ -39,8 +33,6 @@ static unsigned refcount_add(unsigned* p, int delta) {
 #  define DAT_REFCOUNT_DEC(p)   refcount_add(&(p), -1)
 #endif
 
-/* ── Internal struct ─────────────────────────────────────────────────────── */
-
 struct dat_certificate {
     uint64_t         cid;
     dat_signature_t* signature;
@@ -51,8 +43,6 @@ struct dat_certificate {
     uint64_t         expire_seconds;
     DAT_REFCOUNT_T   refcount;
 };
-
-/* ── Package-private accessors ───────────────────────────────────────────── */
 
 dat_signature_t* dat_certificate_get_signature(const dat_certificate_t* cert) {
     return cert->signature;
@@ -67,13 +57,10 @@ uint64_t dat_certificate_get_end(const dat_certificate_t* cert) {
     return cert->dat_issuance_end_seconds;
 }
 
-/* ── Internal constructor ────────────────────────────────────────────────── */
-
 static dat_error_t cert_from(uint64_t cid,
                               uint64_t start, uint64_t duration, uint64_t ttl,
                               dat_signature_t* sig, dat_crypto_t* cryp,
                               dat_certificate_t** out) {
-    /* 시간 산술 오버플로 = 인증서의 시간 값이 비정상이다. */
     if (duration > UINT64_MAX - start) {
         dat_signature_free(sig); dat_crypto_free(cryp);
         return DAT_CERT_MALFORMED;
@@ -98,8 +85,6 @@ static dat_error_t cert_from(uint64_t cid,
     *out = c;
     return DAT_SUCCESS;
 }
-
-/* ── Public API ──────────────────────────────────────────────────────────── */
 
 dat_error_t dat_certificate_create(uint64_t cid,
                                     uint64_t start, uint64_t duration, uint64_t ttl,
@@ -139,10 +124,7 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
         p = dot + 1;
     }
     if (count != 8) return DAT_CERT_MALFORMED;
-    /* Must be exactly 8 parts — no extra dots */
     if (strchr(parts[7] + lens[7], '.') != NULL) return DAT_CERT_MALFORMED;
-    /* Actually parts[7] ends at its length, check no dot in remaining input */
-    /* (Already handled by the loop stopping at count==8) */
 
 #define PARSE_FIELD(idx, base, dest) \
     do { \
@@ -178,7 +160,6 @@ dat_error_t dat_certificate_parse(const char* str, dat_certificate_t** out) {
     err = decode_base64_url(parts[7], lens[7], &cryp_key, &cryp_key_len);
     if (err != DAT_SUCCESS) { free(sig_key); return (err == DAT_CONFIG_ARGUMENT_INVALID) ? DAT_CERT_MALFORMED : err; }
 
-    /* D-4: both decoded buffers hold raw key material — wipe, don't just free. */
     dat_signature_t* sig = NULL;
     err = dat_signature_from_key(sig_alg, sig_key, sig_key_len, &sig);
     OPENSSL_cleanse(sig_key, sig_key_len);
@@ -214,8 +195,6 @@ dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_on
     err = sbuf_init(&v, cap);
     if (err != DAT_SUCCESS) { free(sig_key); free(cryp_key); return err; }
 
-    /* 예전에는 이 push 들의 반환값을 전부 무시했다. 버퍼 확장이 실패하면 잘린
-     * 인증서 문자열이 정상처럼 반환됐다. PUSH 매크로가 실패를 즉시 올린다. */
 #define PUSH(expr)                                                             \
     do {                                                                       \
         dat_error_t _e = (expr);                                               \
@@ -251,7 +230,7 @@ dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_on
     PUSH(sbuf_push_char(&v, '.'));
 #undef PUSH
     err = encode_base64_url_out(sig_key, sig_key_len, &v);
-    OPENSSL_cleanse(sig_key, sig_key_len);   /* D-4 */
+    OPENSSL_cleanse(sig_key, sig_key_len);
     free(sig_key);
     if (err != DAT_SUCCESS) {
         sbuf_free(&v);
@@ -268,7 +247,7 @@ dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_on
         return err;
     }
     err = encode_base64_url_out(cryp_key, cryp_key_len, &v);
-    OPENSSL_cleanse(cryp_key, cryp_key_len); /* D-4 */
+    OPENSSL_cleanse(cryp_key, cryp_key_len);
     free(cryp_key);
     if (err != DAT_SUCCESS) { sbuf_free(&v); return err; }
 
@@ -278,17 +257,12 @@ dat_error_t dat_certificate_export(const dat_certificate_t* cert, bool verify_on
 
 void dat_certificate_free(dat_certificate_t* cert) {
     if (!cert) return;
-    if (DAT_REFCOUNT_DEC(cert->refcount) != 1u) return;  /* other references remain */
+    if (DAT_REFCOUNT_DEC(cert->refcount) != 1u) return;
     dat_signature_free(cert->signature);
     dat_crypto_free(cert->crypto);
     free(cert);
 }
 
-/* H-3: this used to be an export → parse round trip, which rebuilt the whole
- * key material — and wrote the private key out as a base64 string that was then
- * freed without being wiped (D-4) — on every issue() and parse(). A certificate
- * never changes after construction, so sharing one is safe and the copy is
- * pure overhead. The caller still owns the returned pointer and must free it. */
 dat_error_t dat_certificate_clone(const dat_certificate_t* cert, dat_certificate_t** out) {
     if (!cert || !out) return DAT_CONFIG_ARGUMENT_INVALID;
     dat_certificate_t* c = (dat_certificate_t*)cert;

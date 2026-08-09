@@ -24,4 +24,4 @@ dat_error_t dat_dat_plain(const dat_dat_t* dat, uint8_t** out_data, size_t* out_
 dat_error_t dat_dat_secure(const dat_dat_t* dat, uint8_t** out_data, size_t* out_len);
 void        dat_dat_free(dat_dat_t* dat);
 
-#endif /* DAT_DAT_H */
+#endif

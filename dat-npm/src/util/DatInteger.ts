@@ -4,8 +4,6 @@ export const U64_MAX = 0xffffffffffffffffn;
 const DECIMAL = /^[0-9]+$/;
 const HEX = /^[0-9a-fA-F]+$/;
 
-// Strict unsigned decimal parse matching rust's `parse::<u64>()`. Number()/BigInt()
-// would also accept "0x10", "1e3", "+1" and surrounding whitespace.
 export function parse(no: number|string): number {
     if (typeof no === 'string') {
         no = DECIMAL.test(no) ? Number(no) : Number.NaN;

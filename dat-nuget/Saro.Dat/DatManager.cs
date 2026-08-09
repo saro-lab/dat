@@ -2,26 +2,14 @@ using System.Text;
 
 namespace Saro.Dat;
 
-/// <summary>
-/// Owns the certificates it holds: importing copies what the caller passes in,
-/// and a certificate that leaves the held set is disposed. Dispose releases the
-/// held certificates and the internal lock.
-/// </summary>
 public class DatManager : IDisposable
 {
-    // A reference into _certificates, not a separate copy: cloning it per import
-    // allocated a fresh native ECDSA handle every CMS refresh.
     private DatCertificate? _issuer;
     private List<DatCertificate> _certificates = new();
     private Dictionary<long, DatCertificate> _certificatesByCid = new();
     private readonly ReaderWriterLockSlim _lock = new();
-    // Guards Dispose itself, so it can't be the lock it is about to dispose.
     private int _disposed;
 
-    /// <summary>
-    /// 해제된 매니저 사용은 ReaderWriterLockSlim 의 ObjectDisposedException 이 아니라
-    /// 이 체계의 코드로 보고한다.
-    /// </summary>
     private void ThrowIfDisposed()
     {
         if (Volatile.Read(ref _disposed) != 0)
@@ -37,9 +25,6 @@ public class DatManager : IDisposable
         {
             if (_issuer != null) return Issue(_issuer, plain, secure);
 
-            // 예전에는 이 다섯 가지가 "Not Found IssuanceKey(SigningKey)" 한 문자열이었다.
-            // 대응이 전부 다르다 — 발급창 전이면 기다리면 되고, verify-only 뿐이면
-            // 배포 설정 실수이며, 0건이면 CMS 접속 문제다.
             failure = _certificates.Count == 0
                 ? new DatException(DatErrorCode.ManagerNoCertificate)
                 : new DatException(DatErrorCode.ManagerNoIssuableCertificate, null, NoIssuableCause(_certificates));
@@ -48,9 +33,6 @@ public class DatManager : IDisposable
         throw failure;
     }
 
-    /// <summary>
-    /// 발급 가능한 인증서가 없을 때 <b>왜</b> 없는지 가려낸다. 락 안에서 호출된다.
-    /// </summary>
     private static DatException NoIssuableCause(List<DatCertificate> certificates)
     {
         long now = Unixtime.Now();
@@ -65,7 +47,6 @@ public class DatManager : IDisposable
         }
 
         if (!signableSeen) return new DatException(DatErrorCode.CertVerifyOnly);
-        // 기다리면 풀리는 유일한 사유다. 하나라도 있으면 이것을 앞세운다.
         if (notYet) return new DatException(DatErrorCode.CertNotYetIssuable);
         if (ended) return new DatException(DatErrorCode.CertIssuanceEnded);
         return new DatException(DatErrorCode.CertExpired);
@@ -147,12 +128,10 @@ public class DatManager : IDisposable
         }
         catch
         {
-            // Nothing else can reach the certificates parsed so far.
             foreach (var c in certs) c.Dispose();
             throw;
         }
 
-        // Freshly parsed, so there is no second owner to copy away from.
         return ImportsOwned(certs, clear);
     }
 
@@ -163,8 +142,6 @@ public class DatManager : IDisposable
         if (certs.Count != certs.Select(c => c.Cid).Distinct().Count())
             throw new DatException(DatErrorCode.CertDuplicateCid);
 
-        // The manager owns what it stores, so it takes copies and the caller keeps
-        // ownership of the instances it passed in.
         var owned = new List<DatCertificate>(certs.Count);
         try
         {
@@ -179,10 +156,6 @@ public class DatManager : IDisposable
         return ImportsOwned(owned, clear);
     }
 
-    /// <summary>
-    /// Takes ownership of <paramref name="certs"/>: every element is either held
-    /// by the manager when this returns or disposed.
-    /// </summary>
     private int ImportsOwned(List<DatCertificate> certs, bool clear)
     {
         if (Volatile.Read(ref _disposed) != 0)
@@ -207,7 +180,6 @@ public class DatManager : IDisposable
                     else list.Add(c);
                 }
                 renewCount = list.Count;
-                // Full replacement: everything held so far goes.
                 evicted.AddRange(_certificates);
             }
             else
@@ -215,8 +187,6 @@ public class DatManager : IDisposable
                 list = new List<DatCertificate>(_certificates);
                 foreach (var nc in certs)
                 {
-                    // A CID already held wins: a re-issued certificate that keeps its
-                    // CID is dropped rather than replacing the one in hand.
                     if (list.Any(c => c.Cid == nc.Cid))
                     {
                         evicted.Add(nc);
@@ -239,7 +209,6 @@ public class DatManager : IDisposable
         }
         finally { _lock.ExitWriteLock(); }
 
-        // Outside the lock: disposal touches native handles only.
         foreach (var c in evicted) c.Dispose();
 
         return renewCount;
@@ -277,8 +246,6 @@ public class DatManager : IDisposable
 
     public static Payload Parse(DatCertificate certificate, Dat dat)
     {
-        // Verify 는 이제 백엔드 실패(SIG_BACKEND)와 해제된 키(MANAGER_DISPOSED)를
-        // 예외로 올린다. false 는 오직 "서명이 안 맞는다" 뿐이므로 그때만 위조로 본다.
         if (!certificate.Signature.Verify(dat.Body, dat.SignatureBytes))
             throw new DatException(DatErrorCode.SigMismatch);
 

@@ -44,8 +44,6 @@ public class DatCryptoAesGcmNonce : IDatCrypto, IDisposable
 
     public byte[] Encrypt(byte[] bytes)
     {
-        // 예전에는 crypto 쪽만 _disposed 를 보지 않아, Dispose 된 인증서가
-        // "서명은 죽고 복호화는 살아있는" 상태로 남았다. 서명과 같은 코드로 맞춘다.
         if (_disposed) throw new DatException(DatErrorCode.ManagerDisposed, nameof(DatCryptoAesGcmNonce));
         if (bytes is null)
             throw new DatException(DatErrorCode.ConfigArgumentInvalid, "payload to encrypt is null");
@@ -90,14 +88,10 @@ public class DatCryptoAesGcmNonce : IDatCrypto, IDisposable
         }
         catch (AuthenticationTagMismatchException e)
         {
-            // 예전에는 이 예외가 DatException 우산 밖으로 그대로 새어 나갔다.
-            // ParseWithoutVerifying 경로에서는 이것이 유일한 무결성 검사다 —
-            // 변조된 secure 이거나 잘못된 인증서 키라는 뜻이다.
             throw new DatException(DatErrorCode.CryptoTagMismatch, "gcm authentication tag mismatch", e);
         }
         catch (CryptographicException e)
         {
-            // 태그 불일치가 아닌 백엔드 실패. 보안 이벤트로 오인하면 안 된다.
             throw new DatException(DatErrorCode.CryptoBackend, "aes-gcm decrypt failed", e);
         }
         return plaintext;
@@ -119,10 +113,6 @@ public class DatCryptoAesGcmNonce : IDatCrypto, IDisposable
 
     IDatCrypto IDatCrypto.Clone() => (IDatCrypto)Clone();
 
-    /// <summary>
-    /// 키 재료를 소거한다. DatCertificate.Dispose 가 서명 키와 함께 호출하므로,
-    /// 해제 뒤에는 서명도 복호화도 같은 코드로 거부된다.
-    /// </summary>
     public void Dispose()
     {
         if (_disposed) return;

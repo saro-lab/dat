@@ -18,8 +18,6 @@ type Certificate struct {
 }
 
 func NewCertificate(cid uint64, datIssuanceStartSeconds, datIssuanceDurationSeconds, datTtlSeconds uint64, signatureKey *Signature, cryptoKey *Crypto) (*Certificate, error) {
-	// rust (certificate.rs from) validates the time fields with checked_add only:
-	// zero ttl / zero duration are legal, wrapping past u64 is not.
 	datIssuanceEndSeconds := datIssuanceStartSeconds + datIssuanceDurationSeconds
 	if datIssuanceEndSeconds < datIssuanceStartSeconds {
 		return nil, ErrCertMalformed.With("certificate time arithmetic overflowed u64")
@@ -55,8 +53,6 @@ func GenerateCertificate(cid uint64, datIssuanceStartSeconds, datIssuanceDuratio
 	return NewCertificate(cid, datIssuanceStartSeconds, datIssuanceDurationSeconds, datTtlSeconds, sk, ck)
 }
 
-// TryClone deep copies the certificate, so a handed out copy cannot be mutated
-// through the manager's live certificate (and vice versa).
 func (c *Certificate) TryClone() (*Certificate, error) {
 	signatureKey, err := NewSignatureKey(c.SignatureKey.algorithm, bytes.Clone(c.SignatureKey.privateBytes), bytes.Clone(c.SignatureKey.publicBytes))
 	if err != nil {
@@ -164,7 +160,6 @@ func ParseCertificate(format string) (*Certificate, error) {
 
 	signatureKey, err := NewSignatureKey(sigAlgo, sigKeyBytes, nil)
 	if err != nil {
-		// Try treating as public key if it failed?
 		signatureKey, err = NewSignatureKey(sigAlgo, nil, sigKeyBytes)
 		if err != nil {
 			return nil, err

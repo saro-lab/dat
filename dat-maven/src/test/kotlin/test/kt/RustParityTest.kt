@@ -12,10 +12,6 @@ import me.saro.dat.signature.DatSignatureAlgorithm
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
-/**
- * Locks this port to the dat-rust reference behaviour.
- * Covers A-1, A-3, A-4, A-6, A-7, E-1 and M-13 - each test names the rust rule it mirrors.
- */
 class RustParityTest {
     private fun cert(alg: DatSignatureAlgorithm) = DatCertificate.generate(
         1L, Unixtime.now() - 10, 200, 100, alg, DatCryptoAlgorithm.IV_AES256_GCM
@@ -28,8 +24,6 @@ class RustParityTest {
         assertThrows(DatException::class.java) { hmac.exports(true) }
         val mgr = DatManager.newInstance()
         mgr.imports(listOf(hmac), true)
-        // must NOT silently drop the HMAC cert - the error has to reach the caller,
-        // exactly as rust's export() collects into Result<_, DatError>
         assertThrows(DatException::class.java) { mgr.exports(true) }
 
         val ecdsa = cert(DatSignatureAlgorithm.ECDSA_P256)
@@ -46,7 +40,6 @@ class RustParityTest {
         assertThrows(DatException::class.java) { DatCertificate.new(1L, -1L, 200L, 100L, sig.clone(), cry.clone()) }
         assertThrows(DatException::class.java) { DatCertificate.new(1L, 100L, -1L, 100L, sig.clone(), cry.clone()) }
         assertThrows(DatException::class.java) { DatCertificate.new(1L, 100L, 200L, -1L, sig.clone(), cry.clone()) }
-        // negative cid stays legal: u64 wire value above Long.MAX_VALUE
         val c = DatCertificate.new(-1L, 100L, 200L, 100L, sig.clone(), cry.clone())
         assertEquals("ffffffffffffffff", c.exports(false).split(".")[0])
     }
@@ -55,9 +48,7 @@ class RustParityTest {
     fun a7_rustParityBoundaries() {
         val sig = DatSignature.generate(DatSignatureAlgorithm.HMAC_SHA256_MFS)
         val cry = DatCrypto.generate(DatCryptoAlgorithm.IV_AES256_GCM)
-        // rust DatCertificate::from accepts duration == 0 and ttl == 0
         DatCertificate.new(1UL, 100UL, 0UL, 0UL, sig.clone(), cry.clone())
-        // rust rejects only u64 overflow
         assertThrows(DatException::class.java) {
             DatCertificate.new(1UL, ULong.MAX_VALUE, 1UL, 1UL, sig.clone(), cry.clone())
         }
@@ -83,7 +74,6 @@ class RustParityTest {
 
     @Test
     fun a3_expireAtExactSecondIsExpired() {
-        // rust dat.rs: filter(|x| *x > now) - accepted only while expire > now
         val body = "${Unixtime.now()}.1.QQ.QQ.QQ"
         assertTrue(Dat.parse(body).isFailure)
     }

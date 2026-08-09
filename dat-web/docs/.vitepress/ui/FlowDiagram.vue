@@ -52,22 +52,17 @@ export type FlowActor = {
 
 export type FlowStep = {
   from: string
-  /** Omitted (or equal to `from`) renders the label as a standing note instead of an arrow. */
   to?: string
   label: string
   kind?: 'req' | 'res' | 'sync' | 'note'
 }
 
-/* Boolean props Vue never received are cast to `false`, not `undefined`, so
-   `showLegend` needs an explicit default — without it the legend silently
-   disappears on every diagram that does not pass the prop. */
 const props = withDefaults(
   defineProps<{
     actors: FlowActor[]
     steps: FlowStep[]
     title?: string
     legend?: { req?: string; res?: string; sync?: string }
-    /** Set to `false` to drop the legend row under the diagram. */
     showLegend?: boolean
   }>(),
   { showLegend: true, title: '', legend: undefined },

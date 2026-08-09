@@ -77,8 +77,6 @@ class DatManager private constructor(
     internal fun findUnsafeThread(cid: ULong): DatResult<DatCertificate> {
         return certificateMap[cid]
             ?.run { DatResult.success(this) }
-            // cid 는 16진으로 통일한다. 예전에는 10진으로 찍혀 다른 포트의 로그와
-            // 대조가 되지 않았다.
             ?: DatResult.failure(DatException(DatErrorCode.CERT_NOT_FOUND, "cid ${cid.toString(16)}"))
     }
 
@@ -112,7 +110,6 @@ class DatManager private constructor(
 
     fun imports(certificates: List<DatCertificate>, clear: Boolean): Int {
         if (certificates.size != certificates.distinctBy { it.cid }.size) {
-            // 예전에는 로그 + IllegalArgumentException 두 갈래였다. DatException 으로 통일한다.
             throw DatException(DatErrorCode.CERT_DUPLICATE_CID, "duplicate cid in the import list")
         }
 
@@ -151,13 +148,6 @@ class DatManager private constructor(
         private val DOT = '.'.code.toByte()
         private val log = LoggerFactory.getLogger(DatManager::class.java)
 
-        /**
-         * 발급 가능한 인증서가 없을 때 **왜** 없는지 가려낸다.
-         *
-         * 예전에는 이 다섯 가지가 `"Not Found IssuanceKey(SigningKey)"` 문자열
-         * 하나였다. 대응이 전부 다르다 — 발급창 전이면 기다리면 되고, verify-only
-         * 뿐이면 배포 설정 실수이며, 0건이면 CMS 접속 문제다.
-         */
         internal fun noIssuableCause(certificates: List<DatCertificate>): DatException {
             val now = Unixtime.now().toULong()
             var signableSeen = false
@@ -178,7 +168,6 @@ class DatManager private constructor(
 
             return when {
                 !signableSeen -> DatException(DatErrorCode.CERT_VERIFY_ONLY)
-                // 기다리면 풀리는 유일한 사유다. 하나라도 있으면 이것을 앞세운다.
                 notYet -> DatException(DatErrorCode.CERT_NOT_YET_ISSUABLE)
                 ended -> DatException(DatErrorCode.CERT_ISSUANCE_ENDED)
                 else -> DatException(DatErrorCode.CERT_EXPIRED)
@@ -203,7 +192,6 @@ class DatManager private constructor(
                 val plainBase64 = DatUtils.encodeBase64UrlBytes(plain)
                 val secureBase64 = DatUtils.encodeBase64UrlBytes(certificate.crypto.encrypt(secure))
 
-                // expire.cid.plain.secure
                 val bodyLen = expire.size + cid.size + plainBase64.size + secureBase64.size + 3
                 val body = ByteArray(bodyLen)
                 var pos = 0
@@ -215,7 +203,6 @@ class DatManager private constructor(
                 body[pos++] = DOT
                 System.arraycopy(secureBase64, 0, body, pos, secureBase64.size)
 
-                // expire.cid.plain.secure.sign
                 val sign: ByteArray = DatUtils.encodeBase64UrlBytes(certificate.signature.sign(body))
                 val dat = body.copyOf(bodyLen + sign.size + 1)
                 dat[bodyLen] = DOT
@@ -232,8 +219,6 @@ class DatManager private constructor(
 
         @JvmStatic
         fun parse(certificate: DatCertificate, dat: Dat): DatResult<Payload> {
-            // verify 가 false 를 돌려주는 것은 오직 불일치일 때뿐이다. 연산 실패는
-            // SIG_BACKEND 예외로 올라오므로 여기서 위조로 뭉개지지 않는다.
             return try {
                 if (!certificate.signature.verify(dat.body, dat.signatureBytes)) {
                     DatResult.failure(DatException(DatErrorCode.SIG_MISMATCH))

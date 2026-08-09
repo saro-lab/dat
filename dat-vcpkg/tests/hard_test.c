@@ -83,7 +83,6 @@ int main(void) {
         dat_payload_free(payload);
     }
 
-    /* issue and parse */
     char* dat_issued = NULL;
     err = dat_manager_issue(manager, PLAIN, SECURE, &dat_issued);
     assert(err == DAT_SUCCESS);

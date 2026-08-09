@@ -6,7 +6,6 @@ class TestExamplePorted < Minitest::Test
   def test_issue_and_parse
     dat_manager = Saro::Dat::DatManager.new
 
-    # create certificate
     now = Time.now.to_i
     cert = Saro::Dat::DatCertificate.new(
       0,
@@ -19,7 +18,6 @@ class TestExamplePorted < Minitest::Test
 
     puts cert.exports(false)
 
-    # import certificate
     dat_manager.import_certificates([cert])
 
     example_plain = "plain text = 평문"
@@ -35,7 +33,6 @@ class TestExamplePorted < Minitest::Test
       puts "plain: #{payload.plain}"
       puts "secure: #{payload.secure}"
     rescue OpenSSL::Cipher::CipherError
-      # Skip if GCM is not supported
     end
   end
 

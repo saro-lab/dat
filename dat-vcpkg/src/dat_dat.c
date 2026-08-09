@@ -12,10 +12,6 @@ dat_error_t dat_dat_parse(const char* dat_str, dat_dat_t** out) {
     const char* p = dat_str;
     const char* end = dat_str + total_len;
 
-    /* 1) 먼저 구조를 확정한다. 파트가 5개가 아니면 그건 만료된 토큰이 아니라
-     *    애초에 토큰이 아니다. 예전에는 구조·필드·만료·위조가 전부 INVALID_DAT
-     *    하나였고, 그래서 호출부가 "토큰을 갱신하라"와 "세션을 끊어라"를 구분할
-     *    수 없었다. */
     const char* dot1 = memchr(p, '.', (size_t)(end - p));
     if (!dot1) return DAT_TOKEN_MALFORMED;
     size_t expire_len = (size_t)(dot1 - p);
@@ -42,19 +38,15 @@ dat_error_t dat_dat_parse(const char* dat_str, dat_dat_t** out) {
 
     p = dot4 + 1;
     size_t sig_b64_len = (size_t)(end - p);
-    /* 파트가 6개 이상 */
     if (memchr(p, '.', sig_b64_len) != NULL) return DAT_TOKEN_MALFORMED;
 
-    /* 2) 구조가 맞은 뒤에야 값을 본다. */
     uint64_t expire;
     if (!parse_u64_strict(expire_str, expire_len, 10, &expire)) return DAT_TOKEN_MALFORMED;
-    /* 정각도 만료다 (interop: expire > now 여야 유효). */
     if (expire <= now_unix_timestamp()) return DAT_TOKEN_EXPIRED;
 
     uint64_t cid;
     if (!parse_u64_strict(cid_str, cid_len, 16, &cid)) return DAT_TOKEN_MALFORMED;
 
-    /* 빈 서명·깨진 서명은 토큰 구조가 아니라 서명 자체의 형식 오류다. */
     if (sig_b64_len == 0) return DAT_SIG_MALFORMED;
 
     uint8_t* sig_bytes = NULL;
@@ -62,7 +54,6 @@ dat_error_t dat_dat_parse(const char* dat_str, dat_dat_t** out) {
     dat_error_t err = decode_base64_url(p, sig_b64_len, &sig_bytes, &sig_len);
     if (err != DAT_SUCCESS) return DAT_SIG_MALFORMED;
 
-    /* Build body = dat_str[0..secure_end] */
     char* body = malloc(secure_end + 1);
     if (!body) { free(sig_bytes); return DAT_INTERNAL_UNKNOWN; }
     memcpy(body, dat_str, secure_end);
@@ -86,8 +77,6 @@ dat_error_t dat_dat_parse(const char* dat_str, dat_dat_t** out) {
     return DAT_SUCCESS;
 }
 
-/* util 의 base64 디코더는 중립적인 CONFIG_ARGUMENT_INVALID 를 돌려준다.
- * 여기서는 토큰 필드를 읽고 있으므로 토큰 형식 오류로 바꿔 단다. */
 dat_error_t dat_dat_plain(const dat_dat_t* dat, uint8_t** out_data, size_t* out_len) {
     dat_error_t e = decode_base64_url(dat->body + dat->plain_pos, dat->plain_len, out_data, out_len);
     return (e == DAT_CONFIG_ARGUMENT_INVALID) ? DAT_TOKEN_MALFORMED : e;

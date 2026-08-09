@@ -37,7 +37,7 @@ class DatCertificate private constructor(
 
     fun exports(verifyOnly: Boolean = false): String {
         return StringBuilder()
-            .append(cidHex).append('.') // cid
+            .append(cidHex).append('.')
             .append(datIssuanceStartSeconds).append('.')
             .append(datIssuanceEndSeconds - datIssuanceStartSeconds).append('.')
             .append(datTtlSeconds).append('.')
@@ -89,10 +89,6 @@ class DatCertificate private constructor(
 
         @JvmStatic
         fun new(cid: Long, datIssuanceStartSeconds: Long, datIssuanceDurationSeconds: Long, datTtlSeconds: Long, signatureKey: DatSignature, cryptoKey: DatCrypto): DatCertificate {
-            // These have to be checked *before* toULong(): a negative Long silently
-            // wraps to a huge unsigned value, so the guard is dead once converted.
-            // (cid is exempt - it is a u64 in the wire format and Java has no
-            // unsigned type, so a negative Long is a legitimate high cid.)
             if (datIssuanceStartSeconds < 0L) {
                 throw DatException(DatErrorCode.CONFIG_ARGUMENT_INVALID, "datIssuanceStartSeconds must be >= 0")
             }
@@ -107,8 +103,6 @@ class DatCertificate private constructor(
 
         @JvmStatic
         fun new(cid: ULong, datIssuanceStartSeconds: ULong, datIssuanceDurationSeconds: ULong, datTtlSeconds: ULong, signatureKey: DatSignature, cryptoKey: DatCrypto): DatCertificate {
-            // Same accept/reject rules as rust's DatCertificate::from - the only
-            // rejection there is u64 overflow of start+duration and +ttl.
             if (datIssuanceDurationSeconds > ULong.MAX_VALUE - datIssuanceStartSeconds) {
                 throw DatException(DatErrorCode.CERT_MALFORMED, "issuance_start_seconds + issuance_duration_seconds overflowed u64")
             }
@@ -128,20 +122,11 @@ class DatCertificate private constructor(
 
         @JvmStatic
         fun parse(format: String): DatCertificate {
-            // 1) 먼저 구조를 확정한다. 파트가 8개가 아니면 그건 필드가 틀린 인증서가
-            //    아니라 애초에 인증서가 아니다.
             val parts: List<String> = format.split(".")
             if (parts.size != 8) {
                 throw DatException(DatErrorCode.CERT_MALFORMED, "expected exactly 8 dot-separated fields")
             }
 
-            // 2) 구조가 맞은 뒤에 값을 본다. 예전에는 아래 7가지 원인 —
-            //    파트 수 / cid / start / duration / ttl / 알고리즘 이름 / 키 재료 —
-            //    가 전부 "Invalid Dat Certificate Format" 문자열 하나였고,
-            //    catch 절이 하위 예외를 통째로 버렸다.
-            // Parsed as ULong and handed to the ULong overload: a round trip
-            // through Long would wrap values above Long.MAX_VALUE that rust
-            // accepts. Strict parse so "+1" is rejected exactly as rust does.
             val cid = DatUtils.parseU64HexOrNull(parts[0])
                 ?: throw DatException(DatErrorCode.CERT_MALFORMED, "cid field is not a plain hex u64")
             val datIssuanceStartSeconds = DatUtils.parseU64OrNull(parts[1])
@@ -151,8 +136,6 @@ class DatCertificate private constructor(
             val datTtlSeconds = DatUtils.parseU64OrNull(parts[3])
                 ?: throw DatException(DatErrorCode.CERT_MALFORMED, "dat_ttl_seconds field is not a plain decimal u64")
 
-            // 알고리즘 이름(CONFIG_ALG_UNSUPPORTED)과 키 재료(KEY_INVALID)는 각자의
-            // 코드를 그대로 올린다. 인증서 형식 오류로 덮지 않는다.
             val signatureAlgorithm = DatSignatureAlgorithm.fromString(parts[4])
             val cryptAlgorithm = DatCryptoAlgorithm.fromString(parts[5])
 

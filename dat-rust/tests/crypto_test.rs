@@ -32,11 +32,9 @@ fn encrypt_and_decrypt(alg: DatCryptoAlgorithm, rand_string: String) -> Result<(
 fn test() {
     let alg_arr = DatCryptoAlgorithm::list();
     alg_arr.iter().for_each(|alg| {
-        // random
         (1..20).for_each(|_| {
             assert!(encrypt_and_decrypt(*alg, rand_string()).is_ok())
         });
-        // empty
         assert!(encrypt_and_decrypt(*alg, "".to_string()).is_ok())
     })
 }

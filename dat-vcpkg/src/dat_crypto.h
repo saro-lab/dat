@@ -13,9 +13,8 @@ struct dat_crypto {
     size_t  key_len;
 };
 
-/* Internal: encrypt data into an existing bbuf (no extra alloc). */
 dat_error_t dat_crypto_encrypt_to_bbuf(const dat_crypto_t* crypto,
                                        const uint8_t* data, size_t data_len,
                                        dat_bbuf_t* out);
 
-#endif /* DAT_CRYPTO_H */
+#endif

@@ -18,11 +18,6 @@ public static class DatUtils
         return Base64Url.DecodeFromChars(str);
     }
 #else
-    // System.Buffers.Text.Base64Url is .NET 9+. The shim below reproduces its
-    // observed behaviour exactly so both target frameworks encode and decode
-    // identically: whitespace is ignored, '=' padding is optional but may not
-    // precede data nor pad a whole group, and '+'/'/' are rejected.
-    // Base64UrlTest pins this down and runs on both TFMs.
 
     public static string EncodeBase64Url(byte[] bytes)
     {
@@ -31,7 +26,6 @@ public static class DatUtils
         char[] chars = new char[(bytes.Length + 2) / 3 * 4];
         int len = Convert.ToBase64CharArray(bytes, 0, bytes.Length, chars, 0);
 
-        // Standard alphabet -> URL alphabet, dropping the '=' padding.
         int end = len;
         while (end > 0 && chars[end - 1] == '=') end--;
         for (int i = 0; i < end; i++)
@@ -47,8 +41,8 @@ public static class DatUtils
         if (string.IsNullOrEmpty(str)) return Array.Empty<byte>();
 
         char[] buf = new char[str.Length + 3];
-        int n = 0;              // significant (non-whitespace, non-padding) chars
-        bool padded = false;    // a '=' has been seen
+        int n = 0;
+        bool padded = false;
 
         foreach (char c in str)
         {
@@ -58,7 +52,6 @@ public static class DatUtils
                 padded = true;
                 continue;
             }
-            // Data after the padding started is invalid, e.g. "=AAA".
             if (padded) throw new FormatException("Invalid base64url: data after padding");
 
             buf[n++] = c switch
@@ -73,8 +66,6 @@ public static class DatUtils
         }
 
         int rem = n & 3;
-        // A trailing group of one char carries no whole byte, and padding a
-        // complete group is meaningless: Base64Url rejects both.
         if (rem == 1) throw new FormatException("Invalid base64url length");
         if (padded && rem == 0) throw new FormatException("Invalid base64url padding");
 
@@ -87,14 +78,6 @@ public static class DatUtils
         return Convert.FromBase64CharArray(buf, 0, total);
     }
 #endif
-
-    // dat-rust parses these fields with u64::from_str / u64::from_str_radix, which
-    // take digits and nothing else. long.Parse and Convert.ToInt64 are far looser
-    // -- they accept surrounding whitespace, a leading sign and a "0x" prefix --
-    // so "-1", " 100 " and "0x1f" would decode here but be rejected by every other
-    // port. These two parse exactly what rust parses.
-    // FormatException (not DatException) so the callers' existing catch blocks keep
-    // reporting their own "Invalid ... Format" message.
 
     internal static ulong ParseDecimalStrict(string s)
     {
@@ -131,11 +114,6 @@ public static class DatUtils
         return value;
     }
 
-    /// <summary>
-    /// Decimal seconds field. rust holds these as u64; this port holds them as
-    /// long, so the upper half of the u64 range is refused rather than wrapped
-    /// into a negative timestamp.
-    /// </summary>
     internal static long ParseSecondsStrict(string s)
     {
         ulong value = ParseDecimalStrict(s);
@@ -143,10 +121,6 @@ public static class DatUtils
         return (long)value;
     }
 
-    /// <summary>
-    /// CID field. rust holds it as u64 and prints 16 hex chars; the unchecked cast
-    /// keeps that round trip exact for CIDs with the high bit set.
-    /// </summary>
     internal static long ParseCidStrict(string s) => unchecked((long)ParseHexStrict(s));
 
     public static string GenerateRandomBase62(int size)

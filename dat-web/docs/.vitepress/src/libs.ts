@@ -5,7 +5,6 @@ const REPO_BASE = 'https://github.com/saro-lab/dat/tree/master';
 const DAT_VERSION = '4.6';
 
 export const libList: Library[] = [
-    // libraries
     _cargo('dat', `${DAT_VERSION}.1`, '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
     _maven('me.saro:dat', `${DAT_VERSION}.1`, '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
     _npm('saro-dat', `${DAT_VERSION}.0`, '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
@@ -15,7 +14,6 @@ export const libList: Library[] = [
     _vcpkg('dat', `${DAT_VERSION}.0`, '/libs/vcpkg-dat', true, `${REPO_BASE}/dat-vcpkg`),
     _ruby('saro-dat', `${DAT_VERSION}.0`, '/libs/gems-saro-dat', `${REPO_BASE}/dat-ruby`),
 
-    // services
     _docker('sarolab/dat-cms', `${DAT_VERSION}.1`, '/svc/docker-saro-lab-dat-cms', `${REPO_BASE}/dat-cms`, [
         'arch=amd64',
         'arch=arm64',
@@ -51,7 +49,6 @@ export function findLibrary(repository: LibraryRepository, id: string): Library 
     return libList.find(lib => lib.repositories.includes(repository) && lib.id === id) || null;
 }
 
-/** Resolves a library from a page's relative path (e.g. `en/libs/cargo-dat.md`), locale prefix stripped. */
 export function findLibraryByPath(path: string): Library | null {
     const segments = path.replace(/\.md$/, '').split('/').filter(Boolean);
     if (localeCodes.includes(segments[0] as never)) {
@@ -122,18 +119,12 @@ export function getExtCode(library: Library): ({ext: string, code: string}[]) {
         if (code) {
             rv.push({ext, code: code.trim()});
         } else {
-            //console.log('no code', repo, id, ver);
         }
     }
 
     return rv;
 }
 
-/**
- * Platform/language tags shown on the landing page, each linking to its library
- * page under the given locale prefix (e.g. `/ko`). Deterministic so it renders
- * identically on the server and the client (no hydration mismatch).
- */
 export function getLibTags(localePrefix: string): LibTag[] {
     const tags: LibTag[] = libList.filter(e => e.id != 'sarolab/dat-cms').flatMap(lib => {
         const link = localePrefix + (lib.link.startsWith('/') ? lib.link : `/libs?q=$TAG$`);
