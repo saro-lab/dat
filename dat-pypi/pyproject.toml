@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "saro-dat"
-version = "4.6.1"
+version = "4.6.2"
 description = "Distributed Access Token"
 keywords = ["dat", "distributed", "access", "token", "jwt", "security", "authentication"]
 readme = "README.md"

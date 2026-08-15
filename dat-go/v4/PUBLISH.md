@@ -10,3 +10,11 @@ go mod tidy
 ```shell
 go build
 ```
+
+- version up
+```
+# install
+# go install github.com/oligot/go-mod-upgrade@latest
+~/go/bin/go-mod-upgrade
+go mod tidy
+```

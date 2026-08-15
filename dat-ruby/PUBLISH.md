@@ -12,6 +12,7 @@ gem signin
 # glob, not a pinned filename: a hardcoded version silently pushes a stale
 # package after a version bump
 gem push saro-dat-*.gem
+gem push saro-dat-4.6.1.gem
 ```
 
 ## install
@@ -37,4 +38,10 @@ ruby -v
 ```
 bundle add saro-dat
 bundle install
+```
+
+## version up
+```
+bundle outdated
+bundle update --all
 ```

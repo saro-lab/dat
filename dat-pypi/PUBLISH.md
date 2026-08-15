@@ -18,3 +18,10 @@ uv venv --python 3.12
 uv pip install -e .
 uv pip install pytest
 ```
+
+
+- update
+```
+uv lock --upgrade
+uv sync --upgrade
+```

@@ -5,16 +5,16 @@ const REPO_BASE = 'https://github.com/saro-lab/dat/tree/master';
 const DAT_VERSION = '4.6';
 
 export const libList: Library[] = [
-    _cargo('dat', `${DAT_VERSION}.1`, '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
-    _maven('me.saro:dat', `${DAT_VERSION}.1`, '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
-    _npm('saro-dat', `${DAT_VERSION}.0`, '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
-    _pypi('saro-dat', `${DAT_VERSION}.0`, '/libs/pypi-saro-dat', `${REPO_BASE}/dat-pypi`),
-    _nuget('saro-dat', `${DAT_VERSION}.0`, '/libs/nuget-saro-dat', `${REPO_BASE}/dat-nuget`),
+    _cargo('dat', `${DAT_VERSION}.2`, '/libs/cargo-dat', `${REPO_BASE}/dat-rust`),
+    _maven('me.saro:dat', `${DAT_VERSION}.2`, '/libs/maven-me.saro-dat', `${REPO_BASE}/dat-maven`),
+    _npm('saro-dat', `${DAT_VERSION}.1`, '/libs/npm-saro-dat', true, `${REPO_BASE}/dat-npm`),
+    _pypi('saro-dat', `${DAT_VERSION}.2`, '/libs/pypi-saro-dat', `${REPO_BASE}/dat-pypi`),
+    _nuget('saro-dat', `${DAT_VERSION}.1`, '/libs/nuget-saro-dat', `${REPO_BASE}/dat-nuget`),
     _go('github.com/saro-lab/dat/dat-go/v4', `v${DAT_VERSION}.0`, '/libs/go-saro-dat', `${REPO_BASE}/dat-go`),
     _vcpkg('dat', `${DAT_VERSION}.0`, '/libs/vcpkg-dat', true, `${REPO_BASE}/dat-vcpkg`),
-    _ruby('saro-dat', `${DAT_VERSION}.0`, '/libs/gems-saro-dat', `${REPO_BASE}/dat-ruby`),
+    _ruby('saro-dat', `${DAT_VERSION}.1`, '/libs/gems-saro-dat', `${REPO_BASE}/dat-ruby`),
 
-    _docker('sarolab/dat-cms', `${DAT_VERSION}.1`, '/svc/docker-saro-lab-dat-cms', `${REPO_BASE}/dat-cms`, [
+    _docker('sarolab/dat-cms', `${DAT_VERSION}.2`, '/svc/docker-saro-lab-dat-cms', `${REPO_BASE}/dat-cms`, [
         'arch=amd64',
         'arch=arm64',
         'type=link'

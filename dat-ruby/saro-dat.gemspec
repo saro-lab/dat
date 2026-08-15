@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "base64"
   spec.add_dependency "logger"
 
-  spec.add_development_dependency "minitest", "~> 5.0"
+  spec.add_development_dependency "minitest", "~> 6.0"
   spec.add_development_dependency "benchmark"
   spec.add_development_dependency "parallel"
 end

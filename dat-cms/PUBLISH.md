@@ -9,7 +9,7 @@ podman build --memory=16g --memory-swap=-1 \
     --manifest docker.io/sarolab/dat-cms:latest .
 
 podman manifest push --all docker.io/sarolab/dat-cms:latest
-podman manifest push --all docker.io/sarolab/dat-cms:latest docker.io/sarolab/dat-cms:4.6.1
+podman manifest push --all docker.io/sarolab/dat-cms:latest docker.io/sarolab/dat-cms:4.6.2
 ```
 
 ## cargo update
