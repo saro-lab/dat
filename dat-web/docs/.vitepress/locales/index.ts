@@ -27,7 +27,21 @@ export const localeNames = Object.fromEntries(
 
 export const DEFAULT_LOCALE: LocaleCode = 'en'
 
+export const RTL_LOCALES: readonly string[] = ['ar', 'ur']
+
+export type TextDir = 'ltr' | 'rtl'
+
+export function localeDir(code: string): TextDir {
+  return RTL_LOCALES.includes(code) ? 'rtl' : 'ltr'
+}
+
+function withDir(code: LocaleCode) {
+  return { ...messages[code], dir: localeDir(code) }
+}
+
 export const vitepressLocales = {
-  root: messages[DEFAULT_LOCALE],
-  ...messages,
+  root: withDir(DEFAULT_LOCALE),
+  ...(Object.fromEntries(localeCodes.map((code) => [code, withDir(code)])) as {
+    [K in LocaleCode]: ReturnType<typeof withDir>
+  }),
 }

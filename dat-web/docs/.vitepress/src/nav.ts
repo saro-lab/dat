@@ -26,6 +26,7 @@ export type NavEntry = NavLink | NavExternal | NavGroup
 export type NavSection = {
   titleKey: MessageKey
   entries: NavEntry[]
+  flat?: boolean
 }
 
 export function isGroup(entry: NavEntry): entry is NavGroup {
@@ -84,14 +85,14 @@ export const navSections: NavSection[] = [
     titleKey: 'menu_libs',
     entries: [
       { path: '/libs/', titleKey: 'menu_libs_index' },
-      { path: '/libs/cargo-dat', title: 'Rust (cargo)' },
-      { path: '/libs/maven-me.saro-dat', title: 'Java (maven)' },
-      { path: '/libs/npm-saro-dat', title: 'Javascript (npm)' },
-      { path: '/libs/pypi-saro-dat', title: 'Python (pypi)' },
-      { path: '/libs/nuget-saro-dat', title: 'C# (nuget)' },
+      { path: '/libs/cargo-dat', title: 'Rust' },
+      { path: '/libs/maven-me.saro-dat', title: 'Java' },
+      { path: '/libs/npm-saro-dat', title: 'Javascript' },
+      { path: '/libs/pypi-saro-dat', title: 'Python' },
+      { path: '/libs/nuget-saro-dat', title: 'C#' },
       { path: '/libs/go-saro-dat', title: 'Go' },
-      { path: '/libs/gems-saro-dat', title: 'Ruby (gems)' },
-      { path: '/libs/vcpkg-dat', title: 'C/C++ (vcpkg)' },
+      { path: '/libs/gems-saro-dat', title: 'Ruby' },
+      { path: '/libs/vcpkg-dat', title: 'C/C++' },
     ],
   },
   {
@@ -107,6 +108,7 @@ export const navSections: NavSection[] = [
   },
   {
     titleKey: 'menu_projects',
+    flat: true,
     entries: [
       { external: 'https://lab.saro.me/', title: 'SARO Lab', icon: '/logo/saro-lab.svg' },
       { external: 'https://ticketing.saro.me/', title: 'Ticketing', icon: '/logo/ticketing.svg' },

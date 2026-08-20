@@ -6,9 +6,14 @@
       <div translate="no" class="material-symbols-outlined g-menu-close g-link-hover" @click="onMenu = false">close</div>
 
       <div class="menu-sections">
-        <section v-for="section in navSections" :key="section.titleKey" class="menu-section">
+        <section
+          v-for="section in navSections"
+          :key="section.titleKey"
+          class="menu-section"
+          :class="{ flat: section.flat }"
+        >
           <div class="menu-title">{{ t(section.titleKey) }}</div>
-          <div>
+          <div class="menu-entries">
             <template v-for="entry in section.entries">
               <div v-if="isGroup(entry)" :key="entry.labelKey" class="menu-group">
                 {{ t(entry.labelKey) }}
@@ -98,6 +103,17 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         color: var(--c-link-1);
         background-color: color-mix(in srgb, var(--c-link-1) 12%, transparent);
     }
+    .menu-section:not(.flat) {
+        .menu-entries {
+            @apply ps-1.5;
+        }
+        .menu-item {
+            @apply font-normal;
+        }
+        .menu-item.on {
+            @apply font-medium;
+        }
+    }
     .menu-icon {
         @apply w-4 h-4 shrink-0;
     }
@@ -108,8 +124,8 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         @apply text-[0.85rem]! opacity-45;
     }
     .menu-row.sub {
-        @apply ml-2 pl-1.5;
-        border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+        @apply ms-2 ps-1.5;
+        border-inline-start: 1px solid color-mix(in srgb, currentColor 14%, transparent);
     }
 
     @variant min-[60rem] {
@@ -143,7 +159,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             animation: g-menu-pop 0.18s ease-out;
         }
         .g-menu-close {
-            @apply sticky top-0 float-right -mr-1 cursor-pointer text-2xl;
+            @apply sticky top-0 float-end -me-1 cursor-pointer text-2xl;
             color: var(--c-text-2);
         }
 

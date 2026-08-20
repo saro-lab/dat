@@ -12,7 +12,7 @@
   넘긴다 — 로케일 사전에 키를 추가하지 않는다.
 -->
 <template>
-  <div class="arch-scroll my-4">
+  <div class="arch-scroll g-ltr my-4">
     <div class="arch" :style="{ gridTemplateColumns: `repeat(${colCount}, auto)` }">
       <template v-if="cms && certCols.length">
         <div class="arch-cms" :style="{ gridRow: '1', gridColumn: railSpan }">

@@ -1,7 +1,7 @@
 <template>
   <nav v-if="prevItem || nextItem" class="pn-row">
     <a v-if="prevItem" :href="root + prevItem.path" class="pn-box pn-prev">
-      <span translate="no" class="material-symbols-outlined arrow">arrow_back</span>
+      <span translate="no" class="material-symbols-outlined arrow g-flip-rtl">arrow_back</span>
       <div class="pn-text">
         <div class="pn-lbl">{{ t('nav_prev') }}</div>
         <div class="pn-title">{{ label(prevItem) }}</div>
@@ -13,7 +13,7 @@
         <div class="pn-lbl">{{ t('nav_next') }}</div>
         <div class="pn-title">{{ label(nextItem) }}</div>
       </div>
-      <span translate="no" class="material-symbols-outlined arrow">arrow_forward</span>
+      <span translate="no" class="material-symbols-outlined arrow g-flip-rtl">arrow_forward</span>
     </a>
   </nav>
 </template>
@@ -54,7 +54,7 @@ function label(entry: NavLink): string {
     }
 }
 .pn-next {
-    @apply justify-end text-right;
+    @apply justify-end text-end;
 }
 .pn-spacer {
     @apply flex-1;

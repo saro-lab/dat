@@ -5,9 +5,8 @@
 /data
 .DS_Store
 
-/TODO
 /AGENTS.md
-/NOTE.md
+/ailog
 
 .claude/settings.local.json
 .idea/workspace.xml

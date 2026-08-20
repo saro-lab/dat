@@ -126,6 +126,23 @@ body::before {
     background-image: var(--bg-image);
 }
 
+.g-ltr,
+pre,
+div[class*="language-"] {
+    direction: ltr;
+    text-align: start;
+}
+
+:not(pre) > code,
+.g-code-box {
+    unicode-bidi: isolate;
+}
+
+[dir="rtl"] .g-flip-rtl,
+[dir="rtl"] .cta-arrow {
+    scale: -1 1;
+}
+
 .material-symbols-outlined {
     font-size: inherit;
     vertical-align: top;
@@ -258,9 +275,11 @@ a {
 
     blockquote {
         margin: 1.25rem 0;
-        padding: 0.5rem 1rem 0.5rem 1.25rem;
-        border-left: 3px solid var(--quote-border);
-        border-radius: 0 0.5rem 0.5rem 0;
+        padding-block: 0.5rem;
+        padding-inline: 1.25rem 1rem;
+        border-inline-start: 3px solid var(--quote-border);
+        border-start-end-radius: 0.5rem;
+        border-end-end-radius: 0.5rem;
         background-color: var(--quote-bg);
 
         p:first-child {
@@ -293,7 +312,7 @@ a {
             font-weight: 500;
             font-size: 0.76rem;
             letter-spacing: 0.04em;
-            text-align: left;
+            text-align: start;
             white-space: nowrap;
             color: color-mix(in srgb, var(--c-text-1) 88%, transparent);
         }
@@ -315,7 +334,7 @@ a {
     ol {
         margin-top: 1rem;
         margin-bottom: 1rem;
-        padding-left: 1.5rem;
+        padding-inline-start: 1.5rem;
         color: var(--c-text-2);
 
         li {
@@ -536,10 +555,10 @@ input[type="submit"] {
 }
 
 .g-chip {
-    @apply px-2 py-1 mr-2 mt-2;
+    @apply px-2 py-1 me-2 mt-2;
 
     > span {
-        @apply mr-1;
+        @apply me-1;
     }
 }
 
@@ -556,12 +575,12 @@ input[type="submit"] {
     }
 
     label {
-        @apply px-2 py-1.5 pb-[0.3rem] mr-2 mt-2;
+        @apply px-2 py-1.5 pb-[0.3rem] me-2 mt-2;
     }
 }
 
 .g-check-group label {
-    @apply inline-flex items-center text-sm gap-1 mr-2 mt-2 cursor-pointer select-none;
+    @apply inline-flex items-center text-sm gap-1 me-2 mt-2 cursor-pointer select-none;
 
     &:hover input[type="checkbox"],
     input[type="checkbox"]:focus {
@@ -575,7 +594,7 @@ input[type="submit"] {
 
         &::after {
             content: "";
-            @apply rounded-[0.15rem] bg-transparent w-2.5 h-2.5 absolute top-0.5 left-0.5;
+            @apply rounded-[0.15rem] bg-transparent w-2.5 h-2.5 absolute top-0.5 start-0.5;
         }
         &:checked {
             border-color: var(--c-link-1) !important;
@@ -666,7 +685,7 @@ input[type="submit"] {
     @apply flex items-baseline gap-2 mt-4 mb-1.5;
 
     > .g-label {
-        @apply mt-0 mb-0 mr-auto;
+        @apply mt-0 mb-0 me-auto;
     }
 }
 .g-label-note {
@@ -694,7 +713,7 @@ input[type="submit"] {
     color: var(--c-heading);
 }
 .g-panel-aside {
-    @apply ml-auto shrink-0 text-[0.7rem] font-mono;
+    @apply ms-auto shrink-0 text-[0.7rem] font-mono;
     color: var(--c-muted);
 }
 

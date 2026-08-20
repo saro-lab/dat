@@ -2,7 +2,7 @@
   <div>
     <div class="flex items-end">
       <h5>{{t('text')}}</h5>
-      <div class="flex-1 text-right text-sm">{{size}} {{t('bytes')}}</div>
+      <div class="flex-1 text-end text-sm">{{size}} {{t('bytes')}}</div>
     </div>
     <div class="mt-3 language-text">
       <button :title="t('copy_code')" class="copy" @click="doCopyToClipboard($event?.target, text)"></button>

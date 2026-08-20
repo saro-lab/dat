@@ -9,7 +9,7 @@
 <template>
   <div class="fd my-4">
     <div v-if="title" class="fd-title">{{ title }}</div>
-    <div class="fd-scroll">
+    <div class="fd-scroll g-ltr">
       <div class="fd-canvas" :style="{ minWidth: `${actors.length * 9}rem` }">
         <div class="fd-actors">
           <div

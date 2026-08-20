@@ -11,7 +11,7 @@
   <div v-if="rows.length" class="bench my-4">
     <div v-if="title" class="bench-title">{{ title }}</div>
     <div v-if="desc" class="bench-desc">{{ desc }}</div>
-    <div class="bench-rows">
+    <div class="bench-rows g-ltr">
       <div v-for="(row, i) in rows" :key="row.target" class="bench-row">
         <component
           :is="row.link ? 'a' : 'span'"

@@ -15,7 +15,7 @@
     <div class="ec-body">
       <p class="ec-when"><slot /></p>
       <p v-if="action" class="ec-action">
-        <span translate="no" class="material-symbols-outlined">arrow_forward</span>
+        <span translate="no" class="material-symbols-outlined g-flip-rtl">arrow_forward</span>
         <span>{{ action }}</span>
       </p>
     </div>
@@ -55,7 +55,7 @@ withDefaults(
   @apply rounded-md mt-3 overflow-hidden;
   background-color: color-mix(in srgb, currentColor 4%, transparent);
   border: 1px solid color-mix(in srgb, currentColor 8%, transparent);
-  border-left: 3px solid var(--im);
+  border-inline-start: 3px solid var(--im);
 }
 .im-critical {
   --im: #dc2626;

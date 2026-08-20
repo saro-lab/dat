@@ -127,7 +127,7 @@ function cellTitle(cell: MatrixCell): string {
 }
 
 .sm-row-head {
-    @apply px-2.5 py-1.5 text-left whitespace-nowrap font-medium;
+    @apply px-2.5 py-1.5 text-start whitespace-nowrap font-medium;
     font-size: 12px;
     color: var(--c-text-1);
     border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
@@ -138,9 +138,9 @@ function cellTitle(cell: MatrixCell): string {
 }
 
 .sm-first {
-    @apply sticky left-0 z-10;
+    @apply sticky start-0 z-10;
     background: var(--c-bg);
-    border-right: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+    border-inline-end: 1px solid color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .sm-cell {

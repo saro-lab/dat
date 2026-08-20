@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="g-label mx-1">{{t('structure')}}</div>
-    <div class="p-1.5 my-1 help-box">
+    <div class="p-1.5 my-1 help-box g-ltr">
       <div v-for="(attr, idx) in attrs" class="node" @mouseover="sel = idx" @mouseout="sel = -1" :class="{sel: idx == sel}">
         <span>{{attr}}</span>
       </div>
@@ -10,7 +10,7 @@
       <span class="g-label">{{t('example')}}</span>
       <span translate="no" class="material-symbols-outlined g-link text-base! cursor-pointer" @click="renew">refresh</span>
     </div>
-    <div class="py-1.5 px-2.5 my-1 break-all help-box">
+    <div class="py-1.5 px-2.5 my-1 break-all help-box g-ltr">
       <div v-if="props.type === 'dat'" class="mt-1 mb-1 text-xs opacity-30">{{sa}} / {{ca}}</div>
       <div>
         <div v-for="(attr, idx) in values" class="node-val" @mouseover="sel = idx" @mouseout="sel = -1" :class="{sel: idx == sel}">

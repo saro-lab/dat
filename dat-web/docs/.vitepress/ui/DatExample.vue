@@ -59,7 +59,7 @@
 
       <div class="readout mt-3.5" :class="({bad: !genCertTimeValid})">
         <span translate="no" class="material-symbols-outlined">schedule</span>
-        <span class="readout-body">{{genCertTimeDisplay}}</span>
+        <span class="readout-body g-ltr">{{genCertTimeDisplay}}</span>
       </div>
 
       <div class="action-row">
@@ -584,7 +584,7 @@ async function doParseDat() {
     text-shadow: none;
   }
   .cc-ttl {
-    @apply ml-auto font-mono text-[0.68rem];
+    @apply ms-auto font-mono text-[0.68rem];
     color: var(--c-muted);
   }
 
