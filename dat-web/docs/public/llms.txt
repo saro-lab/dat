@@ -1,67 +1,41 @@
-# DAT — Distributed Access Token
+# DAT
 
-> DAT is a lightweight, high-performance token specification designed as a safer and faster alternative to JWT. Security and key rotation are enforced at the system level, not left as optional choices.
+> Distributed Access Token - a token specification where expiry, an encrypted region and key
+> rotation are part of the wire format rather than optional extras, with clients for many languages
+> that all speak the same protocol.
 
-## Documentation
+A DAT is one ASCII string of five dot-separated fields - `expire.cid.plain.secure.signature` - read
+by slicing at the delimiters, with **no JSON parsing anywhere**. Every token carries an expiration
+time because the format has nowhere to omit it. Sensitive data goes in a `secure` region that is
+AES-GCM encrypted by construction, so there is no separate encryption spec to bolt on. The
+certificate that signs a token also carries the window during which it may issue, so key rolling
+happens on a schedule instead of whenever an operator remembers. The token names no algorithm at
+all - the certificate decides - which removes the `alg`-confusion attack surface that JWT has.
+Clients exist for Rust, Java/Kotlin, JavaScript/TypeScript, Python, C#, Go, Ruby and C/C++; a token
+issued by any of them verifies in all the others.
 
-https://dat.saro.me
+## Docs
 
-Available in 14 languages: English, 한국어, 日本語, 中文, Deutsch, Français, Español, العربية, Indonesia, Português, हिन्दी, Русский, বাংলা, اردو
+- [Overview](https://dat.saro.me/llms/overview.md): What DAT is, the manager/certificate/token model, cluster roles, plain vs secure, client list
+- [Token format](https://dat.saro.me/llms/token.md): The five fields, canonical parsing rules, issuance and verification steps
+- [Certificate](https://dat.saro.me/llms/certificate.md): Certificate fields, issuance window and lifecycle, algorithms, verify-only export, rotation
+- [CMS sync](https://dat.saro.me/llms/cms-sync.md): `DatCmsManager` configuration, the sync protocol, why startup never fails on a sync error, why verifyOnly stays off unless asked
+- [Error codes](https://dat.saro.me/llms/errors.md): Every `DAT_*` code with retry class and impact, plus a symptom index
+- [Integration patterns](https://dat.saro.me/llms/integration.md): Issuing and verifying tiers, payload design, refresh, revocation, the mistakes that actually happen
 
-## Why DAT?
+## Platforms
 
-JWT has structural limitations in production:
-1. Encryption (JWE) is optional — many implementations skip it, creating security vulnerabilities
-2. Key rotation (rolling) is not enforced — static keys are commonly used for years, leading to full system compromise when leaked
-3. JSON parsing overhead — every request requires JSON deserialization, a CPU bottleneck in high-throughput systems
+- [Rust](https://dat.saro.me/llms/platform-rust.md): Crate `dat`, cargo features, `DatCmsManager` / `DatManager`, `DatError` matching - the reference implementation
+- [Java & Kotlin](https://dat.saro.me/llms/platform-jvm.md): `me.saro:dat`, `DatResult` instead of exceptions, both languages side by side
+- [JavaScript & TypeScript](https://dat.saro.me/llms/platform-javascript.md): `saro-dat`, Node 24 + ESM requirements, async API, BigInt time arguments
+- [Python](https://dat.saro.me/llms/platform-python.md): `saro-dat`, builder setup, `DatError` catching, FastAPI dependency
+- [C#](https://dat.saro.me/llms/platform-csharp.md): `saro-dat`, `IDisposable` lifetimes, DI registration, exception filters
+- [Go](https://dat.saro.me/llms/platform-go.md): `github.com/saro-lab/dat/dat-go/v4`, sentinel errors, `dat.Code` / `dat.Retry` helpers
+- [Ruby](https://dat.saro.me/llms/platform-ruby.md): `saro-dat`, `Saro::Dat::Error` rescuing, Rack middleware
+- [C & C++](https://dat.saro.me/llms/platform-c.md): vcpkg port, out-parameter and ownership conventions, CMS without a builder
 
-DAT solves all three with mandatory enforcement at the specification level.
+## Optional
 
-## Data Structure
-
-expire.cid.plain.secure.signature
-
-- expire: Token expiration time
-- cid: Certificate ID (which key signed/encrypted this token)
-- plain: Unencrypted data region (readable by anyone with the token)
-- secure: AES-GCM encrypted data region (only readable with the private key)
-- signature: P256 digital signature
-
-## Key Features
-
-- Enforced encryption: plain and encrypted data are physically separated; sensitive data MUST go in the secure region
-- Enforced key rolling: DatKey manages the full key lifecycle — keys rotate automatically on schedule
-- High performance: raw bytes with fixed offsets eliminate all JSON parsing overhead
-- Distributed verification: no central server needed for token validation
-
-## Comparison: DAT vs JWT vs Session
-
-| | DAT | JWT | Session |
-|---|---|---|---|
-| Authentication | Distributed | Distributed | Centralized |
-| Data Structure | Raw Bytes (fixed offset) | JSON (key-value text) | Serialized Object |
-| Parsing | Immediate byte mapping | JSON parsing + type casting | Object deserialization + I/O |
-| Performance | Highest | Moderate | Low |
-| Encryption | Built-in, mandatory (AES-GCM) | Optional JWE (complex to implement) | N/A |
-| Key Management | Enforced rolling (system-level) | Manual (admin neglect risk) | N/A |
-| Key Validity | Enforced in key spec | Optional (permanent if unmanaged) | Managed by central server |
-
-## Libraries
-
-DAT is available for 8 languages/platforms:
-
-All ports implement the same protocol and share a single version number.
-
-- **Rust** (Cargo): `dat = { version = "4.6.0" }` — Rust edition 2024
-- **Java/Kotlin** (Maven/Gradle): `me.saro:dat:4.6.0` — JVM >= 17
-- **JavaScript/TypeScript** (npm/yarn/pnpm): `saro-dat@4.6.0` — Node >= 24, ESM only
-- **Python** (PyPI): `pip install "saro-dat~=4.6.0"` — Python >= 3.10
-- **C#** (NuGet): `saro-dat 4.6.0` — net8.0 / net10.0
-- **Go**: `go get github.com/saro-lab/dat/dat-go/v4@v4.6.0` — Go >= 1.25
-- **C/C++** (vcpkg): `dat 4.6.0` — CMake, OpenSSL
-- **Ruby** (Gems): `gem install saro-dat --version "~> 4.6.0"`
-
-## Service
-
-- DAT Certificate Management Service: Docker image `sarolab/dat-cms:4.6.0` (amd64, arm64)
-  - Manages DAT certificate lifecycle, key generation, and rotation schedules
+- [Full docs site](https://dat.saro.me/): The same material written for people, in many languages
+- [Source](https://github.com/saro-lab/dat): Every client and the CMS server in one repository
+- [DAT CMS](https://dat.saro.me/svc/docker-saro-lab-dat-cms): The certificate management service - Docker, Kubernetes, binary

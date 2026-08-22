@@ -7,6 +7,7 @@ export const bn = {
     menu_docs: 'ডকুমেন্টেশন',
     menu_intro: 'পরিচিতি',
     menu_intro_index: 'DAT কী?',
+    menu_intro_ai: 'AI কোডিং গাইড',
     menu_spec: 'স্পেসিফিকেশন',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'সার্টিফিকেট',

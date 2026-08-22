@@ -7,6 +7,7 @@ export const de = {
     menu_docs: 'Dokumentation',
     menu_intro: 'Einführung',
     menu_intro_index: 'Was ist DAT?',
+    menu_intro_ai: 'KI-Coding-Leitfaden',
     menu_spec: 'Spezifikation',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'Zertifikat',

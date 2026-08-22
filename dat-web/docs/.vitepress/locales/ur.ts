@@ -7,6 +7,7 @@ export const ur = {
     menu_docs: 'دستاویزات',
     menu_intro: 'تعارف',
     menu_intro_index: 'DAT کیا ہے؟',
+    menu_intro_ai: 'AI وائب کوڈنگ',
     menu_spec: 'وضاحت',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'سرٹیفکیٹ',

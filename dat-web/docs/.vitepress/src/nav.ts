@@ -70,7 +70,10 @@ function useLocale(): ComputedRef<string> {
 export const navSections: NavSection[] = [
   {
     titleKey: 'menu_intro',
-    entries: [{ path: '/intro', titleKey: 'menu_intro_index' }],
+    entries: [
+      { path: '/intro', titleKey: 'menu_intro_index' },
+      { path: '/ai-coding', titleKey: 'menu_intro_ai' },
+    ],
   },
   {
     titleKey: 'menu_spec',

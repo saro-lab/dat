@@ -7,6 +7,7 @@ export const hi = {
     menu_docs: 'दस्तावेज़',
     menu_intro: 'परिचय',
     menu_intro_index: 'DAT क्या है?',
+    menu_intro_ai: 'AI कोडिंग गाइड',
     menu_spec: 'विनिर्देश',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'प्रमाणपत्र',

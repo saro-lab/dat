@@ -51,6 +51,9 @@ export default defineConfig({
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
     ['meta', { name: 'twitter:image', content: `${SITE_HOST}/og.png` }],
   ],
+  // /llms/*.md are static files under public/, not pages.
+  // /llms/*.md 는 페이지가 아니라 public/ 아래의 정적 파일이다.
+  ignoreDeadLinks: [/^\/llms\//],
   sitemap: {
     hostname: SITE_HOST,
     transformItems: (items) => items.filter((item) => item.url !== '404'),
@@ -131,6 +134,10 @@ export default defineConfig({
       md.use(markdown, {
         root: path.resolve(__dirname, '@')
       })
+      // A narrow viewport must scroll the table, not squeeze its columns.
+      // 화면이 좁아지면 표를 찌그러뜨리지 말고 가로로 스크롤해야 한다.
+      md.renderer.rules.table_open = () => '<div class="table-scroll"><table>\n'
+      md.renderer.rules.table_close = () => '</table></div>\n'
     },
   },
   locales: vitepressLocales,

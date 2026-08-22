@@ -7,6 +7,7 @@ export const ko = {
     menu_docs: '문서',
     menu_intro: '소개',
     menu_intro_index: 'DAT란?',
+    menu_intro_ai: 'AI 바이브 코딩',
     menu_spec: '규격',
     menu_spec_dat: 'DAT',
     menu_spec_cert: '인증서',

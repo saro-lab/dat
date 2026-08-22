@@ -7,6 +7,7 @@ export const ja = {
     menu_docs: 'ドキュメント',
     menu_intro: '紹介',
     menu_intro_index: 'DATとは？',
+    menu_intro_ai: 'AI バイブコーディング',
     menu_spec: '仕様',
     menu_spec_dat: 'DAT',
     menu_spec_cert: '証明書',

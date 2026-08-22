@@ -4,6 +4,7 @@
 - [DAT Run Online](https://dat.saro.me)
 - [What is DAT](https://dat.saro.me/intro)
 - [Example](https://dat.saro.me/libs/npm-saro-dat)
+- [AI Vibe Coding](https://dat.saro.me/ai-coding)
 
 ### Requirements
 - **Node.js 24 or newer.** The encoders use `Uint8Array.fromBase64`/`toBase64`/`fromHex`/`toHex`,

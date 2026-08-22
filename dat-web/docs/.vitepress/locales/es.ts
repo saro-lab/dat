@@ -7,6 +7,7 @@ export const es = {
     menu_docs: 'Documentación',
     menu_intro: 'Introducción',
     menu_intro_index: '¿Qué es DAT?',
+    menu_intro_ai: 'Programar con IA',
     menu_spec: 'Especificación',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'Certificado',

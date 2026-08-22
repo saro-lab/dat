@@ -7,6 +7,7 @@ export const ar = {
     menu_docs: 'التوثيق',
     menu_intro: 'مقدمة',
     menu_intro_index: 'ما هو DAT؟',
+    menu_intro_ai: 'البرمجة بالذكاء الاصطناعي',
     menu_spec: 'المواصفات',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'الشهادة',

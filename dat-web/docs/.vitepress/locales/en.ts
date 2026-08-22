@@ -7,6 +7,7 @@ export const en = {
     menu_docs: 'Docs',
     menu_intro: 'Introduction',
     menu_intro_index: 'What is DAT?',
+    menu_intro_ai: 'AI Coding Guide',
     menu_spec: 'Specification',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'Certificate',

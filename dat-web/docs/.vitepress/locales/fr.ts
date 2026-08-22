@@ -7,6 +7,7 @@ export const fr = {
     menu_docs: 'Documentation',
     menu_intro: 'Introduction',
     menu_intro_index: "Qu'est-ce que DAT?",
+    menu_intro_ai: 'Vibe coding avec l’IA',
     menu_spec: 'Spécification',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'Certificat',

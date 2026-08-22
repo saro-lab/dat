@@ -3,7 +3,7 @@
 ### Document
 - [DAT Run Online](https://dat.saro.me)
 - [What is DAT](https://dat.saro.me/intro)
-
+- [AI Vibe Coding](https://dat.saro.me/ai-coding)
 
 ### DAT CMS - Certificate Management Service
 - [Quick Start](https://dat.saro.me/svc/docker-saro-lab-dat-cms)
@@ -19,14 +19,6 @@
 - [Ruby](https://github.com/saro-lab/dat/tree/master/dat-ruby)
 - [C/C++ (Vcpkg)](https://github.com/saro-lab/dat/tree/master/dat-vcpkg)
 - [Cert(Key) Server (Docker)](https://github.com/saro-lab/dat)
-
-### Build
-- Install Rust: https://rust-lang.org/
-- Build: ```cargo build --release```
-- Binary Path: ```target/release/dat-cms```
-- Run: ```cargo run --package dat-cms --bin dat-cms```
-- Run: [Example with Options](https://dat.saro.me/svc/docker-saro-lab-dat-cms?binary)
-
 
 ## Support algorithm
 ### Signature

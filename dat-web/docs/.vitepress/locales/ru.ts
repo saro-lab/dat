@@ -7,6 +7,7 @@ export const ru = {
     menu_docs: 'Документация',
     menu_intro: 'Введение',
     menu_intro_index: 'Что такое DAT?',
+    menu_intro_ai: 'Вайб-кодинг с ИИ',
     menu_spec: 'Спецификация',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'Сертификат',

@@ -7,6 +7,7 @@ export const zh = {
     menu_docs: '文档',
     menu_intro: '介绍',
     menu_intro_index: '什么是DAT？',
+    menu_intro_ai: 'AI 编程指南',
     menu_spec: '规范',
     menu_spec_dat: 'DAT',
     menu_spec_cert: '证书',

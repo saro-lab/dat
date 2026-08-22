@@ -4,6 +4,7 @@
 - [DAT Run Online](https://dat.saro.me)
 - [What is DAT](https://dat.saro.me/intro)
 - [C# Example](https://dat.saro.me/--/libs/nuget-saro-dat)
+- [AI Vibe Coding](https://dat.saro.me/ai-coding)
 
 ### Support Platform
 - [Rust](https://github.com/saro-lab/dat/tree/master/dat-rust)

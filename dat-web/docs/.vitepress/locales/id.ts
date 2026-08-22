@@ -7,6 +7,7 @@ export const id = {
     menu_docs: 'Dokumentasi',
     menu_intro: 'Pengenalan',
     menu_intro_index: 'Apa itu DAT?',
+    menu_intro_ai: 'Vibe Coding AI',
     menu_spec: 'Spesifikasi',
     menu_spec_dat: 'DAT',
     menu_spec_cert: 'Sertifikat',
