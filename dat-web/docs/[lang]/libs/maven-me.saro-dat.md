@@ -1,5 +1,5 @@
 # DAT Java, Kotlin Library
-<GithubBadge label="GitHub" />
+<GithubBadge label="GitHub" /> <RegistryBadge />
 - [Java Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/src/test/java/test/java)
 - [Kotlin Test Code](https://github.com/saro-lab/dat/tree/master/dat-maven/src/test/kotlin/test/kt)
 
@@ -287,6 +287,7 @@ manager.lastError()?.let { err ->
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
 import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
+import RegistryBadge from '../../.vitepress/ui/RegistryBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Maven', 'me.saro:dat');
 import {useTranslate} from "../../.vitepress/src/langs";

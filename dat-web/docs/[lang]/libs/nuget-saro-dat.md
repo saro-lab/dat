@@ -1,5 +1,5 @@
 # DAT C# Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-nuget/Saro.Dat.Tests)
+<GithubBadge label="GitHub" /> <RegistryBadge /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-nuget/Saro.Dat.Tests)
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -149,6 +149,7 @@ catch (DatException e)
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
 import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
+import RegistryBadge from '../../.vitepress/ui/RegistryBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Nuget', 'saro-dat');
 import {useTranslate} from "../../.vitepress/src/langs";

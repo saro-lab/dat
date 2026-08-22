@@ -1,5 +1,5 @@
 # DAT Rust Library
-<GithubBadge label="GitHub" /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-rust/tests)
+<GithubBadge label="GitHub" /> <RegistryBadge /> · [Test Code](https://github.com/saro-lab/dat/tree/master/dat-rust/tests)
 
 > **Requires:** Rust edition 2024 · the `dat_cms` feature pulls in `tokio` + `reqwest`
 
@@ -142,6 +142,7 @@ println!("payload secure: {}", payload.secure_text()?);
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
 import CodeBox from '../../.vitepress/ui/CodeBox.vue';
 import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
+import RegistryBadge from '../../.vitepress/ui/RegistryBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Cargo', 'dat');
 const cmsRepo = `# features cms_manager with tracing log

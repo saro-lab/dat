@@ -1,5 +1,5 @@
 # DAT Go Library
-<GithubBadge label="GitHub / Test Code" />
+<GithubBadge label="GitHub / Test Code" /> <RegistryBadge />
 
 ## {{t('repository')}}
 <LibUnit :lib="lib" class="no-title"/>
@@ -179,6 +179,7 @@ if err != nil {
 <script setup lang="ts">
 import LibUnit from '../../.vitepress/ui/LibUnit.vue';
 import GithubBadge from '../../.vitepress/ui/GithubBadge.vue';
+import RegistryBadge from '../../.vitepress/ui/RegistryBadge.vue';
 import { findLibrary } from '../../.vitepress/src/libs';
 const lib = findLibrary('Go', 'github.com/saro-lab/dat/dat-go/v4');
 import {useTranslate} from "../../.vitepress/src/langs";

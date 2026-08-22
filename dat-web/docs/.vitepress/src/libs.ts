@@ -41,6 +41,47 @@ export type LibTag = {
     link: string;
 }
 
+export type RegistryLink = {
+    name: string;
+    url: string;
+}
+
+export function getRegistryLinks(library: Library): RegistryLink[] {
+    const rv: RegistryLink[] = [];
+    const id = library.id;
+
+    for (const repo of library.repositories) {
+        switch (repo) {
+            case 'Cargo':
+                rv.push({name: 'crates.io', url: `https://crates.io/crates/${id}`});
+                break;
+            case 'Maven':
+                rv.push({name: 'Maven Central', url: `https://central.sonatype.com/artifact/${id.split(':')[0]}/${id.split(':')[1]}`});
+                break;
+            case 'Npm':
+                rv.push({name: 'npm', url: `https://www.npmjs.com/package/${id}`});
+                break;
+            case 'Pypi':
+                rv.push({name: 'PyPI', url: `https://pypi.org/project/${id}/`});
+                break;
+            case 'Nuget':
+                rv.push({name: 'NuGet', url: `https://www.nuget.org/packages/${id}`});
+                break;
+            case 'Go':
+                rv.push({name: 'pkg.go.dev', url: `https://pkg.go.dev/${id}`});
+                break;
+            case 'Gems':
+                rv.push({name: 'RubyGems', url: `https://rubygems.org/gems/${id}`});
+                break;
+            case 'Docker':
+                rv.push({name: 'Docker Hub', url: `https://hub.docker.com/r/${id}`});
+                break;
+        }
+    }
+
+    return rv;
+}
+
 export function getAllLibraries(): Library[] {
     return libList.filter(lib => lib.languages.length > 0);
 }

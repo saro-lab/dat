@@ -6,7 +6,10 @@
           <span class="lib-icon">{{ REPO_ICON[lib.repositories[0]] ?? DEFAULT_ICON }}</span>
           {{ lib.languages.join(', ') }}
         </a>
-        <GithubBadge :href="lib.repo" label="GitHub" />
+        <div class="lib-badges">
+          <GithubBadge :href="lib.repo" label="GitHub" />
+          <RegistryBadge :lib="lib" />
+        </div>
       </div>
       <LibUnit :lib="lib" class="no-title" />
     </div>
@@ -17,6 +20,7 @@
 import { onMounted, ref } from 'vue';
 import LibUnit from './LibUnit.vue';
 import GithubBadge from './GithubBadge.vue';
+import RegistryBadge from './RegistryBadge.vue';
 import { getAllLibraries, type Library, type LibraryRepository } from '../src/libs';
 import { useRoot } from '../src/langs';
 
@@ -68,5 +72,8 @@ onMounted(() => {
 }
 .lib-icon {
     @apply text-lg leading-none;
+}
+.lib-badges {
+    @apply flex flex-wrap items-center justify-end gap-1.5;
 }
 </style>
