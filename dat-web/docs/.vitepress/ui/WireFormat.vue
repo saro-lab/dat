@@ -10,7 +10,7 @@
 <template>
   <div class="wf my-4">
     <div v-if="title" class="wf-title">{{ title }}</div>
-    <div class="wf-scroll g-ltr">
+    <div class="wf-scroll g-ltr g-xscroll">
       <div class="wf-track">
         <template v-for="(seg, i) in segments" :key="i">
           <span v-if="i > 0" class="wf-dot">.</span>

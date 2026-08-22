@@ -74,6 +74,12 @@ Because of that, tokens already issued can live out their full lifetime even aft
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## Next Documents
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — the token wire format and canonical rules
@@ -83,5 +89,6 @@ Because of that, tokens already issued can live out their full lifetime even aft
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

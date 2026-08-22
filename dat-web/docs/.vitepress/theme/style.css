@@ -214,6 +214,15 @@ a {
     }
 }
 
+.md [id] {
+    scroll-margin-top: 4rem;
+}
+
+.md :target,
+.md [tabindex="-1"]:focus {
+    outline: none;
+}
+
 .g-frame {
     @apply mx-auto;
     @variant max-[46rem] {
@@ -317,8 +326,7 @@ a {
     .table-scroll {
         margin: 1.5rem 0;
         max-width: 100%;
-        overflow-x: auto;
-        overscroll-behavior-x: contain;
+        padding-bottom: 0.25rem;
 
         th,
         td {
@@ -471,7 +479,6 @@ pre {
     border: 1px solid var(--code-border);
 }
 
-pre,
 textarea,
 input {
     overflow-x: auto;
@@ -490,6 +497,49 @@ input {
     }
     &::-webkit-scrollbar-thumb:hover {
         background: color-mix(in srgb, var(--c-muted) 75%, transparent);
+    }
+}
+
+.g-xscroll,
+.table-scroll,
+pre {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .g-xscroll,
+    .table-scroll,
+    pre {
+        &::-webkit-scrollbar {
+            display: block !important;
+            width: 8px;
+            height: 8px;
+        }
+        &::-webkit-scrollbar-track {
+            border-radius: 4px;
+            background: color-mix(in srgb, currentColor 7%, transparent);
+        }
+        &::-webkit-scrollbar-thumb {
+            border-radius: 4px;
+            background: color-mix(in srgb, currentColor 30%, transparent);
+        }
+        &::-webkit-scrollbar-thumb:hover {
+            background: color-mix(in srgb, currentColor 48%, transparent);
+        }
+        &::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+    }
+
+    @supports (-moz-appearance: none) and (scrollbar-width: thin) {
+        .g-xscroll,
+        .table-scroll,
+        pre {
+            scrollbar-width: thin;
+            scrollbar-color: color-mix(in srgb, currentColor 30%, transparent)
+                color-mix(in srgb, currentColor 7%, transparent);
+        }
     }
 }
 

@@ -27,7 +27,8 @@ JWT 같은 분산 액세스 토큰이고 문서는 https://dat.saro.me/llms.txt 
 | `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · 해시 기반<br/>· 대칭키<br/>· 빠른 속도<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC)                                                              |
 | `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · 타원곡선 기반<br/>· 비대칭키<br/>· 속도를 내주고 얻는 보안성<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 
-- HMAC의 속도가 압도적이기 때문에 외부의 해킹을 막는 것만 중요하다면 HMAC을 추천합니다.
+- HMAC의 **속도가 압도적**이기 때문에 외부의 해킹을 막는 것만 중요하다면 HMAC을 추천합니다.
+  - [알고리즘 및 언어별 벤치마크 확인하기](./intro#performance)
 - ECDSA를 사용하면 공개키 구조상 발급 서버, 검증 서버를 따로 둘 수 있고, 권한과 역할이 잘 분리된 대규모 서버 시스템에 적용 시 내부자 해킹에 대한 보안이 강화된다고 보시면 됩니다.
 
 ### 암호화

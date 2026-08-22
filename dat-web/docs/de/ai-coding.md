@@ -27,7 +27,8 @@ Erfinde keine APIs, die nicht in der Dokumentation stehen.
 | `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · hashbasiert<br/>· symmetrischer Schlüssel<br/>· hohe Geschwindigkeit<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
 | `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · auf elliptischen Kurven basierend<br/>· asymmetrischer Schlüssel<br/>· Sicherheit, die mit Geschwindigkeit erkauft wird<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 
-- HMAC ist überwältigend schneller. Kommt es allein darauf an, Angreifer von außen abzuwehren, ist HMAC die richtige Wahl.
+- HMAC ist **überwältigend schneller**. Kommt es allein darauf an, Angreifer von außen abzuwehren, ist HMAC die richtige Wahl.
+  - [Benchmarks nach Algorithmus und Sprache ansehen](./intro#performance)
 - ECDSA erlaubt es dank seiner Public-Key-Struktur, den ausstellenden Server und die Verifizierungsserver voneinander zu trennen. In einem großen System, in dem Berechtigungen und Rollen bereits getrennt sind, stärkt das die Sicherheit gegenüber Angriffen von innen.
 
 ### Verschlüsselung

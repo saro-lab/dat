@@ -74,6 +74,12 @@ DAT سرٹیفکیٹ صرف ٹوکن کے اجراء اور میعاد ختم ہ
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## اگلی دستاویزات
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — ٹوکن کا وائر فارمیٹ اور معیاری اصول
@@ -83,5 +89,6 @@ DAT سرٹیفکیٹ صرف ٹوکن کے اجراء اور میعاد ختم ہ
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

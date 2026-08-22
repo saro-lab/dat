@@ -74,6 +74,12 @@ DAT 证书不仅管理令牌的签发与过期，还直接管理**密钥的生�
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## 后续文档
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — 令牌的传输格式与规范化规则
@@ -83,5 +89,6 @@ DAT 证书不仅管理令牌的签发与过期，还直接管理**密钥的生�
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

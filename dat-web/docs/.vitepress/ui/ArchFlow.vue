@@ -8,7 +8,7 @@
   라벨은 전부 props로 받는다 — 로케일 사전에 키를 추가하지 않는다.
 -->
 <template>
-  <div class="flow-scroll g-ltr my-4">
+  <div class="flow-scroll g-ltr g-xscroll my-4">
     <div class="flow" :style="{ gridTemplateRows: rowTemplate }">
       <div class="flow-frame" :style="{ gridColumn: '3', gridRow: rowSpan }"></div>
       <div v-if="service.title" class="flow-title" :style="{ gridColumn: '3', gridRow: '1' }">

@@ -104,14 +104,31 @@ const onMenu = ref(false)
 
 const redirecting = ref(inBrowser && applyLanguage())
 
-useRouter().onBeforeRouteChange = () => {
+const router = useRouter()
+
+router.onBeforeRouteChange = () => {
   onMenu.value = false
+}
+
+function scrollToHash() {
+  if (!location.hash) {
+    return
+  }
+  const el = document.getElementById(decodeURIComponent(location.hash.slice(1)))
+  if (el) {
+    el.scrollIntoView()
+  }
+}
+
+router.onAfterRouteChange = () => {
+  setTimeout(scrollToHash, 100)
 }
 
 onMounted(() => {
   if (page.value.isNotFound) {
     document.title = 'DAT'
   }
+  requestAnimationFrame(() => requestAnimationFrame(scrollToHash))
 })
 </script>
 

@@ -74,6 +74,12 @@
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## المستندات التالية
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — تنسيق سلك الرمز وقواعده المعيارية
@@ -83,5 +89,6 @@
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

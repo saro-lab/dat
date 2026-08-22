@@ -201,4 +201,11 @@ export const id = {
         Parameter ini menentukan ekspresi cron untuk pembuatan sertifikat baru secara berkala.<br/>
         Jadwal tidak boleh terlalu panjang, dengan mempertimbangkan <b>{cert_issue_delay}</b> dan <b>{dat_issue_dur}</b> yang telah ditetapkan sebelumnya.<br/>
         Sebaliknya, jika interval terlalu pendek, sertifikat yang tidak perlu akan sering dibuat sehingga memboroskan sumber daya sistem server-server terkait akibat sinkronisasi dan pemrosesan yang terlalu sering; karena itu penting menentukan siklus operasi yang tepat.`,
+    bench_title: "Performa",
+    bench_note: "diukur pada mac mini m4 2024 basic (10 core) · grafik hanya menampilkan IV-AES256-GCM",
+    bench_table: "Data mentah (ms per 10.000 operasi)",
+    bench_issue: "Penerbitan DAT × 10.000",
+    bench_parse: "Parsing DAT × 10.000",
+    bench_multi: "multi-thread",
+    bench_single: "single-thread",
 }

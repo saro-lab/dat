@@ -10,7 +10,7 @@
 <template>
   <div class="ct my-4">
     <div v-if="title" class="ct-title">{{ title }}</div>
-    <div class="ct-scroll g-ltr">
+    <div class="ct-scroll g-ltr g-xscroll">
       <div class="ct-canvas">
         <div class="ct-marks">
           <div

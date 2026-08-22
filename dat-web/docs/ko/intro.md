@@ -74,6 +74,12 @@ DAT 인증서는 토큰의 발급과 만료뿐 아니라 **키의 생명주기**
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## 다음 문서
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — 토큰의 와이어 포맷과 정규 규칙
@@ -83,5 +89,6 @@ DAT 인증서는 토큰의 발급과 만료뿐 아니라 **키의 생명주기**
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

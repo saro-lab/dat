@@ -74,6 +74,12 @@ DAT разработан по принципу: безопасность дол�
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## Дальнейшие документы
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — проводной формат токена и канонические правила
@@ -83,5 +89,6 @@ DAT разработан по принципу: безопасность дол�
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

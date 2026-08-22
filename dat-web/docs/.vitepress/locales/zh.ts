@@ -201,4 +201,11 @@ export const zh = {
         用于定期生成新证书的Cron表达式设置。<br/>
         应结合之前设置的<b>{cert_issue_delay}</b>和<b>{dat_issue_dur}</b>，避免周期过长。<br/>
         反之，如果周期过短，将频繁生成大量不必要的证书，导致负责同步和处理的关联服务器浪费系统资源，因此确定合适的运行周期非常重要。`,
+    bench_title: "性能",
+    bench_note: "mac mini m4 2024 basic (10 core) 实测 · 图表仅显示 IV-AES256-GCM",
+    bench_table: "原始数据(每 10,000 次操作的毫秒数)",
+    bench_issue: "DAT 签发 10,000 次",
+    bench_parse: "DAT 解析 10,000 次",
+    bench_multi: "多线程",
+    bench_single: "单线程",
 }

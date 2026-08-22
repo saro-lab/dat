@@ -202,4 +202,11 @@ export const ko = {
         새로운 인증서를 정기적으로 생성하기 위한 크론(Cron) 표현식 설정입니다.<br/>
         앞서 설정한 <b>{cert_issue_delay}</b>과 <b>{dat_issue_dur}</b>을 고려하여 주기가 너무 길어지지 않도록 설정해야 합니다.<br/>
         반대로 주기를 너무 짧게 설정하면 불필요하게 많은 인증서가 자주 생성되어, 이를 동기화하고 처리하는 연계 서버들의 시스템 자원이 낭비될 수 있으므로 적절한 운영 주기를 산정하는 것이 중요합니다.`,
+    bench_title: "성능",
+    bench_note: "mac mini m4 2024 basic (10 core) 실측 · 그래프는 IV-AES256-GCM 기준만 표시",
+    bench_table: "원본 데이터 (10,000회 연산당 ms)",
+    bench_issue: "DAT 발급 10,000회",
+    bench_parse: "DAT 파싱 10,000회",
+    bench_multi: "멀티-쓰레드",
+    bench_single: "싱글-쓰레드",
 }

@@ -10,7 +10,7 @@
 <template>
   <div class="sm my-4">
     <div v-if="title" class="sm-title">{{ title }}</div>
-    <div class="sm-scroll">
+    <div class="sm-scroll g-xscroll">
       <table class="sm-table">
         <thead>
           <tr>

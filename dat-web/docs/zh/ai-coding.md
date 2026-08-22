@@ -27,7 +27,8 @@
 | `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · 基于哈希<br/>· 对称密钥<br/>· 速度快<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
 | `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · 基于椭圆曲线<br/>· 非对称密钥<br/>· 以速度换取安全性<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 
-- HMAC 的速度具有压倒性优势，因此如果只在意抵御外部入侵，推荐选择 HMAC。
+- HMAC 的**速度具有压倒性优势**，因此如果只在意抵御外部入侵，推荐选择 HMAC。
+  - [查看各算法与各语言的基准测试](./intro#performance)
 - 使用 ECDSA 时，得益于公钥结构，可以把签发服务器与验证服务器分开部署；在权限与角色划分清晰的大规模服务器系统中采用它，可以理解为强化了针对内部人员入侵的安全性。
 
 ### 加密

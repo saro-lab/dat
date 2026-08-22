@@ -201,4 +201,11 @@ export const de = {
         Dieser Parameter definiert den Cron-Ausdruck für die regelmäßige Erzeugung neuer Zertifikate.<br/>
         Der Zeitplan sollte unter Berücksichtigung der zuvor festgelegten <b>{cert_issue_delay}</b> und <b>{dat_issue_dur}</b> nicht zu lang gewählt werden.<br/>
         Ist das Intervall dagegen zu kurz, werden unnötig viele Zertifikate erzeugt, was durch häufige Synchronisierung und Verarbeitung die Systemressourcen aller angebundenen Server verschwendet; ein angemessener Betriebszyklus ist daher wichtig.`,
+    bench_title: "Performance",
+    bench_note: "gemessen auf mac mini m4 2024 basic (10 core) · Diagramme zeigen nur IV-AES256-GCM",
+    bench_table: "Rohdaten (ms pro 10.000 Operationen)",
+    bench_issue: "DAT-Ausstellung × 10.000",
+    bench_parse: "DAT-Parsing × 10.000",
+    bench_multi: "Multi-Thread",
+    bench_single: "Single-Thread",
 }

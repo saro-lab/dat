@@ -201,4 +201,11 @@ export const ja = {
         新しい証明書を定期的に生成するためのクーロン(Cron)式の設定です。<br/>
         先に設定した<b>{cert_issue_delay}</b>と<b>{dat_issue_dur}</b>を考慮し、周期が長くなりすぎないように設定してください。<br/>
         逆に周期を短くしすぎると、不要な証明書が頻繁に生成され、それらを同期・処理する連携サーバーのシステムリソースが浪費されるため、適切な運用周期を定めることが重要です。`,
+    bench_title: "性能",
+    bench_note: "mac mini m4 2024 basic (10 core) 実測 · グラフは IV-AES256-GCM のみ表示",
+    bench_table: "生データ(10,000回あたり ms)",
+    bench_issue: "DAT 発行 10,000回",
+    bench_parse: "DAT 解析 10,000回",
+    bench_multi: "マルチスレッド",
+    bench_single: "シングルスレッド",
 }

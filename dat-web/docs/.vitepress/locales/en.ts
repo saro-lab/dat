@@ -201,4 +201,11 @@ export const en = {
         This parameter defines the cron expression used for the periodic generation of new certificates.<br/>
         The schedule should not be set too long, taking into account the previously defined <b>{cert_issue_delay}</b> and <b>{dat_issue_dur}</b>.<br/>
         Conversely, if the interval is too short, an excessive number of certificates will be generated, which may waste the system resources of all interconnected servers due to frequent synchronization and processing overhead.`,
+    bench_title: "Performance",
+    bench_note: "measured on mac mini m4 2024 basic (10 core) · charts show IV-AES256-GCM only",
+    bench_table: "Raw data (ms per 10,000 operations)",
+    bench_issue: "DAT issue × 10,000",
+    bench_parse: "DAT parse × 10,000",
+    bench_multi: "multi-thread",
+    bench_single: "single-thread",
 }

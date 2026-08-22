@@ -27,7 +27,8 @@ JWT のような分散アクセストークンで、ドキュメントは https:
 | `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · ハッシュベース<br/>· 対称鍵<br/>· 高速<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
 | `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · 楕円曲線ベース<br/>· 非対称鍵<br/>· 速度と引き換えに得るセキュリティ<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 
-- HMAC の速度が圧倒的なため、外部からの攻撃を防ぐことだけが重要であれば HMAC をおすすめします。
+- HMAC の**速度が圧倒的**なため、外部からの攻撃を防ぐことだけが重要であれば HMAC をおすすめします。
+  - [アルゴリズム別・言語別のベンチマークを確認する](./intro#performance)
 - ECDSA を使うと、公開鍵の構造上、発行サーバーと検証サーバーを分けて置くことができ、権限と役割がよく分離された大規模サーバーシステムに適用すれば、内部者による攻撃に対するセキュリティが強化されると考えてください。
 
 ### 暗号化

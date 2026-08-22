@@ -74,6 +74,12 @@ DAT 証明書は、トークンの発行と失効だけでなく**キーのラ�
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## 次のドキュメント
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — トークンのワイヤーフォーマットと正規ルール
@@ -83,5 +89,6 @@ DAT 証明書は、トークンの発行と失効だけでなく**キーのラ�
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

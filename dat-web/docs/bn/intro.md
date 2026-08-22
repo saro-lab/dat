@@ -74,6 +74,12 @@ DAT সার্টিফিকেট শুধু টোকেন ইস্য�
 
 ---
 
+## {{t('bench_title')}} {#performance}
+
+<BenchBars />
+
+---
+
 ## পরবর্তী ডকুমেন্ট
 
 - [{{t('menu_spec_dat')}}](./spec/dat) — টোকেনের ওয়্যার ফরম্যাট ও ক্যানোনিকাল নিয়ম
@@ -83,5 +89,6 @@ DAT সার্টিফিকেট শুধু টোকেন ইস্য�
 <script setup lang="ts">
 import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
+import BenchBars from "../.vitepress/ui/BenchBars.vue";
 const {t} = useTranslate();
 </script>

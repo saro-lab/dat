@@ -27,7 +27,8 @@ Jangan mengarang API yang tidak ada di dokumen.
 | `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · Berbasis hash<br/>· Kunci simetris<br/>· Cepat<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
 | `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · Berbasis kurva eliptik<br/>· Kunci asimetris<br/>· Keamanan yang ditebus dengan kecepatan<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
 
-- Kecepatan HMAC jauh mengungguli yang lain, jadi bila yang penting hanyalah menahan serangan dari luar, HMAC-lah pilihannya.
+- Kecepatan HMAC **jauh mengungguli yang lain**, jadi bila yang penting hanyalah menahan serangan dari luar, HMAC-lah pilihannya.
+  - [Lihat benchmark per algoritma dan per bahasa](./intro#performance)
 - Berkat struktur kunci publiknya, ECDSA memungkinkan Anda memisahkan server penerbit dari server verifikator. Pada sistem berskala besar yang kewenangan dan perannya sudah terpisah dengan baik, penerapannya memperkuat keamanan terhadap serangan orang dalam.
 
 ### Enkripsi
