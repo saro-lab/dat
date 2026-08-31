@@ -4,7 +4,7 @@ The DAT website exposes 24 locale prefixes: `en`, `ko`, `ja`, `zh`, `de`, `fr`, 
 
 The language selector searches both locale codes and displayed language names. Matching is case-insensitive, ignores combining marks, and supports Korean initial-consonant queries. Arrow keys move through results, Enter selects the active result, and Escape closes the selector.
 
-The selector list and search field span the full menu width without horizontal inset. The search field remains transparent in its default, hover, focus, active, and text-selection states.
+The selector list and search field span the full menu width without horizontal inset. The menu stays aligned to the navigation edge, canceling the header's inner padding without a dynamic horizontal transform. The search field remains transparent in its default, hover, focus, active, and text-selection states.
 
 Korean is the human-documentation source. Existing translated locale pages retain their translations. Persian, Marathi, Vietnamese, Telugu, Hausa, Turkish, Swahili, Tamil, Thai, and Italian provide native translations for the seven core pages and complete UI dictionaries. Shared library, service, and tool routes use the English-reference fallback where locale-specific pages are unavailable.
 

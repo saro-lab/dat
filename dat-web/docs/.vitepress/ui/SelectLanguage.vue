@@ -18,10 +18,8 @@
 
     <div
       v-if="open"
-      ref="panel"
       role="dialog"
       aria-label="language"
-      :style="shift ? { transform: `translateX(${shift}px)` } : undefined"
       class="lang-menu g-glass absolute top-full z-50 mt-1 w-[10rem] max-h-[calc(100vh-4rem)] overflow-y-auto rounded-xl px-0! py-1.5 text-center"
     >
       <input
@@ -64,27 +62,12 @@ const activeIndex = ref(-1)
 const composing = ref(false)
 const filteredLanguages = computed(() => languages.filter(([code, name]) => code !== lang.value && languageMatches(code, name, query.value)))
 const root = ref<HTMLElement | null>(null)
-const panel = ref<HTMLElement | null>(null)
 const searchInput = ref<HTMLInputElement | null>(null)
 const open = ref(false)
-const shift = ref(0)
 
 watch(query, () => {
   activeIndex.value = filteredLanguages.value.length ? 0 : -1
 })
-
-function clamp(): void {
-  const element = panel.value
-  if (!element) return
-  shift.value = 0
-  void element.offsetWidth
-  const box = element.getBoundingClientRect()
-  const frame = root.value?.closest('.g-frame')?.getBoundingClientRect()
-  const min = (frame?.left ?? 0) + 8
-  const max = (frame?.right ?? window.innerWidth) - 8
-  if (box.left < min) shift.value = min - box.left
-  else if (box.right > max) shift.value = max - box.right
-}
 
 function onPointerDown(event: Event): void {
   const target = event.target as Node | null
@@ -124,22 +107,18 @@ watch(open, async (value) => {
   const method = value ? 'addEventListener' : 'removeEventListener'
   document[method]('pointerdown', onPointerDown)
   document[method]('keydown', onKeyDown)
-  window[method]('resize', clamp)
   if (!value) {
-    shift.value = 0
     query.value = ''
     activeIndex.value = -1
     return
   }
   await nextTick()
-  clamp()
   searchInput.value?.focus()
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', onPointerDown)
   document.removeEventListener('keydown', onKeyDown)
-  window.removeEventListener('resize', clamp)
 })
 
 function pick(code: string): void {
@@ -150,8 +129,14 @@ function pick(code: string): void {
 
 <style scoped>
 .lang-menu {
-  inset-inline-end: 0;
+  inset-inline-end: -0.375rem;
   padding-inline: 0;
+}
+
+@media (max-width: 46rem) {
+  .lang-menu {
+    inset-inline-end: -0.5rem;
+  }
 }
 
 .lang-menu .lang-search {

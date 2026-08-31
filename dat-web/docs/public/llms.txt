@@ -128,7 +128,7 @@ The common CMS fixture has 42 cases and per-runtime numeric profiles. The 4.7.0 
 
 Korean is the source for human documentation. Persian, Marathi, Vietnamese, Telugu, Hausa, Turkish, Swahili, Tamil, Thai, and Italian provide native translations for the seven core pages and complete UI dictionaries. Shared library, service, and tool guides continue to use the English technical reference where a locale-specific page is unavailable.
 
-- [Human-site locales, selector search, and layout behavior](https://dat.saro.me/llms/site-locales.md)
+- [Human-site locales, selector search, and navigation-edge menu placement](https://dat.saro.me/llms/site-locales.md)
 - [Korean original](https://dat.saro.me/ko/)
 - [English reference](https://dat.saro.me/en/)
 - [Japanese reference](https://dat.saro.me/ja/)
