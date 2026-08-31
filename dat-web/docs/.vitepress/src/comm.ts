@@ -13,7 +13,10 @@ export function getHighlighter(): Promise<any | null> {
 
     if (!highlighterPromise) {
         highlighterPromise = createHighlighter({
-            langs: ['yaml', 'bash', 'powershell', 'bat', 'txt', 'toml', 'xml', 'kts'],
+            langs: [
+                'yaml', 'bash', 'powershell', 'bat', 'txt', 'toml', 'xml', 'kts',
+                'rust', 'java', 'typescript', 'python', 'csharp', 'go', 'ruby', 'c'
+            ],
             themes: ['github-light', 'github-dark'],
             engine: createJavaScriptRegexEngine()
         } as any)

@@ -1,55 +1,67 @@
-# AI وائب کوڈنگ
+# AI vibe coding
 
-## وائب کوڈنگ کی مثال
+AI کو اپنے موجودہ project اور مطلوبہ behavior کے بارے میں بتا کر DAT integration آسان بنائیں۔ ذیل کی مثالوں میں صرف URL اور environment variable names اپنے project کے مطابق بدلیں۔
 
+## سادہ implementation
+
+Basic structure تیزی سے بنانی ہو تو یہ prompt استعمال کریں۔
+
+```text
+میں Kotlin اور Spring Boot استعمال کر رہا ہوں۔
+Spring Security میں DAT authentication شامل کریں۔
+
+پہلے https://dat.saro.me/llms.txt پڑھیں اور
+DAT specification اور official library documentation کا جائزہ لیں۔
+
+Authorization header سے Bearer token verify کریں،
+اور authentication کامیاب ہونے پر user information کو SecurityContext میں رکھیں۔
+
+یہ server DAT issue نہیں کرتا؛ صرف verify کرتا ہے۔
+اسے DAT CMS سے verify-only certificates ملنے چاہییں۔
+
+پہلے project میں CMS server URL اور token settings تلاش کریں۔
+نہ ملیں تو مجھ سے پوچھیں۔ values ایجاد نہ کریں۔
+
+official Java/Kotlin DAT library استعمال کریں،
+اور project کی موجودہ structure اور coding style پر عمل کریں۔
 ```
-اس ویب سرور کی سیشن توثیق میں DAT لاگو کرو۔
-یہ JWT جیسا تقسیم شدہ ایکسیس ٹوکن ہے، اور دستاویزات https://dat.saro.me/llms.txt پر موجود ہیں۔
-پہلے انہیں پڑھو۔ llms دستاویزات کا پورا سیٹ ڈاؤن لوڈ کر کے docs/dat فولڈر میں محفوظ کرو اور ایجنٹ دستاویزات بھی اپ ڈیٹ کرو۔
 
-- پروجیکٹ: Java Spring Boot، Spring Security استعمال ہو رہی ہے
-- ہدف: سیشن کی جگہ DAT لانا
-- DAT-CMS سرور: http://localhost:8088 - اسے پراپرٹیز میں منتقل کرو
-- دستخط الگورتھم: HMAC-SHA512-MFS
-- خفیہ کاری الگورتھم: IV-AES256-GCM
-- باقی سب کے لیے ڈیفالٹ قدریں
+## تفصیلی implementation
 
-جو API دستاویزات میں موجود نہیں، انہیں اندازے سے مت بناؤ۔
+authentication flow اور error handling واضح طور پر متعین کرنے کے لیے یہ prompt استعمال کریں۔
+
+```text
+یہ project Kotlin، Spring Boot اور Spring Security استعمال کرتا ہے۔
+موجودہ security configuration کا جائزہ لے کر DAT authentication شامل کریں۔
+
+پہلے https://dat.saro.me/llms.txt پڑھیں اور
+DAT specification، certificate synchronization اور official library API کا جائزہ لیں۔
+
+درج ذیل requirements نافذ کریں۔
+
+- Authorization: Bearer header سے DAT پڑھیں۔
+- DAT نہ ہو تو anonymous request کے طور پر جاری رکھیں۔
+- DAT invalid یا expired ہو تو 401 دیں۔
+- verification کامیاب ہو تو user ID اور permissions کو SecurityContext میں رکھیں۔
+- plain سے صرف وہ values پڑھیں جنہیں ظاہر کرنا محفوظ ہے۔
+- verified secure data سے user ID اور permissions پڑھیں۔
+- یہ server verify-only ہے، اس لیے DAT CMS کے verify-only certificates استعمال کریں۔
+- CMS URL اور token کو environment variables سے پڑھیں۔
+- startup پر certificate synchronization ناکام ہو تو application startup بھی ناکام کریں۔
+- چلتے وقت certificates خودکار refresh کریں اور shutdown پر manager بند کریں۔
+- failure causes کو error messages نہیں، DAT error codes سے الگ کریں۔
+- اصل DAT، CMS token یا personal data log نہ کریں۔
+
+پہلے project کی Spring Security configuration اور user/permission model دیکھیں۔
+CMS URL، token environment variable یا secure data format واضح نہ ہو تو implementation سے پہلے پوچھیں۔
+official Java/Kotlin DAT library کا صرف public API استعمال کریں۔
+
+code edit کرنے سے پہلے authentication flow اور بدلنے والی files مختصراً بتائیں۔
 ```
 
+## کون سی مثال منتخب کروں؟
 
-## الگورتھمز
+- پہلے working code چاہیے تو **سادہ implementation** استعمال کریں۔
+- production environment کے لیے authentication flow چاہیے تو **تفصیلی implementation** استعمال کریں۔
 
-### دستخط
-
-| الگورتھم | خصوصیات |
-| --- |---|
-| `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · ہیش پر مبنی<br/>· متناظر کی<br/>· تیز رفتار<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
-| `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · بیضوی خم پر مبنی<br/>· غیر متناظر کی<br/>· رفتار کی قیمت پر حاصل ہونے والی سیکیورٹی<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
-
-- HMAC کی **رفتار نمایاں طور پر زیادہ** ہے، اس لیے اگر صرف بیرونی حملوں کو روکنا ہی اہم ہو تو انتخاب HMAC کا ہونا چاہیے۔
-  - [الگورتھم اور زبان کے اعتبار سے بینچ مارک دیکھیں](./intro#performance)
-- ECDSA اپنے پبلک کی ڈھانچے کی بدولت اجراء کرنے والے سرور اور تصدیق کرنے والے سرورز کو الگ الگ رکھنے کی سہولت دیتا ہے۔ ایسے بڑے سسٹم میں جہاں اختیارات اور کردار پہلے ہی الگ ہوں، یہ اندرونی حملوں کے خلاف سیکیورٹی کو مضبوط کرتا ہے۔
-
-### خفیہ کاری
-
-| نام | کی کی لمبائی |
-| --- |---|
-| `IV-AES128-GCM` | 128-بٹ |
-| `IV-AES256-GCM` | 256-بٹ |
-
-- DAT جو ڈیٹا خفیہ کرتا ہے وہ مختصر ہوتا ہے، اس لیے 128-بٹ اور 256-بٹ کے درمیان عملی طور پر کوئی قابلِ پیمائش فرق نہیں۔
-- AES کی لاگت تقریباً نہ ہونے کے برابر ہے، اس لیے اضافی سیکیورٹی گنجائش کے لیے 256-بٹ کی سفارش کی جاتی ہے۔
-
-
-## DAT-CMS سرور
-
-**[DAT-CMS انسٹال کریں](./svc/docker-saro-lab-dat-cms)**
-
-DAT-CMS لازمی نہیں ہے، لیکن جب آپ کو کئی سرورز پر سرٹیفکیٹ تقسیم کرنے اور کی رولنگ خودکار بنانے کی ضرورت ہو تو اسے انسٹال کرنے کی سختی سے سفارش کی جاتی ہے۔
-
-## اگلی دستاویزات
-
-- [DAT کیا ہے؟](./intro) - DAT کے ڈیزائن کا پس منظر
-- [DAT وضاحت](./spec/dat) - ٹوکن کا وائر فارمیٹ
-- [تمام لائبریریاں](./libs/) - ہر زبان کے لیے انسٹالیشن اور مثالیں
+AI سوال کرے تو پہلے CMS URL، token رکھنے والا environment variable اور `secure` میں محفوظ user information دیں۔

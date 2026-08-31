@@ -1,6 +1,6 @@
 {
   "name": "dat",
-  "version": "4.6.1",
+  "version": "4.7.0",
   "description": "DAT - Distributed Access Token",
   "homepage": "https://dat.saro.me/",
   "documentation": "https://dat.saro.me/libs/vcpkg-dat",

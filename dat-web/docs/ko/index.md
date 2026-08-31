@@ -3,54 +3,44 @@ layout: home
 ---
 
 <script setup lang="ts">
-import {useRoot, useTranslate} from "../.vitepress/src/langs";
+import {useRoot} from "../.vitepress/src/langs";
 import {getLibTags} from "../.vitepress/src/libs";
 import DatExample from "../.vitepress/ui/DatExample.vue";
 import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
 
 const root = useRoot();
-const {t} = useTranslate();
 const tags = getLibTags(root.value);
-
-/** Language/registry → emoji, purely decorative. Falls back to a generic package icon. */
 const TAG_ICON: Record<string, string> = {
-    Rust: '🦀', Cargo: '📦',
-    Java: '☕', Kotlin: '🟣', Maven: '📦',
-    JavaScript: '🟨', TypeScript: '🔷', Npm: '📦',
-    Python: '🐍', Pypi: '📦',
-    'C#': '🟩', Nuget: '📦',
-    Go: '🐹',
-    Ruby: '💎', Gems: '📦',
+    Rust: '🦀', Cargo: '📦', Java: '☕', Kotlin: '🟣', Maven: '📦',
+    JavaScript: '🟨', TypeScript: '🔷', Npm: '📦', Python: '🐍', Pypi: '📦',
+    'C#': '🟩', Nuget: '📦', Go: '🐹', Ruby: '💎', Gems: '📦',
     'C++': '🔧', C: '🔧', Vcpkg: '📦',
 };
 function tagIcon(name: string): string {
     return TAG_ICON[name] || (name === '...' ? '' : '📦');
 }
-
 const features = [
-    {icon: '⚡', title: '바이너리 프레임 포맷', desc: '고정폭 바이너리 필드로 설계되어 파싱 과정 없이 오프셋으로 바로 읽습니다. JSON 인코딩/디코딩 없이 최소한의 오버헤드로 발급하고 검증합니다.'},
-    {icon: '🔐', title: '의무적인 키 롤링', desc: '인증서가 정해진 주기로 자동 교체되며, 만료되기 전에 항상 다음 인증서가 준비됩니다. 키가 오래도록 그대로 남아있는 JWT식 운영 사고를 구조적으로 차단합니다.'},
-    {icon: '⏱️', title: '발급 기간과 TTL의 분리', desc: '인증서의 "발급 가능 기간"과 "발급된 토큰의 유효 기간"이 분리되어 있어, 인증서가 발급을 멈춘 뒤에도 이미 나간 토큰은 TTL이 끝날 때까지 계속 검증됩니다.'},
-    {icon: '🌐', title: '주요 언어 네이티브 클라이언트', desc: 'Rust, Java/Kotlin, JavaScript/TypeScript, Python, Go, C#, Ruby, C/C++ 등 각 언어의 관용적인 API로 제공되는 공식 클라이언트를 사용할 수 있습니다.'},
+    {icon: '⏱️', title: '만료가 규격에 포함됩니다', desc: '모든 DAT에는 만료 시각이 있습니다. 애플리케이션마다 토큰 수명을 따로 해석하지 않습니다.'},
+    {icon: '🔏', title: '공개 영역과 암호화 영역을 나눕니다', desc: '라우팅에 필요한 값은 plain에, 외부에 드러나면 안 되는 값은 secure에 넣습니다.'},
+    {icon: '🔑', title: '인증서로 키를 선택합니다', desc: '토큰의 cid가 검증할 인증서를 가리킵니다. 키 교체 중에도 기존 토큰을 검증할 수 있습니다.'},
+    {icon: '🌐', title: '서비스끼리 직접 조회하지 않습니다', desc: '각 서비스가 같은 인증서를 보유하면 발급 서버와 검증 서버를 분리해서 운영할 수 있습니다.'},
 ];
 </script>
 
 <div class="g-glass rd-box md hero">
 
 <div class="hero-title"><a :href="`${root}/intro`">DAT</a></div>
-<div class="hero-sub">{{t('description')}}</div>
+<div class="hero-sub">Distributed Access Token</div>
 
 <div class="hero-desc">
-DAT(Distributed Access Token)는 세션을 발급하고 검증하는 모든 서버가 하나의 규격만 공유하면 되는 분산 인증 토큰입니다.
-바이너리 고정폭 필드를 기반으로 설계되어 파싱 비용 없이 오프셋으로 직접 읽고 쓰며, 인증서 교체(키 롤링)를 언어·구현체와
-무관하게 강제할 수 있도록 프로토콜 차원에서 발급 기간과 TTL을 분리해 두었습니다.
+DAT는 여러 서비스가 같은 규격으로 발급하고 검증하는 액세스 토큰입니다. 토큰 안에는 만료 시각, 인증서 ID,
+공개 데이터, 암호화 데이터와 서명이 들어갑니다. 검증 서버는 발급 서버에 매번 묻지 않고 자신이 가진 인증서로 토큰을 확인합니다.
 </div>
 
 <div class="hero-desc">
-DAT Certificate Management Service(CMS)가 클러스터 전체의 인증서 생성·전파·만료를 예약된 스케줄(Cron)에 따라
-자동으로 처리하기 때문에, 여러 서버가 새 인증서를 완전히 동기화하기 전에 발급된 토큰이 검증에 실패하는 사고 없이
-안전하게 키를 순환시킬 수 있습니다.
+인증서는 토큰의 서명과 암호화 방법, 키, 발급 기간과 TTL을 하나로 묶습니다. DAT CMS를 사용하면 서비스마다
+인증서를 직접 배포하지 않고 발급용 또는 검증 전용 인증서를 동기화할 수 있습니다.
 </div>
 
 <div class="feature-grid">
@@ -61,47 +51,45 @@ DAT Certificate Management Service(CMS)가 클러스터 전체의 인증서 생�
     </div>
 </div>
 
-<div class="section-title">전체 구조</div>
+<div class="section-title">사용 흐름</div>
 
 <ArchFlow
-    :user="{label: '유저', icon: 'person'}"
-    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['유효 기간별 인증서 생성', '만료 인증서 정리']}"
+    :user="{label: '사용자', icon: 'person'}"
+    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['인증서 생성과 보관', '서비스에 인증서 전달']}"
     :service="{servers: [
-        {label: '로그인 서버', kind: 'issuer', icon: 'login',
-         request: '로그인 요청', response: '인증서로 DAT 발급', sync: 'DAT 발급 가능 인증서 동기화'},
-        {label: '컨텐츠 서버', kind: 'verifier', icon: 'apps',
-         request: 'DAT로 컨텐츠 요청', response: 'DAT 검증 후 서비스 제공', sync: 'DAT 검증 전용 인증서 동기화'},
+        {label: '발급 서비스', kind: 'issuer', icon: 'login', request: '인증 요청', response: 'DAT 발급', sync: '발급 가능한 인증서 동기화'},
+        {label: '검증 서비스', kind: 'verifier', icon: 'apps', request: 'DAT와 함께 요청', response: '검증 후 응답', sync: '검증 전용 인증서 동기화'},
     ]}"
 />
 
 <div class="hero-desc">
-로그인 서버만 발급 가능한 인증서를 받아 DAT를 발급하고, 컨텐츠 서버는 검증 전용 인증서만 받아 들어온 DAT를 확인합니다.
-유저는 서비스 하나만 상대하면 되고, 컨텐츠 서버는 로그인 서버와 직접 통신할 필요가 없습니다.
+발급 서비스는 전체 인증서로 DAT를 만들고, 검증 서비스는 검증 전용 인증서로 DAT를 확인합니다.
+DAT CMS는 선택 사항이며, 인증서를 직접 배포하는 환경에서는 클라이언트의 로컬 매니저만 사용할 수 있습니다.
 </div>
 
-<div class="section-title">토큰 구조</div>
+<div class="section-title">DAT 구조</div>
 
 <WireFormat
     hint="각 필드에 마우스를 올리면 설명이 표시됩니다."
     :segments="[
-        {name: 'expire', type: 'uint64 (10진수)', kind: 'meta', note: '토큰 만료 시각 — 규격에 강제되어 있습니다.'},
+        {name: 'expire', type: 'uint64 (10진수)', kind: 'meta', note: 'DAT가 만료되는 Unix time.'},
         {name: 'cid', type: 'uint64 (16진수)', kind: 'meta', note: '검증에 사용할 인증서 ID.'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: '누구나 읽을 수 있는 공개 데이터.'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'AES-GCM으로 암호화된 데이터.'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: '앞 네 필드 전체에 대한 서명.'},
+        {name: 'plain', type: 'Base64Url', kind: 'plain', note: '암호화하지 않는 공개 바이트.'},
+        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'AES-GCM으로 보호한 바이트.'},
+        {name: 'signature', type: 'Base64Url', kind: 'sig', note: '앞의 필드 전체를 검증하는 서명.'},
     ]"
 />
 
-<a :href="`${root}/svc/docker-saro-lab-dat-cms`" class="cta-banner">
-    <div class="cta-icon">🚀</div>
+<a :href="`${root}/intro`" class="cta-banner">
+    <div class="cta-icon">📘</div>
     <div class="cta-text">
-        <div class="cta-title">{{t('dat_cms')}} 배포 가이드</div>
-        <div class="cta-desc">Kubernetes(다중 Pod) · Docker · 바이너리(Linux, macOS, Windows) — 지금 바로 실행 명령어 생성</div>
+        <div class="cta-title">DAT부터 알아보기</div>
+        <div class="cta-desc">토큰, 인증서, 발급 서비스와 검증 서비스의 역할을 순서대로 설명합니다.</div>
     </div>
     <div class="cta-arrow">→</div>
 </a>
 
-<div class="section-title">{{t('platform_support')}}</div>
+<div class="section-title">라이브러리</div>
 <div>
     <a v-for="tag in tags" :key="tag.link" :href="tag.link" class="g-chip">
         <span v-if="tagIcon(tag.name)">{{tagIcon(tag.name)}}</span>{{tag.name}}

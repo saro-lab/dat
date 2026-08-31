@@ -15,6 +15,12 @@ pub struct DatManager {
     state: RwLock<DatManagerState>,
 }
 
+impl Default for DatManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[inline]
 fn poisoned<T>(_: PoisonError<T>) -> DatError {
     DatError::InternalUnknown("dat manager lock is poisoned")
@@ -80,7 +86,10 @@ impl DatManager {
         }
     }
 
-    pub fn parse<E: Into<DatError>>(&self, dat: impl TryInto<Dat, Error = E>) -> Result<DatPayload, DatError> {
+    pub fn parse<E: Into<DatError>>(
+        &self,
+        dat: impl TryInto<Dat, Error = E>,
+    ) -> Result<DatPayload, DatError> {
         let dat = dat.try_into().map_err(Into::into)?;
         let cid = dat.cid;
         let state = self.read()?;
@@ -91,7 +100,10 @@ impl DatManager {
         }
     }
 
-    pub fn parse_without_verify<E: Into<DatError>>(&self, dat: impl TryInto<Dat, Error = E>) -> Result<DatPayload, DatError> {
+    pub fn parse_without_verify<E: Into<DatError>>(
+        &self,
+        dat: impl TryInto<Dat, Error = E>,
+    ) -> Result<DatPayload, DatError> {
         let dat = dat.try_into().map_err(Into::into)?;
         let cid = dat.cid;
         let state = self.read()?;
@@ -103,12 +115,19 @@ impl DatManager {
     }
 
     pub fn export_cids(&self) -> Vec<u64> {
-        self.state.read().unwrap_or_else(PoisonError::into_inner)
-            .certificates.iter().map(|key| key.cid).collect()
+        self.state
+            .read()
+            .unwrap_or_else(PoisonError::into_inner)
+            .certificates
+            .iter()
+            .map(|key| key.cid)
+            .collect()
     }
 
     pub fn export(&self, verify_only: bool) -> Result<String, DatError> {
-        let export = self.read()?.certificates
+        let export = self
+            .read()?
+            .certificates
             .iter()
             .map(|key| key.export(verify_only))
             .collect::<Result<Vec<String>, DatError>>()?
@@ -117,7 +136,11 @@ impl DatManager {
     }
 
     pub fn export_certificates(&self) -> Result<Vec<DatCertificate>, DatError> {
-        self.read()?.certificates.iter().map(|x| x.try_clone()).collect()
+        self.read()?
+            .certificates
+            .iter()
+            .map(|x| x.try_clone())
+            .collect()
     }
 
     pub fn import(&self, format: &str, clear: bool) -> Result<usize, DatError> {
@@ -125,13 +148,18 @@ impl DatManager {
         if format.is_empty() {
             return Ok(0);
         }
-        let new_certificates = format.lines()
+        let new_certificates = format
+            .lines()
             .map(|s| s.parse::<DatCertificate>())
             .collect::<Result<Vec<DatCertificate>, DatError>>()?;
         self.import_certificates(new_certificates, clear)
     }
 
-    pub fn import_certificates(&self, new_certificates: Vec<DatCertificate>, clear: bool) -> Result<usize, DatError> {
+    pub fn import_certificates(
+        &self,
+        new_certificates: Vec<DatCertificate>,
+        clear: bool,
+    ) -> Result<usize, DatError> {
         if new_certificates.is_empty() {
             return Ok(0);
         }
@@ -149,7 +177,11 @@ impl DatManager {
         let mut certificates = if clear {
             vec![]
         } else {
-            state.certificates.iter().map(|x| x.try_clone()).collect::<Result<Vec<DatCertificate>, DatError>>()?
+            state
+                .certificates
+                .iter()
+                .map(|x| x.try_clone())
+                .collect::<Result<Vec<DatCertificate>, DatError>>()?
         };
 
         for certificate in new_certificates {
@@ -159,12 +191,14 @@ impl DatManager {
             }
         }
 
-        let certificates = certificates.into_iter()
+        let certificates = certificates
+            .into_iter()
             .filter(|certificate| !certificate.expired())
             .sorted_by(|a, b| a.dat_issuance_end_seconds.cmp(&b.dat_issuance_end_seconds))
             .collect::<Vec<DatCertificate>>();
 
-        let issuer = certificates.iter()
+        let issuer = certificates
+            .iter()
             .rev()
             .find(|x| x.issuable())
             .map(|x| x.try_clone())
@@ -176,15 +210,23 @@ impl DatManager {
         Ok(apply_certs)
     }
 
-    pub fn _issue<U: AsRef<[u8]>>(certificate: &DatCertificate, plain: U, secure: U) -> Result<String, DatError> {
+    pub fn _issue<U: AsRef<[u8]>>(
+        certificate: &DatCertificate,
+        plain: U,
+        secure: U,
+    ) -> Result<String, DatError> {
         let mut ib = itoa::Buffer::new();
-        let expire = now_unix_timestamp().checked_add(certificate.dat_ttl_seconds)
-            .ok_or(DatError::InternalUnknown("now + dat_ttl_seconds overflowed u64"))?;
+        let expire = now_unix_timestamp()
+            .checked_add(certificate.dat_ttl_seconds)
+            .ok_or(DatError::InternalUnknown(
+                "now + dat_ttl_seconds overflowed u64",
+            ))?;
         let expire = ib.format(expire);
         let plain = plain.as_ref();
         let secure = secure.as_ref();
 
-        let mut v: String = String::with_capacity(60 + expire.len() + ((plain.len() + secure.len() + 100) * 4 / 3));
+        let mut v: String =
+            String::with_capacity(60 + expire.len() + ((plain.len() + secure.len() + 100) * 4 / 3));
         let sk = &certificate.signature;
 
         v.push_str(expire);
@@ -204,16 +246,18 @@ impl DatManager {
     }
 
     pub fn _parse(certificate: &DatCertificate, dat: Dat) -> Result<DatPayload, DatError> {
-        certificate.signature.verify(dat.body_bytes(), &dat.signature)?;
+        certificate
+            .signature
+            .verify(dat.body_bytes(), &dat.signature)?;
         Self::_parse_without_verify(certificate, dat)
     }
-    pub fn _parse_without_verify(certificate: &DatCertificate, dat: Dat) -> Result<DatPayload, DatError> {
+    pub fn _parse_without_verify(
+        certificate: &DatCertificate,
+        dat: Dat,
+    ) -> Result<DatPayload, DatError> {
         let plain = dat.plain()?;
         let secure = certificate.crypto.decrypt(dat.secure()?)?;
 
-        Ok(DatPayload {
-            plain,
-            secure,
-        })
+        Ok(DatPayload { plain, secure })
     }
 }

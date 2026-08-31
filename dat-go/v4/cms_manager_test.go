@@ -76,6 +76,7 @@ func TestDatCms(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to build manager: %v", err)
 	}
+	defer manager.Close()
 
 	datCmsManager = manager
 
@@ -84,5 +85,4 @@ func TestDatCms(t *testing.T) {
 		t.Logf("auto sync test skipped or failed (normal if server is down): %v", err)
 	}
 
-	time.Sleep(5 * time.Second)
 }

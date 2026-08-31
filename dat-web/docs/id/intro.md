@@ -1,94 +1,70 @@
+# Apa itu DAT?
 
-# DAT (Distributed Access Token)
-
----
-
-## Latar Belakang Lahirnya DAT
-
-Saat ini banyak sistem mengadopsi JWT, namun di lingkungan operasional nyata terdapat keterbatasan struktural berikut.<br/>
-Untuk mengatasi hal tersebut, dirancanglah DAT, sebuah spesifikasi token baru.
-
-#### 🧩 Fragmentasi Spesifikasi Keamanan dan Kurangnya Pemaksaan
-JWT menyediakan standar enkripsi seperti JWE, tetapi penggunaannya tidak diwajibkan. <br/>
-Akibatnya, banyak lingkungan pengembangan melewatkan enkripsi atau mengirim data dengan cara non-standar sehingga menimbulkan celah keamanan.
-
-#### 🔑 Risiko Keamanan akibat Penggunaan Kunci Statis (Static Key)
-Karena rotasi kunci tanda tangan (Key Rolling) tidak diwajibkan, satu kunci kerap dipakai dalam jangka waktu yang sangat panjang. Hal ini dapat berujung pada runtuhnya keamanan seluruh sistem ketika kunci tersebut dicuri, dan insiden pelanggaran akibat hal ini benar-benar pernah terjadi di situs komersial berskala besar.
-
-#### 📉 Penurunan Kinerja akibat Overhead
-JWT menjalani proses parsing JSON pada setiap permintaan dan mengonsumsi sumber daya CPU yang cukup besar. Di lingkungan yang menuntut kinerja tinggi, biaya parsing ini dapat menjadi bottleneck bagi keseluruhan sistem.
-
----
-
-## Filosofi Inti DAT
-
-DAT dirancang di atas prinsip bahwa keamanan harus diwajibkan, bukan dipilih, dan bahwa kinerja tidak dapat dikompromikan.
-
-#### ⚡ Ringan dan Cepat
+DAT (Distributed Access Token) adalah spesifikasi token akses yang digunakan oleh layanan penerbit dan layanan pemverifikasi dengan berbagi sertifikat yang sama. Karena verifikasi tidak perlu meminta kembali kepada layanan penerbit atau penyimpanan sesi pusat, hasil autentikasi dapat diteruskan sekaligus mengurangi keterikatan antar-layanan.
 
 <WireFormat
-    hint="Arahkan kursor ke setiap bidang untuk menampilkan penjelasannya."
-    :segments="[
-        {name: 'expire', type: 'uint64 (desimal)', kind: 'meta', note: 'Waktu kedaluwarsa. Diwajibkan oleh spesifikasi sehingga tidak dapat dihilangkan.'},
-        {name: 'cid', type: 'uint64 (heksadesimal)', kind: 'meta', note: 'ID sertifikat yang digunakan untuk verifikasi.'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'Data yang terbuka bagi klien.'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'Data terenkripsi. Tidak dapat dibaca tanpa sertifikat.'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'Tanda tangan atas empat bidang sebelumnya.'},
-    ]"
+  hint="Bidang yang dipisahkan titik membentuk satu DAT."
+  :segments="[
+    {name: 'expire', type: 'uint64', kind: 'meta', note: 'Unix time kedaluwarsa'},
+    {name: 'cid', type: 'uint64', kind: 'meta', note: 'ID sertifikat'},
+    {name: 'plain', type: 'bytes', kind: 'plain', note: 'Data publik'},
+    {name: 'secure', type: 'bytes', kind: 'secure', note: 'Data terenkripsi'},
+    {name: 'signature', type: 'bytes', kind: 'sig', note: 'Tanda tangan isi'},
+  ]"
 />
 
-Seperti terlihat di atas, DAT hanya memiliki lima bidang tetap yang dipisahkan oleh titik (`.`). Karena posisi setiap bidang telah ditetapkan oleh spesifikasi, nilai-nilainya dapat dipotong hanya dengan mencari pemisahnya, tanpa parsing JSON.
+## Komponen
 
-#### 🔐 Keamanan yang Dipaksakan
+### DAT
 
-Saat mengirim data, DAT memisahkan secara fisik wilayah teks biasa (Plain) dan **terenkripsi (Secure)**.<br/>
-Informasi sensitif wajib dienkripsi, dan seluruh prosesnya dilindungi oleh algoritma standar yang dideklarasikan di dalam sertifikat (ECDSA, AES-GCM, dan sebagainya).
+String yang dikirim pengguna atau layanan bersama permintaan. DAT memuat waktu kedaluwarsa dan ID sertifikat, serta dapat membawa data publik dan terenkripsi sekaligus.
 
-Algoritma enkripsi **ditentukan oleh sertifikat**, bukan oleh token. Karena token tidak membawa informasi algoritma, tidak ada permukaan serangan algorithm confusion seperti yang bersumber dari header `alg` pada JWT.
+### Sertifikat
 
-#### 🔄 Key Rolling yang Dipaksakan
+Memuat algoritme, kunci, dan rentang waktu yang diperlukan untuk membuat dan memeriksa DAT. ID sertifikat `cid` tidak berubah; gunakan `cid` baru ketika merotasi kunci.
 
-Sertifikat DAT tidak hanya mengatur penerbitan dan kedaluwarsanya token, tetapi juga mengelola langsung **siklus hidup kunci**.<br/>
-Di dalam sertifikat tertanam secara spesifikasi keterangan "sejak kapan hingga kapan penerbitan dapat dilakukan", sehingga setelah periode itu lewat, sertifikat tersebut tidak dapat lagi membuat token baru. Situasi di mana satu kunci terpakai bertahun-tahun karena kelalaian administrator secara struktural tidak mungkin terjadi.
+### Manajer
 
-#### ⏱️ Pemisahan Jendela Penerbitan dan Masa Berlaku
+Manajer pada pustaka klien menyimpan sertifikat, membuat DAT dengan sertifikat yang saat ini dapat menerbitkan, dan memverifikasi DAT dengan sertifikat yang sesuai dengan `cid`-nya.
 
-"Periode selama sertifikat dapat menerbitkan token" dan "periode selama token yang diterbitkan tetap hidup" adalah dua nilai yang berbeda.<br/>
-Berkat itu, setelah sertifikat berhenti menerbitkan pun, token yang telanjur keluar masih dapat menghabiskan masa hidupnya, dan selama rentang itu klaster beralih secara mulus ke sertifikat berikutnya.
+### DAT CMS
 
----
+Server opsional yang membuat, menyimpan, dan mengirim sertifikat kepada layanan. Server ini dapat menyediakan sertifikat lengkap bagi layanan penerbit dan sertifikat khusus verifikasi bagi layanan yang hanya melakukan verifikasi.
 
-## Perbandingan Mekanisme Autentikasi
+## Penerbitan dan verifikasi
 
-| Klasifikasi | **DAT**                       | **JWT** | **Sesi**           |
-| --- |-------------------------------| --- |---------------------------|
-| **Metode autentikasi** | **Verifikasi terdistribusi**                     | Verifikasi terdistribusi | Terpusat          |
-| **Struktur data** | **Raw Bytes<br/>(berbasis offset tetap)** | JSON<br/>(berbasis teks Key-Value) | Serialized Object<br/>(serialisasi objek) |
-| **Mekanisme parsing** | **Pemetaan langsung data Byte**            | Perlu parsing JSON dan type casting | Perlu deserialisasi objek dan I/O          |
-| **Kinerja pemrosesan** | **Terbaik (overhead parsing minimal)**          | Sedang (bergantung pada kinerja pemrosesan JSON) | Rendah (I/O jaringan/disk)         |
-| **Enkripsi** | **Disediakan secara bawaan**                     | Perlu implementasi JWE terpisah (kompleks) | Tidak berlaku                     |
-| **Manajemen kunci** | **Rotasi dipaksakan sistem (keamanan diwajibkan)**         | Implementasi sendiri (berisiko akibat kelalaian pengelolaan) | Tidak berlaku                     |
-| **Masa berlaku kunci** | **Diwajibkan dan tercantum dalam spesifikasi kunci**              | Opsional (permanen bila tidak dikelola) | Dikelola server pusat                  |
-| **Pemilihan algoritma** | **Ditentukan sertifikat (tidak ada di token)**          | Nilai `alg` pada header token | Tidak berlaku                     |
-| **Waktu kedaluwarsa** | **Bidang wajib menurut spesifikasi**                 | Klaim opsional (`exp`) | Dikelola server                   |
+<ArchFlow
+  :user="{label: 'Pengguna', icon: 'person'}"
+  :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['Pengelolaan sertifikat', 'Sinkronisasi berbasis versi']}"
+  :service="{servers: [
+    {label: 'Layanan penerbit', kind: 'issuer', icon: 'login', request: 'Informasi autentikasi', response: 'DAT', sync: 'Sertifikat lengkap'},
+    {label: 'Layanan pemverifikasi', kind: 'verifier', icon: 'apps', request: 'DAT', response: 'Fungsi terlindungi', sync: 'Sertifikat khusus verifikasi'},
+  ]}"
+/>
 
----
+Layanan penerbit menentukan data `plain` dan `secure`, lalu membuat DAT. Layanan pemverifikasi memeriksa waktu kedaluwarsa, tanda tangan, dan ciphertext sebelum meneruskan kedua area data ke aplikasi. `plain` ditandatangani tetapi tidak dienkripsi, sehingga tidak boleh memuat rahasia atau data pribadi.
 
-## {{t('bench_title')}} {#performance}
+## Mengapa verifikasi tetap berhasil ketika sertifikat berubah?
 
-<BenchBars />
+Saat sertifikat baru dapat digunakan untuk penerbitan, DAT berikutnya memakai `cid` baru. Sertifikat lama tetap tersedia untuk verifikasi hingga TTL DAT yang telah diterbitkan berakhir. Dengan demikian, rotasi kunci dapat berjalan bersamaan dengan periode verifikasi token lama.
 
----
+## Lingkungan yang sesuai
 
-## Dokumen Selanjutnya
+- Lingkungan tempat autentikasi dan fungsi sebenarnya ditangani oleh layanan yang berbeda
+- Lingkungan tempat beberapa runtime menerbitkan atau memverifikasi token yang sama
+- Lingkungan yang meneruskan informasi otorisasi berumur pendek tanpa meminta sesi pusat
+- Lingkungan yang perlu memisahkan informasi routing publik dan data terlindungi dalam satu token
 
-- [{{t('menu_spec_dat')}}](./spec/dat) — format wire token dan aturan kanoniknya
-- [{{t('menu_spec_cert')}}](./spec/dat-certificate) — struktur sertifikat, algoritma, siklus hidup
-- [{{t('menu_spec_cms')}}](./spec/cms) — penyebaran sertifikat dan perilaku yang perlu diketahui saat operasional
+DAT tidak menetapkan kebijakan otorisasi itu sendiri. Validnya DAT dan keputusan aplikasi untuk mengizinkan permintaan adalah dua hal yang berbeda.
+
+## Dokumen berikutnya
+
+- [Spesifikasi DAT](./spec/dat): bidang token dan aturan verifikasi
+- [Sertifikat](./spec/dat-certificate): kunci dan rentang waktu
+- [Spesifikasi DAT CMS](./spec/cms): kontrak sinkronisasi
+- [Pustaka](./libs/): menerapkan DAT pada aplikasi
 
 <script setup lang="ts">
-import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
-import BenchBars from "../.vitepress/ui/BenchBars.vue";
-const {t} = useTranslate();
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 </script>

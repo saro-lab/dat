@@ -164,14 +164,29 @@ impl fmt::Display for DatError {
         use DatError::*;
         f.write_str(self.code())?;
         match self {
-            TokenMalformed(d) | TokenUnknown(d) | CertMalformed(d) | CertUnknown(d)
-            | SigMalformed(d) | SigBackend(d) | SigUnknown(d) | CryptoDataInvalid(d)
-            | CryptoBackend(d) | CryptoUnknown(d) | KeyInvalid(d) | KeyUnknown(d)
-            | ManagerUnknown(d) | CmsMalformed(d) | ConfigUriInvalid(d)
-            | ConfigArgumentInvalid(d) | ConfigUnknown(d) | InternalUnavailable(d)
+            TokenMalformed(d)
+            | TokenUnknown(d)
+            | CertMalformed(d)
+            | CertUnknown(d)
+            | SigMalformed(d)
+            | SigBackend(d)
+            | SigUnknown(d)
+            | CryptoDataInvalid(d)
+            | CryptoBackend(d)
+            | CryptoUnknown(d)
+            | KeyInvalid(d)
+            | KeyUnknown(d)
+            | ManagerUnknown(d)
+            | CmsMalformed(d)
+            | ConfigUriInvalid(d)
+            | ConfigArgumentInvalid(d)
+            | ConfigUnknown(d)
+            | InternalUnavailable(d)
             | InternalUnknown(d) => write!(f, ": {d}"),
 
-            KeyVerifyOnlyUnsupported(s) | CmsUnreachable(s) | CmsUnknown(s)
+            KeyVerifyOnlyUnsupported(s)
+            | CmsUnreachable(s)
+            | CmsUnknown(s)
             | ConfigAlgUnsupported(s) => write!(f, ": {s}"),
 
             CmsServerError(s) | CmsHttpStatus(s) => write!(f, ": http {s}"),

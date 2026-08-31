@@ -1,6 +1,6 @@
 use crate::error::DatError;
-use base64::engine::general_purpose;
 use base64::Engine;
+use base64::engine::general_purpose;
 use std::time::SystemTime;
 
 const BASE64_URL: &general_purpose::GeneralPurpose = &general_purpose::URL_SAFE_NO_PAD;
@@ -30,9 +30,10 @@ pub fn decode_base64_url_out<T: AsRef<[u8]>>(b64: T, out: &mut Vec<u8>) -> Resul
 
 #[inline]
 pub fn decode_base64_url_out_str<T: AsRef<[u8]>>(b64: T, out: &mut String) -> Result<(), DatError> {
-    unsafe {
-        BASE64_URL.decode_vec(&b64, out.as_mut_vec()).map_err(|_| B64_INVALID)
-    }
+    let decoded = BASE64_URL.decode(b64).map_err(|_| B64_INVALID)?;
+    let decoded = std::str::from_utf8(&decoded).map_err(|_| B64_INVALID)?;
+    out.push_str(decoded);
+    Ok(())
 }
 
 #[inline]
@@ -53,7 +54,10 @@ pub fn parse_u64_hex(s: &str) -> Option<u64> {
 
 #[inline]
 pub fn now_unix_timestamp() -> u64 {
-    SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs()
+    SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
 }
 
 #[inline]
@@ -86,4 +90,25 @@ pub fn to_hex_u64_out(mut no: u64, out: &mut String) {
     vec.copy_within(cursor..limit, offset);
 
     vec.truncate(limit - cursor + offset);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decode_base64_url_out_str_preserves_output_on_error() {
+        for input in ["_w", "!"] {
+            let mut output = String::from("prefix");
+            assert!(decode_base64_url_out_str(input, &mut output).is_err());
+            assert_eq!(output, "prefix");
+        }
+    }
+
+    #[test]
+    fn decode_base64_url_out_str_appends_utf8() {
+        let mut output = String::from("prefix:");
+        decode_base64_url_out_str("7ZWc6riA", &mut output).unwrap();
+        assert_eq!(output, "prefix:한글");
+    }
 }

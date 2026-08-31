@@ -1,94 +1,70 @@
+# Was ist DAT?
 
-# DAT (Distributed Access Token)
-
----
-
-## Hintergrund der Einführung von DAT
-
-Heute setzen viele Systeme auf JWT, doch im realen Produktionsbetrieb bestehen die folgenden strukturellen Grenzen.<br/>
-Um diese zu überwinden, wurde die neue Token-Spezifikation DAT entworfen.
-
-#### 🧩 Fragmentierung der Sicherheitsspezifikation und fehlende Durchsetzung
-JWT bietet zwar Verschlüsselungsstandards wie JWE an, deren Verwendung wird jedoch nicht erzwungen. <br/>
-Dadurch verzichten viele Entwicklungsumgebungen auf die Verschlüsselung oder übertragen Daten auf nicht standardisierte Weise, was Sicherheitslücken verursacht.
-
-#### 🔑 Sicherheitsrisiko durch statische Schlüssel (Static Key)
-Da die Rotation von Signaturschlüsseln (Key-Rolling) nicht verpflichtend ist, wird ein einzelner Schlüssel häufig über lange Zeiträume verwendet. Bei einer Kompromittierung des Schlüssels kann dies zum Zusammenbruch der Sicherheit des gesamten Systems führen; tatsächlich sind auf großen Commerce-Sites bereits Sicherheitsvorfälle dieser Art aufgetreten.
-
-#### 📉 Leistungseinbußen durch Overhead
-JWT durchläuft bei jeder Anfrage einen JSON-Parsing-Vorgang und verbraucht dabei erhebliche CPU-Ressourcen. In Umgebungen mit hohen Leistungsanforderungen können diese Parsing-Kosten zum Engpass des gesamten Systems werden.
-
----
-
-## Kernphilosophie von DAT
-
-DAT wurde nach dem Grundsatz entworfen, dass Sicherheit nicht optional, sondern erzwungen sein muss und dass bei der Leistung keine Kompromisse eingegangen werden dürfen.
-
-#### ⚡ Leicht und schnell
+DAT (Distributed Access Token) ist eine Spezifikation für Zugriffstokens, bei der ein ausstellender Dienst und ein Prüfdienst dasselbe Zertifikat gemeinsam verwenden. Da die Prüfung keine erneute Anfrage beim Aussteller oder einem zentralen Sitzungsspeicher erfordert, lassen sich Authentifizierungsergebnisse mit geringerer Kopplung zwischen Diensten übertragen.
 
 <WireFormat
-    hint="Bewegen Sie den Mauszeiger über ein Feld, um dessen Beschreibung anzuzeigen."
-    :segments="[
-        {name: 'expire', type: 'uint64 (dezimal)', kind: 'meta', note: 'Ablaufzeit. Von der Spezifikation erzwungen und daher nicht weglassbar.'},
-        {name: 'cid', type: 'uint64 (hexadezimal)', kind: 'meta', note: 'ID des Zertifikats, das zur Verifizierung verwendet wird.'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'Daten, die dem Client offengelegt werden.'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'Verschlüsselte Daten. Ohne Zertifikat nicht lesbar.'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'Signatur über die vier vorangehenden Felder.'},
-    ]"
+  hint="Durch Punkte getrennte Felder bilden gemeinsam einen DAT."
+  :segments="[
+    {name: 'expire', type: 'uint64', kind: 'meta', note: 'Unix time des Ablaufs'},
+    {name: 'cid', type: 'uint64', kind: 'meta', note: 'Zertifikat-ID'},
+    {name: 'plain', type: 'bytes', kind: 'plain', note: 'Öffentliche Daten'},
+    {name: 'secure', type: 'bytes', kind: 'secure', note: 'Verschlüsselte Daten'},
+    {name: 'signature', type: 'bytes', kind: 'sig', note: 'Signatur des Inhalts'},
+  ]"
 />
 
-Wie oben dargestellt, besitzt DAT genau fünf feste, durch Punkte (`.`) getrennte Felder. Da die Position jedes Feldes durch die Spezifikation festgelegt ist, lassen sich die einzelnen Werte ohne JSON-Parsing allein anhand der Trennzeichen herausschneiden.
+## Bestandteile
 
-#### 🔐 Erzwungene Sicherheit
+### DAT
 
-DAT trennt bei der Datenübertragung den Klartextbereich (Plain) und den **verschlüsselten Bereich (Secure)** physisch voneinander.<br/>
-Sensible Informationen müssen zwingend verschlüsselt werden, und der gesamte Vorgang wird durch die im Zertifikat deklarierten Standardalgorithmen (ECDSA, AES-GCM usw.) geschützt.
+Eine Zeichenfolge, die ein Benutzer oder Dienst mit einer Anfrage übermittelt. Sie enthält Ablaufzeitpunkt und Zertifikat-ID und kann zugleich öffentliche und verschlüsselte Daten transportieren.
 
-Über den Verschlüsselungsalgorithmus entscheidet **das Zertifikat**, nicht das Token. Da das Token keinerlei Algorithmusinformationen enthält, existiert die Angriffsfläche für Algorithmusverwechslungsangriffe, wie sie der `alg`-Header von JWT eröffnet, hier gar nicht.
+### Zertifikat
 
-#### 🔄 Erzwungenes Key-Rolling
+Es enthält Algorithmen, Schlüssel und Zeiträume zum Erstellen und Prüfen eines DAT. Die Zertifikat-ID `cid` bleibt unverändert. Bei einem Schlüsselwechsel wird eine neue `cid` verwendet.
 
-DAT-Zertifikate verwalten nicht nur Ausstellung und Ablauf von Tokens, sondern unmittelbar auch den **Lebenszyklus der Schlüssel**.<br/>
-Im Zertifikat ist auf Spezifikationsebene festgeschrieben, „von wann bis wann ausgestellt werden darf". Nach Ablauf dieses Zeitraums lassen sich mit dem Zertifikat keine neuen Tokens mehr erzeugen. Die Situation, dass aus Unachtsamkeit des Administrators ein einzelner Schlüssel jahrelang verwendet wird, kann strukturell nicht eintreten.
+### Manager
 
-#### ⏱️ Trennung von Ausstellungsfenster und Gültigkeitsdauer
+Der Manager der Clientbibliothek speichert Zertifikate, erstellt DAT mit einem aktuell ausstellungsfähigen Zertifikat und prüft DAT mit dem zu ihrer `cid` passenden Zertifikat.
 
-„Der Zeitraum, in dem ein Zertifikat Tokens ausstellen darf" und „der Zeitraum, in dem ein ausgestelltes Token gültig bleibt" sind zwei verschiedene Werte.<br/>
-Dadurch können bereits ausgegebene Tokens ihre volle Lebensdauer ausschöpfen, auch nachdem das Zertifikat die Ausstellung eingestellt hat, während der Cluster in der Zwischenzeit reibungslos auf das nächste Zertifikat übergeht.
+### DAT CMS
 
----
+Ein optionaler Server, der Zertifikate erstellt, speichert und an Dienste übermittelt. Ausstellende Dienste können vollständige Zertifikate erhalten, Dienste mit reiner Prüffunktion nur zur Prüfung bestimmte Zertifikate.
 
-## Vergleich der Authentifizierungsmechanismen
+## Ausstellung und Prüfung
 
-| Kriterium | **DAT**                       | **JWT** | **Session**           |
-| --- |-------------------------------| --- |---------------------------|
-| **Authentifizierungsmethode** | **Verteilte Verifizierung**                     | Verteilte Verifizierung | Zentralisiert          |
-| **Datenstruktur** | **Raw Bytes<br/>(auf festen Offsets basierend)** | JSON<br/>(Key-Value, textbasiert) | Serialized Object<br/>(Objektserialisierung) |
-| **Parsing-Mechanismus** | **Direkte Zuordnung der Byte-Daten**            | JSON-Parsing und Typumwandlung erforderlich | Objekt-Deserialisierung und I/O erforderlich          |
-| **Verarbeitungsleistung** | **Höchste (minimaler Parsing-Overhead)**          | Mittel (abhängig von der JSON-Verarbeitungsleistung) | Niedrig (Netzwerk-/Festplatten-I/O)         |
-| **Verschlüsselung** | **Standardmäßig enthalten**                     | JWE muss separat implementiert werden (komplex) | Nicht anwendbar                     |
-| **Schlüsselverwaltung** | **Systemseitig erzwungenes Rolling (erzwungene Sicherheit)**         | Eigene Implementierung (Risiko nachlässiger Verwaltung) | Nicht anwendbar                     |
-| **Schlüsselgültigkeitsdauer** | **In der Schlüsselspezifikation zwingend angegeben**              | Optional (ohne Verwaltung dauerhaft) | Vom zentralen Server verwaltet                  |
-| **Algorithmuswahl** | **Vom Zertifikat bestimmt (nicht im Token)**          | `alg` im Token-Header | Nicht anwendbar                     |
-| **Ablaufzeit** | **Laut Spezifikation Pflichtfeld**                 | Optionaler Claim (`exp`) | Vom Server verwaltet                   |
+<ArchFlow
+  :user="{label: 'Benutzer', icon: 'person'}"
+  :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['Zertifikate verwalten', 'Versionsbasierte Synchronisierung']}"
+  :service="{servers: [
+    {label: 'Ausstellender Dienst', kind: 'issuer', icon: 'login', request: 'Authentifizierungsdaten', response: 'DAT', sync: 'Vollständiges Zertifikat'},
+    {label: 'Prüfdienst', kind: 'verifier', icon: 'apps', request: 'DAT', response: 'Geschützte Funktion', sync: 'Zertifikat nur zur Prüfung'},
+  ]}"
+/>
 
----
+Der ausstellende Dienst legt die Daten in `plain` und `secure` fest und erstellt den DAT. Der Prüfdienst kontrolliert Ablaufzeitpunkt, Signatur und Chiffrat und übergibt anschließend beide Datenbereiche an die Anwendung. `plain` ist signiert, aber nicht verschlüsselt, und darf deshalb keine Geheimnisse oder personenbezogenen Daten enthalten.
 
-## {{t('bench_title')}} {#performance}
+## Warum die Prüfung auch nach einem Zertifikatswechsel funktioniert
 
-<BenchBars />
+Sobald ein neues Zertifikat ausstellungsfähig ist, verwenden nachfolgende DAT dessen neue `cid`. Das vorherige Zertifikat bleibt zur Prüfung erhalten, bis die TTL der bereits ausgestellten DAT abgelaufen ist. So lassen sich Schlüsselwechsel und Prüfzeitraum vorhandener Tokens parallel betreiben.
 
----
+## Geeignete Umgebungen
 
-## Weiterführende Dokumente
+- Umgebungen, in denen Authentifizierung und eigentliche Funktion von verschiedenen Diensten übernommen werden
+- Umgebungen, in denen mehrere Runtimes dasselbe Token ausstellen oder prüfen
+- Umgebungen, die kurzlebige Berechtigungsdaten ohne zentrale Sitzungsabfrage übertragen
+- Umgebungen, die öffentliche Routinginformationen und geschützte Daten in einem Token getrennt speichern müssen
 
-- [{{t('menu_spec_dat')}}](./spec/dat) — Wire-Format des Tokens und kanonische Regeln
-- [{{t('menu_spec_cert')}}](./spec/dat-certificate) — Zertifikatsstruktur, Algorithmen, Lebenszyklus
-- [{{t('menu_spec_cms')}}](./spec/cms) — Zertifikatsverteilung und im Betrieb zu beachtendes Verhalten
+DAT definiert nicht die Berechtigungsrichtlinie selbst. Die Gültigkeit eines DAT und die Entscheidung der Anwendung, eine Anfrage zuzulassen, sind getrennte Fragen.
+
+## Nächste Dokumente
+
+- [DAT-Spezifikation](./spec/dat): Tokenfelder und Prüfregeln
+- [Zertifikate](./spec/dat-certificate): Schlüssel und Zeiträume
+- [DAT-CMS-Spezifikation](./spec/cms): Synchronisierungsvertrag
+- [Bibliotheken](./libs/): Einbindung in eine Anwendung
 
 <script setup lang="ts">
-import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
-import BenchBars from "../.vitepress/ui/BenchBars.vue";
-const {t} = useTranslate();
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 </script>

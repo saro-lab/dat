@@ -7,7 +7,9 @@ use std::time::Instant;
 
 fn rand_string() -> String {
     let mut rng = rand::rng();
-    (0..100).map(|_| { rng.sample(rand::distr::Alphanumeric) as char }).collect()
+    (0..100)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
+        .collect()
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -45,13 +47,14 @@ async fn ecdsa() {
             len = len + 1;
         }
         let duration = start.elapsed();
-        println!("{tag} copy verify * {loop_size} : {}ms", duration.as_millis());
+        println!(
+            "{tag} copy verify * {loop_size} : {}ms",
+            duration.as_millis()
+        );
 
         assert_eq!(loop_size * 2, len);
-
     });
 }
-
 
 #[tokio::test(flavor = "multi_thread")]
 async fn ring() {
@@ -73,8 +76,14 @@ async fn ring() {
 
         let rng = ring::rand::SystemRandom::new();
         let (sa, va) = match alg {
-            256 => (&signature::ECDSA_P256_SHA256_FIXED_SIGNING, &signature::ECDSA_P256_SHA256_FIXED),
-            384 => (&signature::ECDSA_P384_SHA384_FIXED_SIGNING, &signature::ECDSA_P384_SHA384_FIXED),
+            256 => (
+                &signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+                &signature::ECDSA_P256_SHA256_FIXED,
+            ),
+            384 => (
+                &signature::ECDSA_P384_SHA384_FIXED_SIGNING,
+                &signature::ECDSA_P384_SHA384_FIXED,
+            ),
             _ => panic!("unknown algorithm"),
         };
 
@@ -82,10 +91,12 @@ async fn ring() {
 
         let key_pair = signature::EcdsaKeyPair::from_pkcs8(sa, pkcs8.as_ref(), &rng).unwrap();
 
-        let pub_key: Vec<u8> = ring::signature::KeyPair::public_key(&key_pair).as_ref().to_vec();
+        let pub_key: Vec<u8> = ring::signature::KeyPair::public_key(&key_pair)
+            .as_ref()
+            .to_vec();
 
-        let pub_key: signature::UnparsedPublicKey<&Vec<u8>> = signature::UnparsedPublicKey::new(va, &pub_key);
-
+        let pub_key: signature::UnparsedPublicKey<&Vec<u8>> =
+            signature::UnparsedPublicKey::new(va, &pub_key);
 
         let mut len = 0;
         let mut sign: signature::Signature = key_pair.sign(&rng, text.as_bytes()).unwrap();
@@ -104,12 +115,14 @@ async fn ring() {
             len = len + 1;
         }
         let duration = start.elapsed();
-        println!("{tag} copy verify * {loop_size} : {}ms", duration.as_millis());
+        println!(
+            "{tag} copy verify * {loop_size} : {}ms",
+            duration.as_millis()
+        );
 
         assert_eq!(loop_size * 2, len);
     });
 }
-
 
 #[tokio::test(flavor = "multi_thread")]
 async fn aws() {
@@ -131,9 +144,18 @@ async fn aws() {
 
         let rng = aws_lc_rs::rand::SystemRandom::new();
         let (sa, va) = match alg {
-            256 => (&aws_lc_rs::signature::ECDSA_P256_SHA256_FIXED_SIGNING, &aws_lc_rs::signature::ECDSA_P256_SHA256_FIXED),
-            384 => (&aws_lc_rs::signature::ECDSA_P384_SHA384_FIXED_SIGNING, &aws_lc_rs::signature::ECDSA_P384_SHA384_FIXED),
-            521 => (&aws_lc_rs::signature::ECDSA_P521_SHA512_FIXED_SIGNING, &aws_lc_rs::signature::ECDSA_P521_SHA512_FIXED),
+            256 => (
+                &aws_lc_rs::signature::ECDSA_P256_SHA256_FIXED_SIGNING,
+                &aws_lc_rs::signature::ECDSA_P256_SHA256_FIXED,
+            ),
+            384 => (
+                &aws_lc_rs::signature::ECDSA_P384_SHA384_FIXED_SIGNING,
+                &aws_lc_rs::signature::ECDSA_P384_SHA384_FIXED,
+            ),
+            521 => (
+                &aws_lc_rs::signature::ECDSA_P521_SHA512_FIXED_SIGNING,
+                &aws_lc_rs::signature::ECDSA_P521_SHA512_FIXED,
+            ),
             _ => panic!("unknown algorithm"),
         };
 
@@ -143,11 +165,12 @@ async fn aws() {
 
         let pub_key: Vec<u8> = key_pair.public_key().as_ref().to_vec();
 
-        let pub_key: aws_lc_rs::signature::UnparsedPublicKey<&Vec<u8>> = aws_lc_rs::signature::UnparsedPublicKey::new(va, &pub_key);
-
+        let pub_key: aws_lc_rs::signature::UnparsedPublicKey<&Vec<u8>> =
+            aws_lc_rs::signature::UnparsedPublicKey::new(va, &pub_key);
 
         let mut len = 0;
-        let mut sign: aws_lc_rs::signature::Signature = key_pair.sign(&rng, text.as_bytes()).unwrap();
+        let mut sign: aws_lc_rs::signature::Signature =
+            key_pair.sign(&rng, text.as_bytes()).unwrap();
 
         let start = Instant::now();
         for _ in 0..loop_size {
@@ -163,7 +186,10 @@ async fn aws() {
             len = len + 1;
         }
         let duration = start.elapsed();
-        println!("{tag} copy verify * {loop_size} : {}ms", duration.as_millis());
+        println!(
+            "{tag} copy verify * {loop_size} : {}ms",
+            duration.as_millis()
+        );
 
         assert_eq!(loop_size * 2, len);
     });

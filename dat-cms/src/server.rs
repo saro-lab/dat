@@ -8,16 +8,14 @@ pub async fn serve(router: Router, addr: &str, shutdown_timeout: Duration) {
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     tracing::info!("START SERVER {}", addr);
 
-    let service = router
-        .into_make_service_with_connect_info::<SocketAddr>();
+    let service = router.into_make_service_with_connect_info::<SocketAddr>();
 
     let (shutdown_started_tx, shutdown_started_rx) = oneshot::channel::<()>();
 
-    let server = axum::serve(listener, service)
-        .with_graceful_shutdown(async move {
-            shutdown_signal().await;
-            let _ = shutdown_started_tx.send(());
-        });
+    let server = axum::serve(listener, service).with_graceful_shutdown(async move {
+        shutdown_signal().await;
+        let _ = shutdown_started_tx.send(());
+    });
 
     tokio::select! {
         result = server => {
@@ -43,14 +41,17 @@ async fn wait_then_sleep(started: oneshot::Receiver<()>, timeout: Duration) {
 
 async fn shutdown_signal() {
     let ctrl_c = async {
-        signal::ctrl_c().await.expect("failed to install Ctrl+C handler");
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
     };
 
     #[cfg(unix)]
     let terminate = async {
         signal::unix::signal(signal::unix::SignalKind::terminate())
             .expect("failed to install SIGTERM handler")
-            .recv().await;
+            .recv()
+            .await;
     };
 
     #[cfg(not(unix))]

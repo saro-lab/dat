@@ -15,12 +15,16 @@ module Saro
 
       STOP_JOIN_TIMEOUT_SECONDS = 1.0
 
-      def initialize(uri:, token:, interval_seconds: 60, verify_only: false, dat_manager: nil)
+      def initialize(uri:, token:, interval_seconds: 60, verify_only: false, dat_manager: nil,
+                     connect_timeout_seconds: 5, sync_timeout_seconds: 15)
         @uri = uri
         @token = token
         @interval_seconds = interval_seconds
         @verify_only = verify_only
         @manager = dat_manager || DatManager.new
+        @connect_timeout_seconds = connect_timeout_seconds
+        @sync_timeout_seconds = sync_timeout_seconds
+        @active_http = nil
         @version = 0
         @lock = Mutex.new
         @lifecycle = Mutex.new
@@ -44,6 +48,7 @@ module Saro
           @stopped = true
           @stop_cond.broadcast
           thread = @thread
+          @active_http&.finish if @active_http&.started?
         end
         thread&.join(STOP_JOIN_TIMEOUT_SECONDS)
         nil
@@ -75,7 +80,7 @@ module Saro
         nil
       end
 
-      private def sync_or_raise
+      def sync_or_raise
         unless @lock.try_lock
           @logger.debug("cms sync skipped, previous sync still running: #{@uri}")
           raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CMS_SYNC_IN_PROGRESS)
@@ -88,8 +93,13 @@ module Saro
 
           response =
             begin
-              Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == 'https', open_timeout: 10, read_timeout: 10) do |http|
+              Net::HTTP.start(url.host, url.port, use_ssl: url.scheme == 'https',
+                              open_timeout: (@connect_timeout_seconds.zero? ? nil : @connect_timeout_seconds),
+                              read_timeout: (@sync_timeout_seconds.zero? ? nil : @sync_timeout_seconds)) do |http|
+                @lifecycle.synchronize { @active_http = http }
                 http.request(request)
+              ensure
+                @lifecycle.synchronize { @active_http = nil }
               end
             rescue StandardError => e
               raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CMS_UNREACHABLE, "cannot reach #{@uri}", cause: e)
@@ -99,27 +109,24 @@ module Saro
           raise self.class.http_status_error(status) unless status.between?(200, 299)
 
           body = response.body
-          if body.nil? || body.empty?
-            @logger.debug("No new certificate: #{url}")
-            return nil
+          raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CMS_MALFORMED, "response is empty") if body.nil? || body.empty?
+          unless body.ascii_only?
+            raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CMS_MALFORMED, "response is not strict ASCII")
           end
 
           lines = body.split("\n", 2)
-          if lines.length < 2
-            if body.start_with?("\n")
-              raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CMS_MALFORMED, "response has no version line")
-            end
-            @logger.debug("No new certificate: #{url}")
-            return nil
-          end
-
-          new_version_str = lines[0].strip
-          new_certificates = lines[1].strip
+          new_version_str = lines[0]
+          new_certificates = lines.length == 2 ? lines[1].strip : ""
 
           unless new_version_str.match?(/\A[0-9]+\z/)
             raise Saro::Dat::Error.new(Saro::Dat::ErrorCode::CMS_MALFORMED, "version line is not a plain decimal integer")
           end
           new_version = new_version_str.to_i
+
+          if new_certificates.empty?
+            @logger.debug("No new certificate: #{url}")
+            return nil
+          end
 
           if new_version < @version
             @logger.warn("#{Saro::Dat::ErrorCode::CMS_VERSION_RESET}: #{@version} -> #{new_version}")
@@ -225,6 +232,16 @@ module Saro
         self
       end
 
+      def connect_timeout_seconds(seconds)
+        @connect_timeout_seconds = seconds
+        self
+      end
+
+      def sync_timeout_seconds(seconds)
+        @sync_timeout_seconds = seconds
+        self
+      end
+
       def build
         parsed =
           begin
@@ -250,7 +267,9 @@ module Saro
           uri: final_uri,
           token: @token,
           interval_seconds: @interval_seconds,
-          verify_only: @verify_only
+          verify_only: @verify_only,
+          connect_timeout_seconds: @connect_timeout_seconds,
+          sync_timeout_seconds: @sync_timeout_seconds
         )
       end
     end

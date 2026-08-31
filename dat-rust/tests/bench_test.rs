@@ -11,14 +11,33 @@ use tokio::task::JoinSet;
 
 fn rand_string() -> String {
     let mut rng = rand::rng();
-    (0..100).map(|_| { rng.sample(rand::distr::Alphanumeric) as char }).collect()
+    (0..100)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
+        .collect()
 }
 
-async fn loops(multi_thread: bool, loops: i64, certificates: &'static Vec<DatCertificate>, plain: &'static String, secure: &'static String) -> Result<(), DatError> {
-    println!("\n{}", if multi_thread { "Multi-Thread" } else { "Single-Thread" });
+async fn loops(
+    multi_thread: bool,
+    loops: i64,
+    certificates: &'static [DatCertificate],
+    plain: &'static String,
+    secure: &'static String,
+) -> Result<(), DatError> {
+    println!(
+        "\n{}",
+        if multi_thread {
+            "Multi-Thread"
+        } else {
+            "Single-Thread"
+        }
+    );
 
     for certificate in certificates {
-        let pre = format!("{} {}", certificate.signature_algorithm(), certificate.crypto_algorithm());
+        let pre = format!(
+            "{} {}",
+            certificate.signature_algorithm(),
+            certificate.crypto_algorithm()
+        );
 
         let mut dat = String::new();
 
@@ -27,7 +46,7 @@ async fn loops(multi_thread: bool, loops: i64, certificates: &'static Vec<DatCer
             let mut futures: JoinSet<String> = JoinSet::new();
             for _ in 0..loops {
                 futures.spawn(async move {
-                    DatManager::_issue(&certificate, &*plain, &*secure).unwrap()
+                    DatManager::_issue(certificate, plain.as_bytes(), secure.as_bytes()).unwrap()
                 });
             }
             while let Some(res) = futures.join_next().await {
@@ -35,21 +54,21 @@ async fn loops(multi_thread: bool, loops: i64, certificates: &'static Vec<DatCer
             }
         } else {
             for _ in 0..loops {
-                dat = DatManager::_issue(&certificate, &*plain, &*secure)?;
+                dat = DatManager::_issue(certificate, plain.as_bytes(), secure.as_bytes())?;
             }
         }
         let duration = start.elapsed();
         println!("{pre} Issue * {loops} : {}ms", duration.as_millis());
 
         let dat: &'static String = Box::leak(Box::new(dat));
-        let mut payload = DatManager::_parse(&certificate, dat.clone().try_into()?)?;
+        let mut payload = DatManager::_parse(certificate, dat.clone().try_into()?)?;
 
         let start = Instant::now();
         if multi_thread {
             let mut futures: JoinSet<DatPayload> = JoinSet::new();
             for _ in 0..loops {
                 futures.spawn(async move {
-                    DatManager::_parse(&certificate, dat.clone().try_into().unwrap()).unwrap()
+                    DatManager::_parse(certificate, dat.clone().try_into().unwrap()).unwrap()
                 });
             }
             while let Some(res) = futures.join_next().await {
@@ -57,7 +76,7 @@ async fn loops(multi_thread: bool, loops: i64, certificates: &'static Vec<DatCer
             }
         } else {
             for _ in 0..loops {
-                payload = DatManager::_parse(&certificate, dat.clone().try_into()?)?;
+                payload = DatManager::_parse(certificate, dat.clone().try_into()?)?;
             }
         }
         let duration = start.elapsed();
@@ -71,7 +90,6 @@ async fn loops(multi_thread: bool, loops: i64, certificates: &'static Vec<DatCer
 }
 
 async fn benchmark(loop_size: i64) -> Result<(), DatError> {
-
     let plain: &'static String = Box::leak(Box::new(rand_string()));
     let secure: &'static String = Box::leak(Box::new(rand_string()));
 
@@ -96,8 +114,8 @@ async fn benchmark(loop_size: i64) -> Result<(), DatError> {
 
     let certificates: &'static Vec<DatCertificate> = Box::leak(Box::new(certificates));
 
-    loops(true, loop_size, &certificates, &plain, &secure).await?;
-    loops(false, loop_size, &certificates, &plain, &secure).await?;
+    loops(true, loop_size, certificates, plain, secure).await?;
+    loops(false, loop_size, certificates, plain, secure).await?;
 
     Ok(())
 }
@@ -109,7 +127,10 @@ async fn test() {
         return;
     }
 
-    let loop_size = 10000;
+    let loop_size = std::env::var("DAT_BENCH_LOOPS")
+        .ok()
+        .and_then(|value| value.parse().ok())
+        .unwrap_or(10000);
 
     benchmark(loop_size).await.unwrap();
 }

@@ -6,7 +6,9 @@ use std::time::Instant;
 
 fn rand_string() -> String {
     let mut rng = rand::rng();
-    (0..100).map(|_| { rng.sample(rand::distr::Alphanumeric) as char }).collect()
+    (0..100)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
+        .collect()
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -36,7 +38,10 @@ async fn crypto_copy_test() {
             len = len + encode.len();
         }
         let duration = start.elapsed();
-        println!("{tag} copy encode * {loop_size} : {}ms", duration.as_millis());
+        println!(
+            "{tag} copy encode * {loop_size} : {}ms",
+            duration.as_millis()
+        );
         println!("encode: {}", encode_base64_url(&encode));
 
         let start = Instant::now();
@@ -45,12 +50,14 @@ async fn crypto_copy_test() {
             len = len + encode.len();
         }
         let duration = start.elapsed();
-        println!("${tag} copy encode * {loop_size} : {}ms", duration.as_millis());
+        println!(
+            "${tag} copy encode * {loop_size} : {}ms",
+            duration.as_millis()
+        );
         let decode_text = String::from_utf8_lossy(&*decode).to_string();
         println!("decode: {}", decode_text);
         println!("len: {}", len);
 
         assert_eq!(text, decode_text);
-
     });
 }

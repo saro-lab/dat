@@ -1,6 +1,8 @@
 use crate::error::DatError;
 use crate::signature::DatSignature::{Ecdsa, HmacShaMfs};
-use crate::signature::DatSignatureAlgorithm::{EcdsaP256, EcdsaP384, EcdsaP521, HmacSha256Mfs, HmacSha384Mfs, HmacSha512Mfs};
+use crate::signature::DatSignatureAlgorithm::{
+    EcdsaP256, EcdsaP384, EcdsaP521, HmacSha256Mfs, HmacSha384Mfs, HmacSha512Mfs,
+};
 use crate::signature_ecdsa::{export_key_ecdsa, from_or_new_ecdsa, sign_ecdsa, verify_ecdsa};
 use crate::signature_hmac::{from_or_new_hmac, sign_hmac, verify_hmac};
 use aws_lc_rs::hmac::Key;
@@ -23,7 +25,14 @@ pub enum DatSignatureAlgorithm {
 impl DatSignatureAlgorithm {
     #[inline]
     pub fn list() -> &'static [DatSignatureAlgorithm] {
-        &[HmacSha256Mfs, HmacSha384Mfs, HmacSha512Mfs, EcdsaP256, EcdsaP384, EcdsaP521]
+        &[
+            HmacSha256Mfs,
+            HmacSha384Mfs,
+            HmacSha512Mfs,
+            EcdsaP256,
+            EcdsaP384,
+            EcdsaP521,
+        ]
     }
 
     #[inline]
@@ -49,7 +58,9 @@ impl FromStr for DatSignatureAlgorithm {
             "ECDSA-P256" => Ok(EcdsaP256),
             "ECDSA-P384" => Ok(EcdsaP384),
             "ECDSA-P521" => Ok(EcdsaP521),
-            _ => Err(DatError::ConfigAlgUnsupported(format!("unknown signature algorithm: {s}"))),
+            _ => Err(DatError::ConfigAlgUnsupported(format!(
+                "unknown signature algorithm: {s}"
+            ))),
         }
     }
 }
@@ -61,7 +72,11 @@ impl Display for DatSignatureAlgorithm {
 }
 
 pub enum DatSignature {
-    Ecdsa(DatSignatureAlgorithm, Option<EcdsaKeyPair>, UnparsedPublicKey<Vec<u8>>),
+    Ecdsa(
+        DatSignatureAlgorithm,
+        Option<EcdsaKeyPair>,
+        UnparsedPublicKey<Vec<u8>>,
+    ),
     HmacShaMfs(DatSignatureAlgorithm, Key, Vec<u8>),
 }
 
@@ -70,10 +85,17 @@ impl DatSignature {
         Self::from_or_new(true, algorithm, &[])
     }
 
-    pub fn from_key(algorithm: DatSignatureAlgorithm, key: &[u8]) -> Result<DatSignature, DatError> {
+    pub fn from_key(
+        algorithm: DatSignatureAlgorithm,
+        key: &[u8],
+    ) -> Result<DatSignature, DatError> {
         Self::from_or_new(false, algorithm, key)
     }
-    fn from_or_new(new: bool, algorithm: DatSignatureAlgorithm, key: &[u8]) -> Result<DatSignature, DatError> {
+    fn from_or_new(
+        new: bool,
+        algorithm: DatSignatureAlgorithm,
+        key: &[u8],
+    ) -> Result<DatSignature, DatError> {
         match algorithm {
             EcdsaP256 | EcdsaP384 | EcdsaP521 => from_or_new_ecdsa(new, algorithm, key),
             HmacSha256Mfs | HmacSha384Mfs | HmacSha512Mfs => from_or_new_hmac(new, algorithm, key),
@@ -112,7 +134,9 @@ impl DatSignature {
     #[inline]
     pub fn export_key_option(&self, verify_only: bool) -> Result<Vec<u8>, DatError> {
         if verify_only && !self.support_verify_only() {
-            return Err(DatError::KeyVerifyOnlyUnsupported(self.algorithm().to_string()));
+            return Err(DatError::KeyVerifyOnlyUnsupported(
+                self.algorithm().to_string(),
+            ));
         }
         match self {
             Ecdsa(alg, kp, pk) => export_key_ecdsa(*alg, kp, pk, verify_only),

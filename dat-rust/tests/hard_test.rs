@@ -3,11 +3,11 @@ use dat::error::DatError;
 use dat::manager::DatManager;
 
 fn test_main() -> Result<(), DatError> {
-
     let manager = DatManager::new();
 
     let plain = "Unicode 유니코드 ユニコード 万国码 يونيكود यूनिकोड Юникод 🦄💻";
-    let secure = "Ciphertext 암호문 暗号文 密文 Шифротекст Texte chiffré Geheimtext نص مشفر सिफरपाठ 🔐";
+    let secure =
+        "Ciphertext 암호문 暗号文 密文 Шифротекст Texte chiffré Geheimtext نص مشفر सिफरपाठ 🔐";
 
     let certs = "
 0.0.32506362000.32506358400.HMAC-SHA256-MFS.IV-AES128-GCM.qJAPhAeRnxOPeR6acBQTt0ukGqmUNtlQX5co7HXJ6Yg.ofZMFCvJ8Y5gBY6vNHWF_Q
@@ -60,7 +60,6 @@ f000000000000000.0.32506362000.32506358400.ECDSA-P521.IV-AES256-GCM.BACwvrucwjh5
         println!("PASS {}", dat);
         println!("PASS {}", payload);
     }
-
 
     let dat = manager.issue(plain, secure)?;
     let dat_into_test_obj: Dat = dat.clone().try_into()?;

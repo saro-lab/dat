@@ -88,6 +88,11 @@ foreach(test_source ${TEST_SOURCES})
         target_link_libraries(${test_name} PRIVATE CURL::libcurl)
     endif()
 
+    if (test_name STREQUAL "cms_fixture_test")
+        target_compile_definitions(${test_name} PRIVATE
+                DAT_CMS_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/cms_v1_state_transitions.json")
+    endif()
+
     # example_cms_manager_test requires a live server; skip in automated CTest
     if (test_name STREQUAL "example_cms_manager_test")
         add_test(NAME ${test_name} COMMAND ${test_name})

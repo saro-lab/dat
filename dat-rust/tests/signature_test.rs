@@ -1,12 +1,14 @@
+use DatSignatureAlgorithm::*;
 use dat::error::DatError;
 use dat::signature::{DatSignature, DatSignatureAlgorithm};
 use dat::util::{decode_base64_url, encode_base64_url};
 use rand::RngExt;
-use DatSignatureAlgorithm::*;
 
 fn rand_string() -> String {
     let mut rng = rand::rng();
-    (0..100).map(|_| { rng.sample(rand::distr::Alphanumeric) as char }).collect()
+    (0..100)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
+        .collect()
 }
 fn test_key(alg: DatSignatureAlgorithm) -> Result<(), DatError> {
     let tag = format!("Signature {}", alg);
@@ -20,7 +22,9 @@ fn test_key(alg: DatSignatureAlgorithm) -> Result<(), DatError> {
     let rand_string = rand_string();
     let sign = encode_base64_url(key.sign(rand_string.as_bytes())?);
     println!("{tag} Sign {}", rand_string);
-    let verify = parse_key.verify(rand_string.as_bytes(), &*decode_base64_url(sign.clone())?).is_ok();
+    let verify = parse_key
+        .verify(rand_string.as_bytes(), &*decode_base64_url(sign.clone())?)
+        .is_ok();
     println!("{tag} Verify {}", rand_string);
     assert!(verify);
     match alg {
@@ -28,13 +32,20 @@ fn test_key(alg: DatSignatureAlgorithm) -> Result<(), DatError> {
             let key_b = key.export_verify_only_key()?;
             let b64_key = encode_base64_url(&key_b);
             let parse_key = DatSignature::from_key(alg, &*decode_base64_url(b64_key)?)?;
-            let verify = parse_key.verify(rand_string.as_bytes(), &*decode_base64_url(sign)?).is_ok();
+            let verify = parse_key
+                .verify(rand_string.as_bytes(), &*decode_base64_url(sign)?)
+                .is_ok();
             assert!(verify);
             println!("{tag} verify (verify only) {}", verify);
-        },
+        }
         _ => (),
     }
-    let un_verify = parse_key.verify(rand_string.as_bytes(), &*DatSignature::generate(alg)?.sign(rand_string.as_bytes())?).is_ok();
+    let un_verify = parse_key
+        .verify(
+            rand_string.as_bytes(),
+            &*DatSignature::generate(alg)?.sign(rand_string.as_bytes())?,
+        )
+        .is_ok();
     println!("{tag} verify {} / unverify {}", verify, un_verify);
     assert!(!un_verify);
     Ok(())
@@ -44,8 +55,6 @@ fn test_key(alg: DatSignatureAlgorithm) -> Result<(), DatError> {
 fn test() {
     let alg_arr = DatSignatureAlgorithm::list();
     alg_arr.iter().for_each(|alg| {
-        (1..20).for_each(|_| {
-            assert!(test_key(*alg).is_ok())
-        });
+        (1..20).for_each(|_| assert!(test_key(*alg).is_ok()));
     })
 }

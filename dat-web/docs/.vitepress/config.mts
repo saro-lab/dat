@@ -27,7 +27,7 @@ const FONT_TEXT = 'https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400..
 export default defineConfig({
   title: "DAT",
   titleTemplate: ':title | DAT',
-  description: "DAT (Distributed Access Token) — A lightweight, high-performance token specification with enforced security and mandatory key rolling. A faster, safer alternative to JWT.",
+  description: "DAT (Distributed Access Token) — A fixed five-field token specification with mandatory expiration, encrypted payloads, signatures, and certificate-based key rotation.",
   head: [
     ['script', { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-N4K2L7KWJ9' }],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },],
@@ -123,7 +123,7 @@ export default defineConfig({
       '@type': locale ? 'TechArticle' : 'WebSite',
       'name': title ? `${title} | DAT` : 'DAT - Distributed Access Token',
       'url': locale ? `${SITE_HOST}/${locale}${pathParts.length > 0 ? '/' + pathParts.join('/') : ''}` : SITE_HOST,
-      'description': desc || 'DAT (Distributed Access Token) — A lightweight, high-performance token specification with enforced security and mandatory key rolling.',
+      'description': desc || 'DAT (Distributed Access Token) — A fixed five-field token specification with mandatory expiration, encrypted payloads, signatures, and certificate-based key rotation.',
       'inLanguage': locale || DEFAULT_LOCALE,
       'publisher': { '@type': 'Organization', 'name': 'DAT', 'url': SITE_HOST },
     })

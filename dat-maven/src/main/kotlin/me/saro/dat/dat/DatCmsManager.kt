@@ -10,6 +10,7 @@ import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.time.Duration
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -23,7 +24,8 @@ class DatCmsManager private constructor(
     private val manager: DatManager,
     private val client: HttpClient,
     private val scheduler: ScheduledExecutorService?,
-) {
+    private val requestTimeout: Duration?,
+) : AutoCloseable {
     private val lock = ReentrantReadWriteLock()
     private val sync = Runnable { sync() }
 
@@ -48,7 +50,14 @@ class DatCmsManager private constructor(
     fun parseWithoutVerifying(dat: String?): DatResult<Payload> = manager.parseWithoutVerifying(dat)
 
     fun sync() {
-        val error = syncOrError()
+        val error = try {
+            syncOrThrow()
+            null
+        } catch (e: DatException) {
+            e
+        } catch (e: Exception) {
+            DatException(DatErrorCode.CMS_UNKNOWN, "unclassified cms failure", e)
+        }
         when {
             error == null -> lastErrorRef.set(null)
             error.retry == DatRetry.STATE -> Unit
@@ -59,60 +68,71 @@ class DatCmsManager private constructor(
         }
     }
 
-    private fun syncOrError(): DatException? {
+    @Throws(DatException::class)
+    fun syncOrThrow() {
         if (!lock.writeLock().tryLock()) {
             log.debug("cms sync skipped, previous sync still running: {}", uri)
-            return DatException(DatErrorCode.CMS_SYNC_IN_PROGRESS)
+            throw DatException(DatErrorCode.CMS_SYNC_IN_PROGRESS)
         }
         val newUrl = "$uri?version=$version"
         try {
-            val request: HttpRequest = HttpRequest.newBuilder()
+            val requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(newUrl))
                 .header("Authorization", token)
-                .build()
+            requestTimeout?.let { requestBuilder.timeout(it) }
+            val request = requestBuilder.build()
 
             val result = try {
-                client.send(request, HttpResponse.BodyHandlers.ofString())
+                client.send(request, HttpResponse.BodyHandlers.ofByteArray())
             } catch (e: Exception) {
-                return DatException(DatErrorCode.CMS_UNREACHABLE, "cannot reach $uri", e)
+                throw DatException(DatErrorCode.CMS_UNREACHABLE, "cannot reach $uri", e)
             }
 
             val status = result.statusCode()
             if (status < 200 || status > 299) {
-                return httpStatusError(status)
+                throw httpStatusError(status)
             }
 
-            val body = result.body()
+            val bytes = result.body()
+            if (bytes.isEmpty() || bytes.any { (it.toInt() and 0xff) > 0x7f || it == 0.toByte() }) {
+                throw DatException(DatErrorCode.CMS_MALFORMED, "response is not strict ASCII")
+            }
+            val body = bytes.toString(Charsets.US_ASCII)
             val iof = body.indexOf("\n")
-            if (iof == 0) {
-                return DatException(DatErrorCode.CMS_MALFORMED, "response has no version line")
-            } else if (iof > 0) {
-                val versionLine = body.substring(0, iof).trim()
-                val newVersion = versionLine.toLongOrNull()
-                    ?: return DatException(
-                        DatErrorCode.CMS_MALFORMED, "version line is not a plain decimal integer"
-                    )
+            val versionLine = if (iof >= 0) body.substring(0, iof) else body
+            if (versionLine.isEmpty() || versionLine.any { it !in '0'..'9' }) {
+                throw DatException(DatErrorCode.CMS_MALFORMED, "version line is not a plain decimal integer")
+            }
+            val newVersion = versionLine.toLongOrNull()
+                ?: throw DatException(DatErrorCode.CMS_MALFORMED, "version line is not a plain decimal integer")
+            val newCertificates = if (iof >= 0) body.substring(iof + 1) else ""
+            if (newCertificates.isNotEmpty()) {
                 if (newVersion < version) {
                     log.warn(
                         "{}: server rolled version back {} -> {}",
                         DatErrorCode.CMS_VERSION_RESET.code, version, newVersion
                     )
                 }
-                val newCertificates = body.substring(iof + 1).trim()
                 val renew = try {
                     manager.imports(newCertificates, false)
                 } catch (e: Exception) {
-                    return DatException(DatErrorCode.CMS_IMPORT_FAILED, "cannot apply received certificates", e)
+                    throw DatException(DatErrorCode.CMS_IMPORT_FAILED, "cannot apply received certificates", e)
                 }
                 version = newVersion
                 log.debug("renew {} certificates: {}", renew, newUrl)
             } else {
                 log.debug("no new certificate: {}", newUrl)
             }
-            return null
         } finally {
             lock.writeLock().unlock()
         }
+    }
+
+    override fun close() {
+        scheduler?.shutdownNow()
+        scheduler?.awaitTermination(15, TimeUnit.SECONDS)
+        lock.writeLock().lock()
+        lock.writeLock().unlock()
     }
 
     companion object {
@@ -132,14 +152,16 @@ class DatCmsManager private constructor(
     }
 
     class DatCmsManagerBuilder private constructor(
-        private var client: HttpClient = HttpClient.newBuilder().build(),
+        private var client: HttpClient? = null,
         private var uri: URI = URI.create("http://localhost:8088"),
         private var token: String = "",
         private var verifyOnly: Boolean = false,
-        private var intervalSeconds: Long = 60L
+        private var intervalSeconds: Long = 60L,
+        private var connectTimeoutSeconds: Long = 5L,
+        private var requestTimeoutSeconds: Long = 15L,
     ) {
         constructor(): this(
-            client = HttpClient.newBuilder().build()
+            client = null
         )
 
         fun uri(uri: String) = this.apply {
@@ -151,8 +173,11 @@ class DatCmsManager private constructor(
         }
         fun token(token: String) = this.apply { this.token = token; }
         fun verifyOnly(verifyOnly: Boolean) = this.apply { this.verifyOnly = verifyOnly; }
+        fun httpClient(client: HttpClient) = this.apply { this.client = client; }
         fun intervalSeconds(intervalSeconds: Long) = this.apply { this.intervalSeconds = intervalSeconds; }
         fun intervalOff() = this.apply { this.intervalSeconds = 0L; }
+        fun connectTimeoutSeconds(seconds: Long) = this.apply { require(seconds >= 0); this.connectTimeoutSeconds = seconds }
+        fun requestTimeoutSeconds(seconds: Long) = this.apply { require(seconds >= 0); this.requestTimeoutSeconds = seconds }
 
         fun build(): DatCmsManager {
             val scheme = this.uri.scheme
@@ -184,7 +209,12 @@ class DatCmsManager private constructor(
             } else {
                 null
             }
-            val cms = DatCmsManager(uri, token, 0, manager, client, scheduler)
+            val client = client ?: HttpClient.newBuilder().apply {
+                if (connectTimeoutSeconds > 0) connectTimeout(Duration.ofSeconds(connectTimeoutSeconds))
+                followRedirects(HttpClient.Redirect.NEVER)
+            }.build()
+            val timeout = requestTimeoutSeconds.takeIf { it > 0 }?.let(Duration::ofSeconds)
+            val cms = DatCmsManager(uri, token, 0, manager, client, scheduler, timeout)
             scheduler?.apply {
                 scheduleAtFixedRate(cms.sync, intervalSeconds, intervalSeconds, TimeUnit.SECONDS)
             }

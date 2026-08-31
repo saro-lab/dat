@@ -119,7 +119,7 @@ class DatManager private constructor(
         } else {
             val inList = exportsCertificates().toMutableList()
             for (certificate in certificates) {
-                if (!inList.contains(certificate)) {
+                if (inList.none { it.cid == certificate.cid }) {
                     renew++
                     inList.add(certificate)
                 }

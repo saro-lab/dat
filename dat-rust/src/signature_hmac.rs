@@ -1,16 +1,24 @@
 use crate::error::DatError;
 use crate::signature::DatSignature::HmacShaMfs;
 use crate::signature::{DatSignature, DatSignatureAlgorithm};
-use aws_lc_rs::hmac;
-use aws_lc_rs::hmac::{Key, HMAC_SHA256, HMAC_SHA384, HMAC_SHA512};
 use DatSignatureAlgorithm::*;
+use aws_lc_rs::hmac;
+use aws_lc_rs::hmac::{HMAC_SHA256, HMAC_SHA384, HMAC_SHA512, Key};
 
-pub(crate) fn from_or_new_hmac(new: bool, algorithm: DatSignatureAlgorithm, key_b: &[u8]) -> Result<DatSignature, DatError> {
+pub(crate) fn from_or_new_hmac(
+    new: bool,
+    algorithm: DatSignatureAlgorithm,
+    key_b: &[u8],
+) -> Result<DatSignature, DatError> {
     let (alg, size) = match algorithm {
         HmacSha256Mfs => (&HMAC_SHA256, 32),
         HmacSha384Mfs => (&HMAC_SHA384, 48),
         HmacSha512Mfs => (&HMAC_SHA512, 64),
-        _ => return Err(DatError::ConfigAlgUnsupported(format!("not an hmac signature algorithm: {algorithm}"))),
+        _ => {
+            return Err(DatError::ConfigAlgUnsupported(format!(
+                "not an hmac signature algorithm: {algorithm}"
+            )));
+        }
     };
 
     let (key, key_b) = if new {
@@ -20,10 +28,12 @@ pub(crate) fn from_or_new_hmac(new: bool, algorithm: DatSignatureAlgorithm, key_
         let key = Key::new(*alg, &key_b);
         (key, key_b)
     } else if key_b.len() == size {
-        let key = Key::new(*alg, &key_b);
+        let key = Key::new(*alg, key_b);
         (key, Vec::from(key_b))
     } else {
-        return Err(DatError::KeyInvalid("hmac key length does not match the declared algorithm"))
+        return Err(DatError::KeyInvalid(
+            "hmac key length does not match the declared algorithm",
+        ));
     };
 
     Ok(HmacShaMfs(algorithm, key, key_b))
@@ -34,6 +44,5 @@ pub(crate) fn sign_hmac(key: &Key, data: &[u8]) -> Result<Box<[u8]>, DatError> {
 }
 
 pub(crate) fn verify_hmac(key: &Key, body: &[u8], sign: &[u8]) -> Result<(), DatError> {
-    hmac::verify(key, body, sign)
-        .map_err(|_| DatError::SigMismatch)
+    hmac::verify(key, body, sign).map_err(|_| DatError::SigMismatch)
 }

@@ -8,7 +8,9 @@ use rand::RngExt;
 
 fn rand_string() -> String {
     let mut rng = rand::rng();
-    (0..100).map(|_| { rng.sample(rand::distr::Alphanumeric) as char }).collect()
+    (0..100)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
+        .collect()
 }
 
 fn gen_certificate(dat_manager: &DatManager) -> Result<(), DatError> {
@@ -22,11 +24,21 @@ fn gen_certificate(dat_manager: &DatManager) -> Result<(), DatError> {
             (1..5).for_each(|_| {
                 let cid = i;
                 i += 1;
-                certificates.push(DatCertificate::generate(cid, now - 10, 200, 100, *sign_alg, *crypto_alg).unwrap());
+                certificates.push(
+                    DatCertificate::generate(cid, now - 10, 200, 100, *sign_alg, *crypto_alg)
+                        .unwrap(),
+                );
             });
         });
     });
-    println!("Generated \n{}", certificates.iter().map(|x| x.export(false).unwrap()).collect::<Vec<String>>().join("\n"));
+    println!(
+        "Generated \n{}",
+        certificates
+            .iter()
+            .map(|x| x.export(false).unwrap())
+            .collect::<Vec<String>>()
+            .join("\n")
+    );
     dat_manager.import_certificates(certificates, false)?;
     Ok(())
 }
@@ -40,10 +52,13 @@ fn test() {
     gen_certificate(&manager).unwrap();
 
     let certificates: Vec<DatCertificate> = manager.export_certificates().unwrap();
-    let dats: Vec<String> = certificates.iter().map(|key| {
-        let dat: String = DatManager::_issue(&key, &plain, &secure).unwrap();
-        dat
-    }).collect::<Vec<String>>();
+    let dats: Vec<String> = certificates
+        .iter()
+        .map(|key| {
+            let dat: String = DatManager::_issue(&key, &plain, &secure).unwrap();
+            dat
+        })
+        .collect::<Vec<String>>();
 
     let certificates = manager.export(false);
     let manager2: DatManager = DatManager::new();

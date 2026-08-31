@@ -20,6 +20,24 @@ typedef void (*dat_log_fn_t)(dat_log_level_t level, const char* message, void* u
 
 typedef struct dat_cms_manager dat_cms_manager_t;
 
+typedef struct {
+    uint64_t connect_timeout_seconds;
+    uint64_t total_timeout_seconds;
+} dat_cms_manager_options_t;
+
+dat_cms_manager_options_t dat_cms_manager_default_options(void);
+
+dat_error_t dat_cms_manager_create_with_options(
+    const char* url,
+    const char* token,
+    bool verify_only,
+    uint64_t interval_seconds,
+    dat_log_fn_t log_fn,
+    void* log_userdata,
+    const dat_cms_manager_options_t* options,
+    dat_cms_manager_t** out
+);
+
 dat_error_t dat_cms_manager_create(
     const char* url,
     const char* token,

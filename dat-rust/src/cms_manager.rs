@@ -2,20 +2,23 @@ use crate::dat::Dat;
 use crate::error::DatError;
 use crate::manager::DatManager;
 use crate::payload::DatPayload;
-use reqwest::{Client, Url};
-use std::sync::Arc;
+use reqwest::{Client, Url, redirect};
+use std::sync::{Arc, Mutex as StdMutex, Weak};
 use std::time::Duration;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
+use zeroize::Zeroizing;
 
 pub static DAT_CMS_API_VERSION: &str = "v1";
 
 pub struct DatCmsManager {
     url: String,
-    token: String,
+    token: Zeroizing<String>,
     version: RwLock<u64>,
     manager: DatManager,
     client: Client,
     last_error: RwLock<Option<DatError>>,
+    sync_lock: Mutex<()>,
+    background_task: StdMutex<Option<tokio::task::AbortHandle>>,
 }
 
 pub struct DatCmsManagerBuilder {
@@ -23,20 +26,26 @@ pub struct DatCmsManagerBuilder {
     token: String,
     verify_only: bool,
     interval: Duration,
+    connect_timeout: Option<Duration>,
+    total_timeout: Option<Duration>,
 }
 impl DatCmsManagerBuilder {
     #[inline]
     pub fn url(mut self, url: &str) -> Result<Self, DatError> {
-        let url = Url::parse(url)
-            .map_err(|_| DatError::ConfigUriInvalid("cannot be parsed as a uri"))?;
+        let url =
+            Url::parse(url).map_err(|_| DatError::ConfigUriInvalid("cannot be parsed as a uri"))?;
         if url.scheme() != "http" && url.scheme() != "https" {
-            return Err(DatError::ConfigUriInvalid("scheme must be http or https"))
+            return Err(DatError::ConfigUriInvalid("scheme must be http or https"));
         }
         if url.path().len() > 1 {
-            return Err(DatError::ConfigUriInvalid("must be path-less\nhttp://localhost:8080 (O)\nhttp://localhost:8080/abc (X)"))
+            return Err(DatError::ConfigUriInvalid(
+                "must be path-less\nhttp://localhost:8080 (O)\nhttp://localhost:8080/abc (X)",
+            ));
         }
         if url.query().is_some() {
-            return Err(DatError::ConfigUriInvalid("must be query-less\nhttp://localhost:8080 (O)\nhttp://localhost:8080/?query=1 (X)"))
+            return Err(DatError::ConfigUriInvalid(
+                "must be query-less\nhttp://localhost:8080 (O)\nhttp://localhost:8080/?query=1 (X)",
+            ));
         }
         self.url = url.to_string().trim_end_matches('/').to_string();
         Ok(self)
@@ -65,26 +74,54 @@ impl DatCmsManagerBuilder {
         self.interval(Duration::from_secs(0))
     }
 
-    pub async fn build(self) -> Arc<DatCmsManager> {
+    #[inline]
+    pub fn connect_timeout(mut self, timeout: Duration) -> Self {
+        self.connect_timeout = (!timeout.is_zero()).then_some(timeout);
+        self
+    }
 
+    #[inline]
+    pub fn total_timeout(mut self, timeout: Duration) -> Self {
+        self.total_timeout = (!timeout.is_zero()).then_some(timeout);
+        self
+    }
+
+    #[inline]
+    pub fn timeout(self, timeout: Duration) -> Self {
+        self.total_timeout(timeout)
+    }
+
+    pub async fn build(self) -> Arc<DatCmsManager> {
         let url = if self.verify_only {
             format!("{}/{DAT_CMS_API_VERSION}/certs/verify-only", self.url)
         } else {
             format!("{}/{DAT_CMS_API_VERSION}/certs", self.url)
         };
 
+        let mut client = Client::builder().redirect(same_origin_redirect_policy());
+        if let Some(timeout) = self.connect_timeout {
+            client = client.connect_timeout(timeout);
+        }
+        if let Some(timeout) = self.total_timeout {
+            client = client.timeout(timeout);
+        }
+
         let manager = Arc::new(DatCmsManager {
             url,
-            token: self.token,
+            token: Zeroizing::new(self.token),
             version: RwLock::new(0),
             manager: DatManager::new(),
-            client: Client::new(),
+            client: client
+                .build()
+                .expect("DAT CMS HTTP client initialization failed"),
             last_error: RwLock::new(Some(DatError::CmsNotSynced)),
+            sync_lock: Mutex::new(()),
+            background_task: StdMutex::new(None),
         });
 
         let _ = manager.sync().await;
 
-        if self.interval.as_secs() > 0 {
+        if !self.interval.is_zero() {
             proxy_tokio_spawn(&manager, self.interval);
         } else {
             #[cfg(feature = "tracing")]
@@ -95,17 +132,42 @@ impl DatCmsManagerBuilder {
     }
 }
 
-fn proxy_tokio_spawn(manager: &Arc<DatCmsManager>, interval: Duration) {
-    let manager_clone: Arc<DatCmsManager> = Arc::clone(manager);
-    tokio::spawn(async move {
-        let mut ticker = tokio::time::interval(interval);
-        loop {
-            ticker.tick().await;
-            let _ = manager_clone.sync().await.is_ok();
-        }
-    });
+fn same_origin(left: &Url, right: &Url) -> bool {
+    left.scheme() == right.scheme()
+        && left.host_str() == right.host_str()
+        && left.port_or_known_default() == right.port_or_known_default()
 }
 
+fn same_origin_redirect_policy() -> redirect::Policy {
+    redirect::Policy::custom(|attempt| {
+        if attempt.previous().len() > 10 {
+            return attempt.error("too many redirects");
+        }
+        match attempt.previous().first() {
+            Some(origin) if same_origin(origin, attempt.url()) => attempt.follow(),
+            Some(_) => attempt.error("cross-origin redirect is not allowed"),
+            None => attempt.follow(),
+        }
+    })
+}
+
+fn proxy_tokio_spawn(manager: &Arc<DatCmsManager>, interval: Duration) {
+    let manager_weak: Weak<DatCmsManager> = Arc::downgrade(manager);
+    let task = tokio::spawn(async move {
+        let mut ticker = tokio::time::interval_at(tokio::time::Instant::now() + interval, interval);
+        loop {
+            ticker.tick().await;
+            let Some(manager) = manager_weak.upgrade() else {
+                break;
+            };
+            let _ = manager.sync().await.is_ok();
+        }
+    });
+    *manager
+        .background_task
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner) = Some(task.abort_handle());
+}
 
 impl Default for DatCmsManagerBuilder {
     fn default() -> Self {
@@ -114,6 +176,21 @@ impl Default for DatCmsManagerBuilder {
             token: "".to_string(),
             verify_only: false,
             interval: Duration::from_secs(60),
+            connect_timeout: Some(Duration::from_secs(5)),
+            total_timeout: Some(Duration::from_secs(15)),
+        }
+    }
+}
+
+impl Drop for DatCmsManager {
+    fn drop(&mut self) {
+        if let Some(task) = self
+            .background_task
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .take()
+        {
+            task.abort();
         }
     }
 }
@@ -129,12 +206,18 @@ impl DatCmsManager {
     }
 
     #[inline]
-    pub fn parse<E: Into<DatError>>(&self, dat: impl TryInto<Dat, Error = E>) -> Result<DatPayload, DatError> {
+    pub fn parse<E: Into<DatError>>(
+        &self,
+        dat: impl TryInto<Dat, Error = E>,
+    ) -> Result<DatPayload, DatError> {
         self.manager.parse(dat)
     }
 
     #[inline]
-    pub fn parse_without_verify<E: Into<DatError>>(&self, dat: impl TryInto<Dat, Error = E>) -> Result<DatPayload, DatError> {
+    pub fn parse_without_verify<E: Into<DatError>>(
+        &self,
+        dat: impl TryInto<Dat, Error = E>,
+    ) -> Result<DatPayload, DatError> {
         self.manager.parse_without_verify(dat)
     }
 
@@ -145,7 +228,7 @@ impl DatCmsManager {
 
     #[inline]
     pub async fn get_version(&self) -> u64 {
-        self.version.read().await.clone()
+        *self.version.read().await
     }
 
     pub async fn last_error(&self) -> Option<DatError> {
@@ -165,18 +248,24 @@ impl DatCmsManager {
     }
 
     async fn sync_inner(&self) -> Result<(), DatError> {
-        let Ok(mut version_lock) = self.version.try_write() else {
+        let Ok(_sync_guard) = self.sync_lock.try_lock() else {
             #[cfg(feature = "tracing")]
-            tracing::debug!("cms sync skipped, previous sync still running: {}", self.url);
+            tracing::debug!(
+                "cms sync skipped, previous sync still running: {}",
+                self.url
+            );
             return Err(DatError::CmsSyncInProgress);
         };
 
-        let version = *version_lock;
+        let version = *self.version.read().await;
 
-        let response = self.client.get(self.url.clone())
+        let response = self
+            .client
+            .get(self.url.clone())
             .query(&[("version", version)])
-            .header("Authorization", &self.token)
-            .send().await
+            .header("Authorization", self.token.as_str())
+            .send()
+            .await
             .map_err(|e| DatError::CmsUnreachable(e.to_string()))
             .inspect_err(|e| {
                 #[cfg(feature = "tracing")]
@@ -198,43 +287,62 @@ impl DatCmsManager {
             return Err(e);
         }
 
-        let cert_str = response.text().await
+        let body = response
+            .bytes()
+            .await
             .map_err(|e| DatError::CmsUnreachable(e.to_string()))
             .inspect_err(|e| {
                 #[cfg(feature = "tracing")]
                 tracing::error!("[CRITICAL] DAT CMS SYNC {}: {e}", self.url)
             })?;
+        if !body.is_ascii() {
+            return Err(DatError::CmsMalformed("response body is not ASCII"));
+        }
+        let cert_str = std::str::from_utf8(&body)
+            .map_err(|_| DatError::CmsMalformed("response body is not ASCII"))?;
 
         let mut split = cert_str.splitn(2, "\n");
-        let ver = split.next()
+        let ver = split
+            .next()
             .ok_or(DatError::CmsMalformed("response has no version line"))?;
 
-        let certs = split.next().unwrap_or("").trim();
-        if certs.is_empty() {
-            #[cfg(feature = "tracing")]
-            tracing::debug!("no new certificates in response {}?version={}", self.url, version);
-            return Ok(());
-        }
-
         let ver = crate::util::parse_u64_dec(ver)
-            .ok_or(DatError::CmsMalformed("version line is not a plain decimal u64"))
+            .ok_or(DatError::CmsMalformed(
+                "version line is not a plain decimal u64",
+            ))
             .inspect_err(|e| {
                 #[cfg(feature = "tracing")]
                 tracing::error!("[CRITICAL] DAT CMS SYNC {}: {e}", self.url)
             })?;
 
-        if ver < version {
+        let certs = split.next().unwrap_or("").trim();
+        if certs.is_empty() {
             #[cfg(feature = "tracing")]
-            tracing::warn!("{}: server rolled version back {version} -> {ver}, full resync", DatError::CmsVersionReset.code());
+            tracing::debug!(
+                "no new certificates in response {}?version={}",
+                self.url,
+                version
+            );
+            return Ok(());
         }
 
-        let count = self.manager.import(&certs, false)
+        if ver < version {
+            #[cfg(feature = "tracing")]
+            tracing::warn!(
+                "{}: server rolled version back {version} -> {ver}, full resync",
+                DatError::CmsVersionReset.code()
+            );
+        }
+
+        let count = self
+            .manager
+            .import(certs, false)
             .map_err(|e| DatError::CmsImportFailed(Box::new(e)))
             .inspect_err(|e| {
                 #[cfg(feature = "tracing")]
                 tracing::error!("[CRITICAL] DAT CMS SYNC {}: {e}", self.url)
             })?;
-        *version_lock = ver;
+        *self.version.write().await = ver;
 
         #[cfg(feature = "tracing")]
         tracing::info!("Sync OK: Renew {} DAT certificates.", count);

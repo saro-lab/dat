@@ -1,14 +1,13 @@
 use crate::codes;
 use anyhow::anyhow;
+use axum::Json;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::Json;
 use dat::error::DatError;
-use sea_orm::DbErr;
+use sea_orm::{DbErr, RuntimeErr, SqlxError};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::any::Any;
-use std::backtrace::BacktraceStatus;
 use std::fmt;
 
 pub type ApiResult<T> = Result<T, ApiError>;
@@ -129,17 +128,17 @@ impl IntoResponse for ApiError {
         };
 
         if let Some(dat_err) = err.downcast_ref::<DatError>() {
-            tracing::error!("ERROR[{}]: {:#}", dat_err.code(), err);
+            tracing::error!("ERROR[{}]", dat_err.code());
             return Api::code(dat_err.code()).into_response();
         }
 
         if let Some(db_err) = err.downcast_ref::<DbErr>() {
             let code = store_code(db_err);
-            tracing::error!("ERROR[{}]: {:#}{}", code, err, backtrace_head(&err));
+            tracing::error!("ERROR[{}]", code);
             return Api::code(code).into_response();
         }
 
-        tracing::error!("ERROR: {:#}{}", err, backtrace_head(&err));
+        tracing::error!("ERROR[{}]", codes::STORE_UNKNOWN);
         Api::internal().into_response()
     }
 }
@@ -147,39 +146,24 @@ impl IntoResponse for ApiError {
 fn store_code(err: &DbErr) -> &'static str {
     match err {
         DbErr::ConnectionAcquire(_) | DbErr::Conn(_) => codes::STORE_UNAVAILABLE,
+        DbErr::Exec(RuntimeErr::SqlxError(err)) | DbErr::Query(RuntimeErr::SqlxError(err))
+            if matches!(
+                err.as_ref(),
+                SqlxError::Io(_)
+                    | SqlxError::Tls(_)
+                    | SqlxError::PoolTimedOut
+                    | SqlxError::PoolClosed
+                    | SqlxError::WorkerCrashed
+            ) =>
+        {
+            codes::STORE_UNAVAILABLE
+        }
         _ => codes::STORE_UNKNOWN,
     }
 }
 
-fn backtrace_head(err: &anyhow::Error) -> String {
-    const LINES: usize = 5;
-
-    let bt = err.backtrace();
-    if bt.status() != BacktraceStatus::Captured {
-        return String::new();
-    }
-
-    let text = bt.to_string();
-    let head = text
-        .lines()
-        .skip_while(|l| {
-            l.contains("backtrace") || l.contains("anyhow") || l.trim_start().starts_with("at ")
-        })
-        .take(LINES)
-        .collect::<Vec<_>>()
-        .join("\n");
-    format!("\nStack backtrace:\n{}", head)
-}
-
-pub fn handle_panic(err: Box<dyn Any + Send>) -> Response {
-    let message = if let Some(s) = err.downcast_ref::<&str>() {
-        s.to_string()
-    } else if let Some(s) = err.downcast_ref::<String>() {
-        s.clone()
-    } else {
-        "Unknown panic".to_string()
-    };
-    tracing::error!("PANIC: {}", message);
+pub fn handle_panic(_err: Box<dyn Any + Send>) -> Response {
+    tracing::error!("PANIC[{}]", codes::STORE_UNKNOWN);
     Api::internal().into_response()
 }
 
@@ -214,8 +198,16 @@ mod tests {
                 .0
                 .downcast_ref::<Api>()
                 .map(|api| api.code.clone())
-                .or_else(|| err.0.downcast_ref::<DatError>().map(|e| e.code().to_string()))
-                .or_else(|| err.0.downcast_ref::<DbErr>().map(|e| store_code(e).to_string()));
+                .or_else(|| {
+                    err.0
+                        .downcast_ref::<DatError>()
+                        .map(|e| e.code().to_string())
+                })
+                .or_else(|| {
+                    err.0
+                        .downcast_ref::<DbErr>()
+                        .map(|e| store_code(e).to_string())
+                });
             response_code.unwrap_or_else(|| codes::STORE_UNKNOWN.to_string())
         }
 
@@ -230,15 +222,18 @@ mod tests {
         #[test]
         fn db_errors_split_transient_from_permanent() {
             assert_eq!(
-                store_code(&DbErr::ConnectionAcquire(
-                    sea_orm::ConnAcquireErr::Timeout
-                )),
+                store_code(&DbErr::ConnectionAcquire(sea_orm::ConnAcquireErr::Timeout)),
                 codes::STORE_UNAVAILABLE,
             );
             assert_eq!(
                 codes::status_of(codes::STORE_UNAVAILABLE),
                 StatusCode::SERVICE_UNAVAILABLE,
             );
+
+            let disconnected = DbErr::Query(RuntimeErr::SqlxError(std::sync::Arc::new(
+                SqlxError::PoolClosed,
+            )));
+            assert_eq!(store_code(&disconnected), codes::STORE_UNAVAILABLE);
 
             assert_eq!(
                 store_code(&DbErr::Custom("no such table".into())),

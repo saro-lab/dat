@@ -65,7 +65,11 @@ impl Model {
         Ok(CachedCertificate {
             version: self.ver,
             full: certificate.export(false)?,
-            verify_only: if certificate.support_verify_only() { certificate.export(true)? } else { "".to_string() },
+            verify_only: if certificate.support_verify_only() {
+                certificate.export(true)?
+            } else {
+                "".to_string()
+            },
             issuance_start: self.issuance_start as u64,
             issuance_end: self.issuance_start as u64 + self.issuance_duration as u64,
         })
@@ -73,7 +77,14 @@ impl Model {
 }
 
 impl ActiveModel {
-    pub fn generate(cid: i64, issuance_start: i64, issuance_duration: i64, dat_ttl: i64, signature_algorithm: DatSignatureAlgorithm, crypto_algorithm: DatCryptoAlgorithm) -> Result<Self, DatError> {
+    pub fn generate(
+        cid: i64,
+        issuance_start: i64,
+        issuance_duration: i64,
+        dat_ttl: i64,
+        signature_algorithm: DatSignatureAlgorithm,
+        crypto_algorithm: DatCryptoAlgorithm,
+    ) -> Result<Self, DatError> {
         let signature_key = DatSignature::generate(signature_algorithm)?.export_key()?;
         let crypto_key = DatCrypto::generate(crypto_algorithm).export_key().to_vec();
 
@@ -93,5 +104,4 @@ impl ActiveModel {
 }
 
 #[async_trait]
-impl ActiveModelBehavior for ActiveModel {
-}
+impl ActiveModelBehavior for ActiveModel {}

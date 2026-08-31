@@ -1,5 +1,5 @@
 use crate::error::DatError;
-use crate::util::{encode_base64_url};
+use crate::util::encode_base64_url;
 use std::fmt::Display;
 
 pub struct DatPayload {
@@ -33,6 +33,11 @@ impl DatPayload {
 
 impl Display for DatPayload {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", encode_base64_url(&*self.plain), encode_base64_url(&*self.secure))
+        write!(
+            f,
+            "{} {}",
+            encode_base64_url(&*self.plain),
+            encode_base64_url(&*self.secure)
+        )
     }
 }

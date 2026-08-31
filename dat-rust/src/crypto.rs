@@ -39,7 +39,9 @@ impl FromStr for DatCryptoAlgorithm {
         match s {
             "IV-AES128-GCM" => Ok(IvAes128Gcm),
             "IV-AES256-GCM" => Ok(IvAes256Gcm),
-            _ => Err(DatError::ConfigAlgUnsupported(format!("unknown crypto algorithm: {s}"))),
+            _ => Err(DatError::ConfigAlgUnsupported(format!(
+                "unknown crypto algorithm: {s}"
+            ))),
         }
     }
 }
@@ -128,9 +130,10 @@ impl DatCrypto {
         let tag = match self {
             Self::IvAes128Gcm(cipher, _) => cipher.encrypt_inout_detached(&iv, &[], inout),
             Self::IvAes256Gcm(cipher, _) => cipher.encrypt_inout_detached(&iv, &[], inout),
-        }.map_err(|_| DatError::CryptoBackend("aes-gcm encrypt failed"))?;
+        }
+        .map_err(|_| DatError::CryptoBackend("aes-gcm encrypt failed"))?;
 
-        enc_data.extend_from_slice(&tag.as_slice());
+        enc_data.extend_from_slice(tag.as_slice());
 
         Ok(enc_data)
     }
@@ -140,20 +143,31 @@ impl DatCrypto {
             return Ok(Vec::with_capacity(0));
         }
         if data.len() <= IV_LEN {
-            return Err(DatError::CryptoDataInvalid("ciphertext is shorter than the 12-byte iv"));
+            return Err(DatError::CryptoDataInvalid(
+                "ciphertext is shorter than the 12-byte iv",
+            ));
         }
         let mut secure = data.split_off(IV_LEN);
 
         match self {
-            Self::IvAes128Gcm(cipher, _) => {
-                AeadInOut::decrypt_in_place(cipher, data.as_slice().try_into()
-                    .map_err(|_| DatError::CryptoDataInvalid("iv must be exactly 12 bytes"))?, &[], &mut secure)
-            },
-            Self::IvAes256Gcm(cipher, _) => {
-                AeadInOut::decrypt_in_place(cipher, data.as_slice().try_into()
-                    .map_err(|_| DatError::CryptoDataInvalid("iv must be exactly 12 bytes"))?, &[], &mut secure)
-            },
-        }.map_err(|_| DatError::CryptoTagMismatch)?;
+            Self::IvAes128Gcm(cipher, _) => AeadInOut::decrypt_in_place(
+                cipher,
+                data.as_slice()
+                    .try_into()
+                    .map_err(|_| DatError::CryptoDataInvalid("iv must be exactly 12 bytes"))?,
+                &[],
+                &mut secure,
+            ),
+            Self::IvAes256Gcm(cipher, _) => AeadInOut::decrypt_in_place(
+                cipher,
+                data.as_slice()
+                    .try_into()
+                    .map_err(|_| DatError::CryptoDataInvalid("iv must be exactly 12 bytes"))?,
+                &[],
+                &mut secure,
+            ),
+        }
+        .map_err(|_| DatError::CryptoTagMismatch)?;
 
         Ok(secure)
     }

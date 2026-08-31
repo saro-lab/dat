@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "dat_util.h"
 #include "../include/dat/dat.h"
@@ -37,19 +36,19 @@ static const dat_crypto_alg_t    CRY = DAT_CRYPTO_IV_AES256_GCM;
 static dat_manager_t* issuable_manager(uint64_t cid) {
     uint64_t now = now_unix_timestamp();
     dat_certificate_t* cert = NULL;
-    assert(dat_certificate_create(cid, now - 10, 200, 100, SIG, CRY, &cert) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_create(cid, now - 10, 200, 100, SIG, CRY, &cert) == DAT_SUCCESS);
     dat_manager_t* m = dat_manager_new();
-    assert(m);
-    assert(dat_manager_import_certificates(m, &cert, 1, true, NULL) == DAT_SUCCESS);
+    ASSERT_TRUE(m);
+    ASSERT_TRUE(dat_manager_import_certificates(m, &cert, 1, true, NULL) == DAT_SUCCESS);
     dat_certificate_free(cert);
     return m;
 }
 
 static char* with_expire(const char* token, uint64_t expire) {
     const char* rest = strchr(token, '.');
-    assert(rest);
+    ASSERT_TRUE(rest);
     char* out = malloc(strlen(token) + 32);
-    assert(out);
+    ASSERT_TRUE(out);
     sprintf(out, "%llu%s", (unsigned long long)expire, rest);
     return out;
 }
@@ -57,7 +56,7 @@ static char* with_expire(const char* token, uint64_t expire) {
 static void test_expired_is_not_malformed(void) {
     dat_manager_t* m = issuable_manager(1);
     char* token = NULL;
-    assert(dat_manager_issue(m, "p", "s", &token) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_issue(m, "p", "s", &token) == DAT_SUCCESS);
     dat_payload_t* out = NULL;
 
     char* expired = with_expire(token, now_unix_timestamp() - 1);
@@ -75,7 +74,7 @@ static void test_expired_is_not_malformed(void) {
 static void test_malformed_token_shapes(void) {
     dat_manager_t* m = issuable_manager(1);
     char* token = NULL;
-    assert(dat_manager_issue(m, "p", "s", &token) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_issue(m, "p", "s", &token) == DAT_SUCCESS);
     dat_payload_t* out = NULL;
 
     ASSERT_CODE(dat_manager_parse(m, "1.2.3", &out), "DAT_TOKEN_MALFORMED");
@@ -104,7 +103,7 @@ static void test_malformed_token_shapes(void) {
 static void test_empty_signature_is_sig_malformed(void) {
     dat_manager_t* m = issuable_manager(1);
     char* token = NULL;
-    assert(dat_manager_issue(m, "p", "s", &token) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_issue(m, "p", "s", &token) == DAT_SUCCESS);
     dat_payload_t* out = NULL;
 
     char* no_sig = strdup(token);
@@ -122,7 +121,7 @@ static void test_forged_signature_is_sig_mismatch(void) {
     dat_manager_t* attacker = issuable_manager(7);
 
     char* forged = NULL;
-    assert(dat_manager_issue(attacker, "p", "s", &forged) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_issue(attacker, "p", "s", &forged) == DAT_SUCCESS);
 
     dat_payload_t* out = NULL;
     ASSERT_CODE(dat_manager_parse(victim, forged, &out), "DAT_SIG_MISMATCH");
@@ -137,7 +136,7 @@ static void test_forged_signature_is_sig_mismatch(void) {
 static void test_tampered_secure_is_tag_mismatch(void) {
     dat_manager_t* m = issuable_manager(1);
     char* token = NULL;
-    assert(dat_manager_issue(m, "plain", "secure-payload", &token) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_issue(m, "plain", "secure-payload", &token) == DAT_SUCCESS);
 
     char* copy = strdup(token);
     char* d1 = strchr(copy, '.');
@@ -160,7 +159,7 @@ static void test_unknown_cid_is_cert_not_found(void) {
     dat_manager_t* other = issuable_manager(999);
 
     char* token = NULL;
-    assert(dat_manager_issue(other, "p", "s", &token) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_issue(other, "p", "s", &token) == DAT_SUCCESS);
 
     dat_payload_t* out = NULL;
     ASSERT_CODE(dat_manager_parse(m, token, &out), "DAT_CERT_NOT_FOUND");
@@ -173,8 +172,8 @@ static void test_unknown_cid_is_cert_not_found(void) {
 static void test_duplicate_cid(void) {
     uint64_t now = now_unix_timestamp();
     dat_certificate_t* certs[2] = { NULL, NULL };
-    assert(dat_certificate_create(5, now - 10, 200, 100, SIG, CRY, &certs[0]) == DAT_SUCCESS);
-    assert(dat_certificate_create(5, now - 10, 200, 100, SIG, CRY, &certs[1]) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_create(5, now - 10, 200, 100, SIG, CRY, &certs[0]) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_create(5, now - 10, 200, 100, SIG, CRY, &certs[1]) == DAT_SUCCESS);
 
     dat_manager_t* m = dat_manager_new();
     ASSERT_CODE(dat_manager_import_certificates(m, certs, 2, true, NULL), "DAT_CERT_DUPLICATE_CID");
@@ -205,9 +204,9 @@ static void test_no_certificate_at_all(void) {
 static void test_issuance_window_not_yet_open(void) {
     uint64_t now = now_unix_timestamp();
     dat_certificate_t* cert = NULL;
-    assert(dat_certificate_create(1, now + 3600, 200, 100, SIG, CRY, &cert) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_create(1, now + 3600, 200, 100, SIG, CRY, &cert) == DAT_SUCCESS);
     dat_manager_t* m = dat_manager_new();
-    assert(dat_manager_import_certificates(m, &cert, 1, true, NULL) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_import_certificates(m, &cert, 1, true, NULL) == DAT_SUCCESS);
 
     char* out = NULL;
     ASSERT_CODE(dat_manager_issue(m, "p", "s", &out), "DAT_MANAGER_NO_ISSUABLE_CERTIFICATE");
@@ -221,9 +220,9 @@ static void test_issuance_window_not_yet_open(void) {
 static void test_issuance_window_closed(void) {
     uint64_t now = now_unix_timestamp();
     dat_certificate_t* cert = NULL;
-    assert(dat_certificate_create(1, now - 500, 100, 3600, SIG, CRY, &cert) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_create(1, now - 500, 100, 3600, SIG, CRY, &cert) == DAT_SUCCESS);
     dat_manager_t* m = dat_manager_new();
-    assert(dat_manager_import_certificates(m, &cert, 1, true, NULL) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_import_certificates(m, &cert, 1, true, NULL) == DAT_SUCCESS);
 
     char* out = NULL;
     ASSERT_CODE(dat_manager_issue(m, "p", "s", &out), "DAT_MANAGER_NO_ISSUABLE_CERTIFICATE");
@@ -237,15 +236,15 @@ static void test_issuance_window_closed(void) {
 static void test_verify_only_cannot_issue(void) {
     uint64_t now = now_unix_timestamp();
     dat_certificate_t* source = NULL;
-    assert(dat_certificate_create(1, now - 10, 200, 100, SIG, CRY, &source) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_create(1, now - 10, 200, 100, SIG, CRY, &source) == DAT_SUCCESS);
 
     char* exported = NULL;
-    assert(dat_certificate_export(source, true, &exported) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_export(source, true, &exported) == DAT_SUCCESS);
     dat_certificate_t* verify_only = NULL;
-    assert(dat_certificate_parse(exported, &verify_only) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_certificate_parse(exported, &verify_only) == DAT_SUCCESS);
 
     dat_manager_t* m = dat_manager_new();
-    assert(dat_manager_import_certificates(m, &verify_only, 1, true, NULL) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_manager_import_certificates(m, &verify_only, 1, true, NULL) == DAT_SUCCESS);
 
     char* out = NULL;
     ASSERT_CODE(dat_manager_issue(m, "p", "s", &out), "DAT_MANAGER_NO_ISSUABLE_CERTIFICATE");
@@ -279,17 +278,17 @@ static void test_algorithm_and_key(void) {
 
 static void test_verify_only_unsupported_vs_key_missing(void) {
     dat_signature_t* hmac = NULL;
-    assert(dat_signature_new(DAT_SIG_HMAC_SHA256_MFS, &hmac) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_signature_new(DAT_SIG_HMAC_SHA256_MFS, &hmac) == DAT_SUCCESS);
     uint8_t* k = NULL; size_t klen = 0;
     ASSERT_CODE(dat_signature_export_verify_only_key(hmac, &k, &klen),
                 "DAT_KEY_VERIFY_ONLY_UNSUPPORTED");
     dat_signature_free(hmac);
 
     dat_signature_t* src = NULL;
-    assert(dat_signature_new(SIG, &src) == DAT_SUCCESS);
-    assert(dat_signature_export_verify_only_key(src, &k, &klen) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_signature_new(SIG, &src) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_signature_export_verify_only_key(src, &k, &klen) == DAT_SUCCESS);
     dat_signature_t* pub_only = NULL;
-    assert(dat_signature_from_key(SIG, k, klen, &pub_only) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_signature_from_key(SIG, k, klen, &pub_only) == DAT_SUCCESS);
     free(k);
 
     uint8_t* sig = NULL; size_t sig_len = 0;
@@ -302,7 +301,7 @@ static void test_verify_only_unsupported_vs_key_missing(void) {
 
 static void test_crypto_data_bounds(void) {
     dat_crypto_t* c = NULL;
-    assert(dat_crypto_new(CRY, &c) == DAT_SUCCESS);
+    ASSERT_TRUE(dat_crypto_new(CRY, &c) == DAT_SUCCESS);
 
     uint8_t tiny[5] = {0};
     uint8_t* out = NULL; size_t out_len = 0;

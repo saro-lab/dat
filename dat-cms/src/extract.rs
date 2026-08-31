@@ -94,13 +94,23 @@ mod tests {
         let json: serde_json::Value = serde_json::from_str(&body)
             .unwrap_or_else(|e| panic!("거부 응답이 JSON 이 아니다: {body} ({e})"));
         assert_eq!(json["code"], crate::codes::REQ_MALFORMED);
-        assert!(json.get("details").is_some(), "사유를 details 로 실어야 한다");
+        assert!(
+            json.get("details").is_some(),
+            "사유를 details 로 실어야 한다"
+        );
     }
 
     #[tokio::test]
     async fn valid_query_passes_through() {
-        let req = Request::builder().uri("/v1/certs?version=7").body(()).unwrap();
+        let req = Request::builder()
+            .uri("/v1/certs?version=7")
+            .body(())
+            .unwrap();
         let (mut parts, ()) = req.into_parts();
-        assert!(ApiQuery::<Q>::from_request_parts(&mut parts, &()).await.is_ok());
+        assert!(
+            ApiQuery::<Q>::from_request_parts(&mut parts, &())
+                .await
+                .is_ok()
+        );
     }
 }

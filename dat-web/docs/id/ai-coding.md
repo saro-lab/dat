@@ -1,55 +1,67 @@
-# Vibe Coding dengan AI
+# Vibe coding dengan AI
 
-## Contoh vibe coding
+DAT dapat diterapkan dengan lebih mudah jika Anda menjelaskan proyek saat ini dan perilaku yang diinginkan kepada AI. Pada contoh berikut, cukup ubah alamat dan nama variabel lingkungan agar sesuai dengan proyek Anda.
 
+## Implementasi sederhana
+
+Gunakan permintaan ini ketika Anda ingin membuat struktur dasar dengan cepat.
+
+```text
+Saya menggunakan Kotlin dan Spring Boot.
+Tambahkan autentikasi DAT ke Spring Security.
+
+Pertama, baca https://dat.saro.me/llms.txt lalu periksa
+spesifikasi DAT dan cara menggunakan pustaka resmi.
+
+Verifikasi Bearer token pada header Authorization,
+dan jika autentikasi berhasil, masukkan informasi pengguna ke SecurityContext.
+
+Server ini tidak menerbitkan DAT; server hanya memverifikasinya.
+Server harus mengambil sertifikat khusus verifikasi dari DAT CMS.
+
+Cari terlebih dahulu alamat server CMS dan konfigurasi token di dalam proyek.
+Jika tidak ditemukan, tanyakan kepada saya. Jangan membuat nilai sendiri.
+
+Gunakan pustaka DAT resmi untuk Java/Kotlin dan terapkan
+sesuai struktur proyek serta gaya kode yang sudah ada.
 ```
-Terapkan DAT pada autentikasi sesi di web server ini.
-Ini adalah access token terdistribusi seperti JWT, dan dokumennya ada di https://dat.saro.me/llms.txt
-Baca dulu sebelum mulai. Unduh seluruh set dokumen llms ke folder docs/dat, lalu perbarui juga dokumen agent-nya.
 
-- Proyek: Java Spring Boot, sedang memakai Spring Security
-- Tujuan: mengganti sesi dengan DAT
-- Server DAT-CMS: http://localhost:8088 - pindahkan ke properti
-- Algoritma tanda tangan: HMAC-SHA512-MFS
-- Algoritma enkripsi: IV-AES256-GCM
-- Sisanya pakai nilai bawaan
+## Implementasi terperinci
 
-Jangan mengarang API yang tidak ada di dokumen.
+Gunakan permintaan ini ketika Anda ingin menentukan metode autentikasi dan penanganan kesalahan secara tepat.
+
+```text
+Proyek ini menggunakan Kotlin, Spring Boot, dan Spring Security.
+Periksa konfigurasi keamanan saat ini, lalu tambahkan autentikasi DAT.
+
+Pertama, baca https://dat.saro.me/llms.txt lalu periksa
+spesifikasi DAT, metode sinkronisasi sertifikat, dan API pustaka resmi.
+
+Ketentuan implementasinya sebagai berikut.
+
+- Baca DAT dari header Authorization: Bearer.
+- Jika DAT tidak ada, lanjutkan sebagai permintaan anonim.
+- Jika DAT tidak valid atau kedaluwarsa, respons dengan 401.
+- Jika verifikasi berhasil, masukkan ID dan hak akses pengguna ke SecurityContext.
+- Baca dari plain hanya nilai yang boleh diketahui publik.
+- Baca ID dan hak akses pengguna dari data secure yang sudah diverifikasi.
+- Server ini hanya memverifikasi, jadi gunakan sertifikat verify-only dari DAT CMS.
+- Ambil alamat CMS dan token melalui variabel lingkungan.
+- Jika sinkronisasi sertifikat gagal saat startup, gagalkan juga startup aplikasi.
+- Perbarui sertifikat secara otomatis selama berjalan dan tutup manajer saat berhenti.
+- Bedakan penyebab kegagalan melalui kode kesalahan DAT, bukan pesan kesalahan.
+- Jangan mencatat DAT asli, token CMS, atau data pribadi ke log.
+
+Pertama, periksa konfigurasi Spring Security serta struktur pengguna dan hak akses dalam proyek.
+Jika alamat CMS, variabel lingkungan token, atau format data secure tidak dapat diketahui, tanyakan sebelum melakukan implementasi.
+Gunakan hanya API publik dari pustaka DAT resmi untuk Java/Kotlin.
+
+Sebelum mengubah kode, jelaskan secara singkat alur autentikasi dan berkas yang akan diubah.
 ```
 
+## Contoh mana yang sebaiknya dipilih?
 
-## Algoritma
+- Jika Anda ingin mulai dengan kode yang dapat dijalankan, gunakan **Implementasi sederhana**.
+- Jika Anda memerlukan alur autentikasi untuk lingkungan produksi, gunakan **Implementasi terperinci**.
 
-### Tanda Tangan
-
-| Algoritma | Keterangan |
-| --- |---|
-| `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · Berbasis hash<br/>· Kunci simetris<br/>· Cepat<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
-| `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · Berbasis kurva eliptik<br/>· Kunci asimetris<br/>· Keamanan yang ditebus dengan kecepatan<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
-
-- Kecepatan HMAC **jauh mengungguli yang lain**, jadi bila yang penting hanyalah menahan serangan dari luar, HMAC-lah pilihannya.
-  - [Lihat benchmark per algoritma dan per bahasa](./intro#performance)
-- Berkat struktur kunci publiknya, ECDSA memungkinkan Anda memisahkan server penerbit dari server verifikator. Pada sistem berskala besar yang kewenangan dan perannya sudah terpisah dengan baik, penerapannya memperkuat keamanan terhadap serangan orang dalam.
-
-### Enkripsi
-
-| Nama | Panjang kunci |
-| --- |---|
-| `IV-AES128-GCM` | 128 bit |
-| `IV-AES256-GCM` | 256 bit |
-
-- Data yang dienkripsi DAT itu pendek, sehingga hampir tidak ada perbedaan terukur antara 128 bit dan 256 bit.
-- AES praktis tidak memakan sumber daya, jadi 256 bit disarankan demi margin keamanan yang lebih lega.
-
-
-## Server DAT-CMS
-
-**[Pasang DAT-CMS](./svc/docker-saro-lab-dat-cms)**
-
-DAT-CMS tidak wajib, tetapi pemasangannya sangat disarankan bila Anda perlu menyebarkan sertifikat ke beberapa server dan mengotomatiskan key rolling.
-
-## Dokumen Selanjutnya
-
-- [Apa itu DAT?](./intro) - latar belakang perancangan DAT
-- [Spesifikasi DAT](./spec/dat) - format wire token
-- [Semua Perpustakaan](./libs/) - pemasangan dan contoh per bahasa
+Jika AI mengajukan pertanyaan, mulailah dengan menjelaskan alamat CMS, nama variabel lingkungan yang memuat token, dan informasi pengguna yang disimpan dalam `secure`.

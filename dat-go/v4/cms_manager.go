@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -22,8 +23,12 @@ type CmsManager struct {
 	version atomic.Uint64
 	manager *Manager
 	client  *http.Client
+	ctx     context.Context
 	cancel  context.CancelFunc
 	syncMu  sync.Mutex
+	lifeMu  sync.Mutex
+	wg      sync.WaitGroup
+	closed  bool
 	logger  *slog.Logger
 
 	lastError atomic.Value
@@ -32,18 +37,22 @@ type CmsManager struct {
 type lastSyncError struct{ err error }
 
 type CmsManagerBuilder struct {
-	rawUrl     string
-	token      string
-	verifyOnly bool
-	interval   time.Duration
-	logger     *slog.Logger
+	rawUrl         string
+	token          string
+	verifyOnly     bool
+	interval       time.Duration
+	connectTimeout time.Duration
+	timeout        time.Duration
+	logger         *slog.Logger
 }
 
 func NewDatCmsManagerBuilder() *CmsManagerBuilder {
 	return &CmsManagerBuilder{
-		rawUrl:   "http://localhost:8088",
-		interval: 60 * time.Second,
-		logger:   slog.Default(),
+		rawUrl:         "http://localhost:8088",
+		interval:       60 * time.Second,
+		connectTimeout: 5 * time.Second,
+		timeout:        15 * time.Second,
+		logger:         slog.Default(),
 	}
 }
 
@@ -84,6 +93,22 @@ func (b *CmsManagerBuilder) IntervalOff() *CmsManagerBuilder {
 	return b.Interval(0)
 }
 
+func (b *CmsManagerBuilder) ConnectTimeout(timeout time.Duration) *CmsManagerBuilder {
+	if timeout < 0 {
+		timeout = 0
+	}
+	b.connectTimeout = timeout
+	return b
+}
+
+func (b *CmsManagerBuilder) Timeout(timeout time.Duration) *CmsManagerBuilder {
+	if timeout < 0 {
+		timeout = 0
+	}
+	b.timeout = timeout
+	return b
+}
+
 func (b *CmsManagerBuilder) Logger(logger *slog.Logger) *CmsManagerBuilder {
 	if logger != nil {
 		b.logger = logger
@@ -100,13 +125,30 @@ func (b *CmsManagerBuilder) Build() (*CmsManager, error) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+	baseURL, _ := url.Parse(b.rawUrl)
+	dialer := &net.Dialer{Timeout: b.connectTimeout}
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	transport.DialContext = dialer.DialContext
 	m := &CmsManager{
 		url:     apiUrl,
 		token:   b.token,
 		manager: NewManager(),
-		client:  &http.Client{Timeout: 10 * time.Second},
-		cancel:  cancel,
-		logger:  b.logger,
+		client: &http.Client{
+			Transport: transport,
+			Timeout:   b.timeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				if !sameOrigin(baseURL, req.URL) {
+					return ErrCmsUnreachable.With("cross-origin redirect refused")
+				}
+				if len(via) >= 10 {
+					return ErrCmsUnreachable.With("too many redirects")
+				}
+				return nil
+			},
+		},
+		ctx:    ctx,
+		cancel: cancel,
+		logger: b.logger,
 	}
 
 	m.lastError.Store(lastSyncError{ErrCmsNotSynced})
@@ -114,6 +156,7 @@ func (b *CmsManagerBuilder) Build() (*CmsManager, error) {
 	_ = m.Sync()
 
 	if b.interval > 0 {
+		m.wg.Add(1)
 		go m.startBackgroundSync(ctx, b.interval)
 	} else {
 		m.logger.Debug("cms auto sync disabled")
@@ -123,6 +166,7 @@ func (b *CmsManagerBuilder) Build() (*CmsManager, error) {
 }
 
 func (m *CmsManager) startBackgroundSync(ctx context.Context, interval time.Duration) {
+	defer m.wg.Done()
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
@@ -144,6 +188,11 @@ func (m *CmsManager) LastError() error {
 }
 
 func (m *CmsManager) Sync() error {
+	if !m.beginSync() {
+		return ErrCmsUnreachable.With("cms manager is closed")
+	}
+	defer m.wg.Done()
+
 	err := m.sync()
 	switch {
 	case err == nil:
@@ -155,6 +204,16 @@ func (m *CmsManager) Sync() error {
 	return err
 }
 
+func (m *CmsManager) beginSync() bool {
+	m.lifeMu.Lock()
+	defer m.lifeMu.Unlock()
+	if m.closed {
+		return false
+	}
+	m.wg.Add(1)
+	return true
+}
+
 func (m *CmsManager) sync() error {
 	if !m.syncMu.TryLock() {
 		m.logger.Debug("cms sync skipped, previous sync still running", "url", m.url)
@@ -164,7 +223,7 @@ func (m *CmsManager) sync() error {
 
 	version := m.version.Load()
 
-	req, err := http.NewRequest("GET", m.url, nil)
+	req, err := http.NewRequestWithContext(m.ctx, "GET", m.url, nil)
 	if err != nil {
 		return m.logged(ErrConfigUriInvalid.Wrap(err))
 	}
@@ -190,13 +249,28 @@ func (m *CmsManager) sync() error {
 		return m.logged(ErrCmsUnreachable.Wrap(err))
 	}
 
-	certStr := string(body)
-	parts := strings.SplitN(certStr, "\n", 2)
+	for _, c := range body {
+		if c > 0x7f {
+			return m.logged(ErrCmsMalformed.With("response body is not ASCII"))
+		}
+	}
+
+	parts := strings.SplitN(string(body), "\n", 2)
 	if len(parts) == 0 || parts[0] == "" {
 		return m.logged(ErrCmsMalformed.With("response has no version line"))
 	}
 
 	verStr := parts[0]
+	for _, c := range []byte(verStr) {
+		if c < '0' || c > '9' {
+			return m.logged(ErrCmsMalformed.With("version line is not a plain decimal u64"))
+		}
+	}
+	ver, err := strconv.ParseUint(verStr, 10, 64)
+	if err != nil {
+		return m.logged(ErrCmsMalformed.With("version line is not a plain decimal u64"))
+	}
+
 	certs := ""
 	if len(parts) > 1 {
 		certs = strings.TrimSpace(parts[1])
@@ -205,11 +279,6 @@ func (m *CmsManager) sync() error {
 	if certs == "" {
 		m.logger.Debug("no new certificates in response", "url", m.url, "version", version)
 		return nil
-	}
-
-	ver, err := strconv.ParseUint(verStr, 10, 64)
-	if err != nil {
-		return m.logged(ErrCmsMalformed.With("version line is not a plain decimal u64"))
 	}
 
 	if ver < version {
@@ -275,7 +344,32 @@ func (m *CmsManager) GetVersion() uint64 {
 }
 
 func (m *CmsManager) Close() {
-	if m.cancel != nil {
-		m.cancel()
+	m.lifeMu.Lock()
+	if !m.closed {
+		m.closed = true
+		if m.cancel != nil {
+			m.cancel()
+		}
 	}
+	m.lifeMu.Unlock()
+	m.wg.Wait()
+}
+
+func sameOrigin(a, b *url.URL) bool {
+	if !strings.EqualFold(a.Scheme, b.Scheme) || !strings.EqualFold(a.Hostname(), b.Hostname()) {
+		return false
+	}
+	port := func(u *url.URL) string {
+		if u.Port() != "" {
+			return u.Port()
+		}
+		if strings.EqualFold(u.Scheme, "http") {
+			return "80"
+		}
+		if strings.EqualFold(u.Scheme, "https") {
+			return "443"
+		}
+		return ""
+	}
+	return port(a) == port(b)
 }

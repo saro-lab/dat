@@ -12,8 +12,18 @@ import { pt } from './pt'
 import { ru } from './ru'
 import { ur } from './ur'
 import { zh } from './zh'
+import { fa } from './fa'
+import { mr } from './mr'
+import { vi } from './vi'
+import { te } from './te'
+import { ha } from './ha'
+import { tr } from './tr'
+import { sw } from './sw'
+import { ta } from './ta'
+import { th } from './th'
+import { it } from './it'
 
-export const messages = { en, ko, ja, zh, de, fr, es, ar, id, pt, hi, ru, bn, ur }
+export const messages = { en, ko, ja, zh, de, fr, es, ar, id, pt, hi, ru, bn, ur, fa, mr, vi, te, ha, tr, sw, ta, th, it }
 
 export type LocaleCode = keyof typeof messages
 export type Messages = typeof en
@@ -27,7 +37,7 @@ export const localeNames = Object.fromEntries(
 
 export const DEFAULT_LOCALE: LocaleCode = 'en'
 
-export const RTL_LOCALES: readonly string[] = ['ar', 'ur']
+export const RTL_LOCALES: readonly string[] = ['ar', 'ur', 'fa']
 
 export type TextDir = 'ltr' | 'rtl'
 

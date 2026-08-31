@@ -1,64 +1,96 @@
 #!/bin/bash
 
-rustup update
+set -uo pipefail
 
 export CROSS_CONTAINER_ENGINE=podman
 
-TARGETS=(
+DEFAULT_TARGETS=(
     "aarch64-apple-darwin"
-
     "aarch64-unknown-linux-gnu"
     "x86_64-unknown-linux-gnu"
-
     "aarch64-pc-windows-msvc"
     "aarch64-pc-windows-gnullvm"
     "x86_64-pc-windows-gnu"
     "x86_64-pc-windows-msvc"
 )
 
+if [[ $# -gt 0 ]]; then
+    TARGETS=("$@")
+else
+    TARGETS=("${DEFAULT_TARGETS[@]}")
+fi
+
+for target in "${TARGETS[@]}"; do
+    if ! rustup target list | cut -d' ' -f1 | grep -Fxq "$target"; then
+        echo "unknown Rust target: $target" >&2
+        exit 64
+    fi
+done
+
 echo "🚀 start..."
 
-rm -rf target/bin
 mkdir -p target/bin
 
-HOST_TARGET=$(rustc -vV | grep 'host:' | cut -d: -f2 | tr -d ' ')
+HOST_TARGET=$(rustc -vV | sed -n 's/^host: //p')
 echo "💻 Current Host Target: $HOST_TARGET"
 
 for TARGET in "${TARGETS[@]}"; do
-
-    if ! rustup target list | grep -q "$TARGET (installed)"; then
-        echo "🛠 install️ target '$TARGET'"
-        if ! rustup target add "$TARGET"; then
-            echo "❌ install error: $TARGET"
-            continue
-        fi
+    if [[ "$TARGET" != "$HOST_TARGET" ]] && ! command -v cross >/dev/null; then
+        echo "cross is required for non-host targets" >&2
+        exit 69
     fi
+done
 
-    if [ -d "target/$TARGET" ]; then
-        echo "🧹 Cleaning previous target cache for $TARGET..."
-        rm -rf "target/$TARGET"
+declare -a results=()
+failures=0
+
+for TARGET in "${TARGETS[@]}"; do
+    if ! rustup target list --installed | grep -Fxq "$TARGET"; then
+        echo "❌ missing Rust target: $TARGET"
+        results+=("$TARGET: missing target")
+        ((failures += 1))
+        continue
     fi
 
     if [[ "$TARGET" == "$HOST_TARGET" ]]; then
         echo "📦 build: cargo: $TARGET"
-        cargo build --target "$TARGET" --release
+        builder=(cargo build --locked --target "$TARGET" --release)
     else
         echo "📦 build: cross: $TARGET"
-        cross build --target "$TARGET" --release
+        builder=(cross build --locked --target "$TARGET" --release)
+    fi
+
+    if ! "${builder[@]}"; then
+        echo "❌ ERROR: $TARGET"
+        results+=("$TARGET: build failed")
+        ((failures += 1))
+        continue
     fi
 
     if [[ "$TARGET" == *"windows"* ]]; then
-        cp "target/$TARGET/release/dat-cms.exe" "target/bin/dat-cms-$TARGET.exe"
+        binary="target/$TARGET/release/dat-cms.exe"
+        output="target/bin/dat-cms-$TARGET.exe"
     else
-        cp "target/$TARGET/release/dat-cms" "target/bin/dat-cms-$TARGET"
+        binary="target/$TARGET/release/dat-cms"
+        output="target/bin/dat-cms-$TARGET"
     fi
 
-    if [ $? -eq 0 ]; then
-        echo "✅ OK: $TARGET"
-    else
-        echo "❌ ERROR: $TARGET"
+    if [[ ! -f "$binary" ]]; then
+        echo "❌ binary missing: $binary"
+        results+=("$TARGET: binary missing")
+        ((failures += 1))
+        continue
     fi
+
+    cp "$binary" "$output"
+    echo "✅ OK: $TARGET"
+    results+=("$TARGET: ok")
 done
 
-echo "🎉 ALL DONE"
-echo "$(pwd)/target/bin"
+printf '\nBuild summary:\n'
+printf '  %s\n' "${results[@]}"
+echo "$PWD/target/bin"
+
+if (( failures > 0 )); then
+    exit 1
+fi

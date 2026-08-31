@@ -1,94 +1,70 @@
+# O que é DAT?
 
-# DAT (Distributed Access Token)
-
----
-
-## Contexto da Criação do DAT
-
-Atualmente, muitos sistemas adotam o JWT, mas em ambientes de produção reais existem as seguintes limitações estruturais.<br/>
-Para resolvê-las, foi projetada uma nova especificação de token: o DAT.
-
-#### 🧩 Fragmentação das especificações de segurança e falta de obrigatoriedade
-O JWT fornece padrões de criptografia como o JWE, mas seu uso não é obrigatório. <br/>
-Por isso, muitos ambientes de desenvolvimento omitem a criptografia ou transmitem dados por métodos não padronizados, gerando vulnerabilidades de segurança.
-
-#### 🔑 Risco de segurança pelo uso de chave estática (Static Key)
-Como a rotação das chaves de assinatura (Key Rolling) não é obrigatória, é frequente que uma única chave seja usada por longos períodos. Isso pode levar ao colapso da segurança de todo o sistema em caso de roubo da chave e, de fato, já houve incidentes de violação por esse motivo em grandes sites de comércio eletrônico.
-
-#### 📉 Degradação de desempenho por sobrecarga
-O JWT passa por um processo de análise (parsing) JSON a cada requisição, consumindo recursos consideráveis de CPU. Em ambientes que exigem alto desempenho, esse custo de análise pode se tornar o gargalo geral do sistema.
-
----
-
-## Filosofia central do DAT
-
-O DAT foi projetado sob o princípio de que a segurança deve ser obrigatória e não opcional, e de que o desempenho não é negociável.
-
-#### ⚡ Leve e rápido
+DAT (Distributed Access Token) é uma especificação de token de acesso usada por um serviço emissor e um serviço verificador que compartilham o mesmo certificado. Como a verificação não precisa consultar novamente o serviço emissor nem um armazenamento central de sessões, o resultado da autenticação pode ser transmitido com menos acoplamento entre serviços.
 
 <WireFormat
-    hint="Passe o mouse sobre cada campo para ver a descrição."
-    :segments="[
-        {name: 'expire', type: 'uint64 (decimal)', kind: 'meta', note: 'Momento de expiração. É imposto pela especificação e não pode ser omitido.'},
-        {name: 'cid', type: 'uint64 (hexadecimal)', kind: 'meta', note: 'ID do certificado a ser usado na verificação.'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'Dados expostos ao cliente.'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'Dados criptografados. Não podem ser lidos sem o certificado.'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'Assinatura sobre os quatro campos anteriores.'},
-    ]"
+  hint="Os campos separados por pontos formam um DAT."
+  :segments="[
+    {name: 'expire', type: 'uint64', kind: 'meta', note: 'Unix time de expiração'},
+    {name: 'cid', type: 'uint64', kind: 'meta', note: 'ID do certificado'},
+    {name: 'plain', type: 'bytes', kind: 'plain', note: 'Dados públicos'},
+    {name: 'secure', type: 'bytes', kind: 'secure', note: 'Dados criptografados'},
+    {name: 'signature', type: 'bytes', kind: 'sig', note: 'Assinatura do conteúdo'},
+  ]"
 />
 
-Como mostrado acima, o DAT possui apenas cinco campos fixos separados por ponto (`.`). Como a posição de cada campo é definida pela especificação, é possível recortar cada valor apenas localizando os separadores, sem análise JSON.
+## Componentes
 
-#### 🔐 Segurança imposta
+### DAT
 
-O DAT separa fisicamente as regiões de texto simples (Plain) e **criptografada (Secure)** na transmissão de dados.<br/>
-As informações sensíveis são obrigatoriamente criptografadas, e todo o processo é protegido por algoritmos padronizados declarados no certificado (ECDSA, AES-GCM, etc.).
+É uma string enviada por um usuário ou serviço junto com a solicitação. Inclui o horário de expiração e o ID do certificado, e pode conter dados públicos e criptografados ao mesmo tempo.
 
-O algoritmo de criptografia é **decidido pelo certificado**, não pelo token. Como o token não carrega informação de algoritmo, não existe a superfície de ataque de confusão de algoritmo que decorre do cabeçalho `alg` do JWT.
+### Certificado
 
-#### 🔄 Rotação de chaves imposta
+Contém os algoritmos, as chaves e o intervalo de tempo necessários para criar e conferir um DAT. O ID do certificado, `cid`, não muda; use um novo `cid` ao rotacionar as chaves.
 
-O certificado DAT gerencia diretamente não apenas a emissão e a expiração dos tokens, mas também **o ciclo de vida das chaves**.<br/>
-O certificado traz gravado, no nível da especificação, "de quando até quando é possível emitir"; passado esse período, não é possível criar novos tokens com aquele certificado. A situação em que, por descuido do administrador, uma única chave acaba sendo usada por anos não ocorre estruturalmente.
+### Gerenciador
 
-#### ⏱️ Separação entre janela de emissão e período de validade
+O gerenciador da biblioteca cliente armazena certificados, cria DAT com um certificado atualmente apto a emitir e verifica cada DAT com o certificado correspondente ao seu `cid`.
 
-"O período em que o certificado pode emitir tokens" e "o período em que o token emitido permanece vivo" são valores distintos.<br/>
-Graças a isso, mesmo depois que o certificado para de emitir, os tokens já emitidos podem cumprir toda a sua vida útil, e nesse intervalo o cluster migra naturalmente para o próximo certificado.
+### DAT CMS
 
----
+É um servidor opcional que cria, armazena e entrega certificados aos serviços. Pode fornecer certificados completos aos serviços emissores e certificados exclusivos para verificação aos serviços que apenas verificam.
 
-## Comparação de mecanismos de autenticação
+## Emissão e verificação
 
-| Classificação | **DAT**                       | **JWT** | **Sessão**           |
-| --- |-------------------------------| --- |---------------------------|
-| **Método de autenticação** | **Verificação distribuída**                     | Verificação distribuída | Centralizado          |
-| **Estrutura de dados** | **Raw Bytes<br/>(baseado em offset fixo)** | JSON<br/>(texto baseado em chave-valor) | Serialized Object<br/>(serialização de objeto) |
-| **Mecanismo de análise** | **Mapeamento imediato dos dados em bytes**            | Requer análise JSON e type casting | Requer desserialização de objetos e I/O          |
-| **Desempenho de processamento** | **Máximo (sobrecarga de análise mínima)**          | Moderado (depende do desempenho do processamento JSON) | Baixo (I/O de rede/disco)         |
-| **Criptografia** | **Nativa**                     | Requer implementação separada de JWE (complexo) | Não aplicável                     |
-| **Gerenciamento de chaves** | **Rotação imposta pelo sistema (segurança imposta)**         | Implementação própria (risco de descuido de gestão) | Não aplicável                     |
-| **Validade da chave** | **Obrigatoriamente explícita na especificação da chave**              | Opcional (permanente se não houver gestão) | Gerenciada pelo servidor central                  |
-| **Escolha do algoritmo** | **Decidida pelo certificado (ausente no token)**          | `alg` no cabeçalho do token | Não aplicável                     |
-| **Momento de expiração** | **Campo obrigatório na especificação**                 | Claim opcional (`exp`) | Gerenciado pelo servidor                   |
+<ArchFlow
+  :user="{label: 'Usuário', icon: 'person'}"
+  :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['Gerenciamento de certificados', 'Sincronização baseada em versões']}"
+  :service="{servers: [
+    {label: 'Serviço emissor', kind: 'issuer', icon: 'login', request: 'Informações de autenticação', response: 'DAT', sync: 'Certificado completo'},
+    {label: 'Serviço verificador', kind: 'verifier', icon: 'apps', request: 'DAT', response: 'Recurso protegido', sync: 'Certificado exclusivo para verificação'},
+  ]}"
+/>
 
----
+O serviço emissor define os dados `plain` e `secure` e cria o DAT. O serviço verificador confere o horário de expiração, a assinatura e o conteúdo criptografado antes de entregar as duas áreas de dados à aplicação. `plain` é assinado, mas não criptografado, portanto não deve conter segredos nem dados pessoais.
 
-## {{t('bench_title')}} {#performance}
+## Por que a verificação continua funcionando quando o certificado muda?
 
-<BenchBars />
+Quando um novo certificado fica apto a emitir, os DAT seguintes usam o novo `cid`. O certificado anterior permanece disponível para verificação até o fim do TTL dos DAT já emitidos. Assim, a rotação de chaves pode coexistir com o período de verificação dos tokens anteriores.
 
----
+## Ambientes adequados
+
+- Ambientes em que a autenticação e o recurso real são atendidos por serviços diferentes
+- Ambientes em que vários runtimes emitem ou verificam o mesmo token
+- Ambientes que transmitem informações de autorização de curta duração sem consultar uma sessão central
+- Ambientes que precisam separar informações públicas de roteamento e dados protegidos em um único token
+
+O DAT não define a política de autorização. O fato de um DAT ser válido e a decisão da aplicação de permitir uma solicitação são questões distintas.
 
 ## Próximos documentos
 
-- [{{t('menu_spec_dat')}}](./spec/dat) — formato wire do token e regras canônicas
-- [{{t('menu_spec_cert')}}](./spec/dat-certificate) — estrutura do certificado, algoritmos e ciclo de vida
-- [{{t('menu_spec_cms')}}](./spec/cms) — distribuição de certificados e comportamentos que se deve conhecer na operação
+- [Especificação do DAT](./spec/dat): campos do token e regras de verificação
+- [Certificados](./spec/dat-certificate): chaves e intervalos de tempo
+- [Especificação do DAT CMS](./spec/cms): contrato de sincronização
+- [Bibliotecas](./libs/): aplicação em um projeto
 
 <script setup lang="ts">
-import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
-import BenchBars from "../.vitepress/ui/BenchBars.vue";
-const {t} = useTranslate();
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 </script>

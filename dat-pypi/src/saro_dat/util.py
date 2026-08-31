@@ -1,5 +1,6 @@
 from __future__ import annotations
 import base64
+import binascii
 from typing import Union
 
 from . import error as E
@@ -7,6 +8,7 @@ from .error import DatError
 
 _U64_MAX = 0xFFFFFFFFFFFFFFFF
 _HEX_DIGITS = frozenset('0123456789abcdefABCDEF')
+_BASE64_URL_BYTES = frozenset(b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_')
 
 
 def parse_u64(s: str) -> int:
@@ -43,13 +45,23 @@ def decode_base64_url(s: Union[bytes, str, None]) -> bytes:
     if isinstance(s, str):
         if s == "":
             return b""
-        s = s.encode('utf-8')
+        try:
+            s = s.encode('ascii')
+        except UnicodeEncodeError as e:
+            raise DatError(E.CONFIG_ARGUMENT_INVALID, "not canonical unpadded base64url", e) from e
     if s is None:
         return b""
-    rem = len(s) % 4
-    if rem > 0:
-        s += b'=' * (4 - rem)
-    return base64.urlsafe_b64decode(s)
+    raw = bytes(s)
+    if any(byte not in _BASE64_URL_BYTES for byte in raw) or len(raw) % 4 == 1:
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, "not canonical unpadded base64url")
+    padded = raw + b'=' * ((4 - len(raw) % 4) % 4)
+    try:
+        decoded = base64.b64decode(padded, altchars=b'-_', validate=True)
+    except (ValueError, binascii.Error) as e:
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, "not canonical unpadded base64url", e) from e
+    if encode_base64_url(decoded) != raw:
+        raise DatError(E.CONFIG_ARGUMENT_INVALID, "not canonical unpadded base64url")
+    return decoded
 
 def decode_base64_url_str(s: Union[bytes, str, None]) -> str:
     return decode_base64_url(s).decode('utf-8')

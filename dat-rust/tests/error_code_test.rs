@@ -13,7 +13,10 @@ fn issuable_manager(cid: u64) -> DatManager {
     let now = now_unix_timestamp();
     let manager = DatManager::new();
     manager
-        .import_certificates(vec![DatCertificate::generate(cid, now - 10, 200, 100, SIG, CRY).unwrap()], true)
+        .import_certificates(
+            vec![DatCertificate::generate(cid, now - 10, 200, 100, SIG, CRY).unwrap()],
+            true,
+        )
         .unwrap();
     manager
 }
@@ -56,8 +59,14 @@ fn malformed_token_shapes() {
     let dat = manager.issue("p", "s").unwrap();
     let parts: Vec<&str> = dat.split('.').collect();
 
-    assert_eq!(code_of(manager.parse("1.2.3".to_string())), "DAT_TOKEN_MALFORMED");
-    assert_eq!(code_of(manager.parse(format!("{dat}.extra"))), "DAT_TOKEN_MALFORMED");
+    assert_eq!(
+        code_of(manager.parse("1.2.3".to_string())),
+        "DAT_TOKEN_MALFORMED"
+    );
+    assert_eq!(
+        code_of(manager.parse(format!("{dat}.extra"))),
+        "DAT_TOKEN_MALFORMED"
+    );
     assert_eq!(
         code_of(manager.parse(format!("+{}.{}", parts[0], parts[1..].join(".")))),
         "DAT_TOKEN_MALFORMED"
@@ -84,7 +93,10 @@ fn forged_signature_is_sig_mismatch() {
     let victim = issuable_manager(7);
     let attacker = DatManager::new();
     attacker
-        .import_certificates(vec![DatCertificate::generate(7, now - 10, 200, 100, SIG, CRY).unwrap()], true)
+        .import_certificates(
+            vec![DatCertificate::generate(7, now - 10, 200, 100, SIG, CRY).unwrap()],
+            true,
+        )
         .unwrap();
 
     let forged = attacker.issue("p", "s").unwrap();
@@ -127,18 +139,33 @@ fn duplicate_cid_on_import() {
         DatCertificate::generate(5, now - 10, 200, 100, SIG, CRY).unwrap(),
         DatCertificate::generate(5, now - 10, 200, 100, SIG, CRY).unwrap(),
     ];
-    assert_eq!(code_of(manager.import_certificates(certs, true)), "DAT_CERT_DUPLICATE_CID");
+    assert_eq!(
+        code_of(manager.import_certificates(certs, true)),
+        "DAT_CERT_DUPLICATE_CID"
+    );
 }
 
 #[test]
 fn malformed_certificate_shapes() {
-    assert_eq!(code_of(DatCertificate::from_str("a.b.c")), "DAT_CERT_MALFORMED");
     assert_eq!(
-        code_of(DatCertificate::from_str("zz.1.2.3.ECDSA-P256.IV-AES256-GCM.AAAA.AAAA")),
+        code_of(DatCertificate::from_str("a.b.c")),
         "DAT_CERT_MALFORMED"
     );
     assert_eq!(
-        code_of(DatCertificate::from(1, u64::MAX, 1, 0, DatSignature::generate(SIG).unwrap(), DatCrypto::generate(CRY))),
+        code_of(DatCertificate::from_str(
+            "zz.1.2.3.ECDSA-P256.IV-AES256-GCM.AAAA.AAAA"
+        )),
+        "DAT_CERT_MALFORMED"
+    );
+    assert_eq!(
+        code_of(DatCertificate::from(
+            1,
+            u64::MAX,
+            1,
+            0,
+            DatSignature::generate(SIG).unwrap(),
+            DatCrypto::generate(CRY)
+        )),
         "DAT_CERT_MALFORMED"
     );
 }
@@ -157,7 +184,10 @@ fn issuance_window_not_yet_open_is_transient() {
     let now = now_unix_timestamp();
     let manager = DatManager::new();
     manager
-        .import_certificates(vec![DatCertificate::generate(1, now + 3600, 200, 100, SIG, CRY).unwrap()], true)
+        .import_certificates(
+            vec![DatCertificate::generate(1, now + 3600, 200, 100, SIG, CRY).unwrap()],
+            true,
+        )
         .unwrap();
 
     let err = manager.issue("p", "s").unwrap_err();
@@ -171,7 +201,10 @@ fn issuance_window_closed_is_permanent() {
     let now = now_unix_timestamp();
     let manager = DatManager::new();
     manager
-        .import_certificates(vec![DatCertificate::generate(1, now - 500, 100, 3600, SIG, CRY).unwrap()], true)
+        .import_certificates(
+            vec![DatCertificate::generate(1, now - 500, 100, 3600, SIG, CRY).unwrap()],
+            true,
+        )
         .unwrap();
 
     let err = manager.issue("p", "s").unwrap_err();
@@ -187,7 +220,9 @@ fn verify_only_certificate_cannot_issue() {
     let verify_only = DatCertificate::from_str(&source.export(true).unwrap()).unwrap();
 
     let manager = DatManager::new();
-    manager.import_certificates(vec![verify_only], true).unwrap();
+    manager
+        .import_certificates(vec![verify_only], true)
+        .unwrap();
 
     let err = manager.issue("p", "s").unwrap_err();
     assert_eq!(err.code(), "DAT_MANAGER_NO_ISSUABLE_CERTIFICATE");
@@ -197,30 +232,49 @@ fn verify_only_certificate_cannot_issue() {
 
 #[test]
 fn unknown_algorithm_names() {
-    assert_eq!(code_of(DatSignatureAlgorithm::from_str("NOPE")), "DAT_CONFIG_ALG_UNSUPPORTED");
-    assert_eq!(code_of(DatCryptoAlgorithm::from_str("NOPE")), "DAT_CONFIG_ALG_UNSUPPORTED");
+    assert_eq!(
+        code_of(DatSignatureAlgorithm::from_str("NOPE")),
+        "DAT_CONFIG_ALG_UNSUPPORTED"
+    );
+    assert_eq!(
+        code_of(DatCryptoAlgorithm::from_str("NOPE")),
+        "DAT_CONFIG_ALG_UNSUPPORTED"
+    );
 }
 
 #[test]
 fn wrong_key_size_is_key_invalid() {
-    assert_eq!(code_of(DatCrypto::from_key(CRY, &[0u8; 7])), "DAT_KEY_INVALID");
     assert_eq!(
-        code_of(DatSignature::from_key(DatSignatureAlgorithm::HmacSha256Mfs, &[0u8; 7])),
+        code_of(DatCrypto::from_key(CRY, &[0u8; 7])),
         "DAT_KEY_INVALID"
     );
-    assert_eq!(code_of(DatSignature::from_key(SIG, &[0u8; 7])), "DAT_KEY_INVALID");
+    assert_eq!(
+        code_of(DatSignature::from_key(
+            DatSignatureAlgorithm::HmacSha256Mfs,
+            &[0u8; 7]
+        )),
+        "DAT_KEY_INVALID"
+    );
+    assert_eq!(
+        code_of(DatSignature::from_key(SIG, &[0u8; 7])),
+        "DAT_KEY_INVALID"
+    );
 }
 
 #[test]
 fn hmac_verify_only_export_is_structurally_unsupported() {
     let hmac = DatSignature::generate(DatSignatureAlgorithm::HmacSha256Mfs).unwrap();
-    assert_eq!(code_of(hmac.export_verify_only_key()), "DAT_KEY_VERIFY_ONLY_UNSUPPORTED");
+    assert_eq!(
+        code_of(hmac.export_verify_only_key()),
+        "DAT_KEY_VERIFY_ONLY_UNSUPPORTED"
+    );
 }
 
 #[test]
 fn signing_with_verify_only_key_is_key_missing() {
     let source = DatSignature::generate(SIG).unwrap();
-    let public_only = DatSignature::from_key(SIG, &source.export_verify_only_key().unwrap()).unwrap();
+    let public_only =
+        DatSignature::from_key(SIG, &source.export_verify_only_key().unwrap()).unwrap();
 
     assert_eq!(code_of(public_only.sign(b"body")), "DAT_SIG_KEY_MISSING");
 }
@@ -228,7 +282,10 @@ fn signing_with_verify_only_key_is_key_missing() {
 #[test]
 fn ciphertext_shorter_than_iv() {
     let crypto = DatCrypto::generate(CRY);
-    assert_eq!(code_of(crypto.decrypt(vec![0u8; 5])), "DAT_CRYPTO_DATA_INVALID");
+    assert_eq!(
+        code_of(crypto.decrypt(vec![0u8; 5])),
+        "DAT_CRYPTO_DATA_INVALID"
+    );
 }
 
 #[test]
@@ -274,10 +331,17 @@ fn state_signals_are_not_failures() {
 
 #[test]
 fn permanent_cms_errors_must_not_be_retried() {
-    for e in [DatError::CmsUnauthorized, DatError::CmsForbidden, DatError::CmsEndpointNotFound] {
+    for e in [
+        DatError::CmsUnauthorized,
+        DatError::CmsForbidden,
+        DatError::CmsEndpointNotFound,
+    ] {
         assert_eq!(e.retry(), DatRetry::Permanent, "{}", e.code());
     }
-    for e in [DatError::CmsUnreachable("x".into()), DatError::CmsServerError(503)] {
+    for e in [
+        DatError::CmsUnreachable("x".into()),
+        DatError::CmsServerError(503),
+    ] {
         assert_eq!(e.retry(), DatRetry::Transient, "{}", e.code());
     }
 }

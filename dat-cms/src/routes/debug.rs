@@ -1,17 +1,16 @@
 use crate::api::{Api, ApiResult};
-use crate::database::db;
 use crate::dto::cert::ListCertificatesQuery;
-use crate::services::cert_service;
+use crate::state::AppState;
 use anyhow::anyhow;
-use axum::extract::Path;
-use axum::routing::{get, post};
 use axum::Router;
+use axum::extract::{Path, State};
+use axum::routing::{get, post};
 use dat::error::DatError;
 use dat::manager::DatManager;
 use sea_orm::DbErr;
 use serde_json::json;
 
-pub fn router() -> Router {
+pub fn router() -> Router<AppState> {
     Router::new()
         .route("/debug/dat", post(issue))
         .route("/debug/dat/{dat}", get(parse))
@@ -25,7 +24,7 @@ pub fn router() -> Router {
         .route("/debug/error7", get(error_7))
 }
 
-async fn issue(body: String) -> ApiResult<String> {
+async fn issue(State(state): State<AppState>, body: String) -> ApiResult<String> {
     tracing::info!("POST /debug/dat issue (Debug)");
 
     let lines = body
@@ -40,26 +39,32 @@ async fn issue(body: String) -> ApiResult<String> {
         _ => return Ok("ERROR: usage:\nplain\nsecure".to_string()),
     };
 
-    Ok(manager().await?.issue(plain, secret)?)
+    Ok(manager(&state).await?.issue(plain, secret)?)
 }
 
-async fn parse(Path(dat): Path<String>) -> ApiResult<String> {
+async fn parse(State(state): State<AppState>, Path(dat): Path<String>) -> ApiResult<String> {
     tracing::info!("GET /debug/dat parse (Debug)");
-    let payload = manager().await?.parse(dat)?;
+    let payload = manager(&state).await?.parse(dat)?;
 
-    Ok(format!("{}\n{}", payload.plain_text()?, payload.secure_text()?))
+    Ok(format!(
+        "{}\n{}",
+        payload.plain_text()?,
+        payload.secure_text()?
+    ))
 }
 
-async fn manager() -> ApiResult<DatManager> {
+async fn manager(state: &AppState) -> ApiResult<DatManager> {
     let manager: DatManager = DatManager::new();
-    let certs = cert_service::list(
-        ListCertificatesQuery {
-            version: 0,
-            verify_only: false,
-        },
-        db(),
-    )
-    .await?;
+    let certs = state
+        .certificates
+        .list(
+            ListCertificatesQuery {
+                version: 0,
+                verify_only: false,
+            },
+            &state.db,
+        )
+        .await?;
     manager.import(&certs.export(false), true)?;
     Ok(manager)
 }

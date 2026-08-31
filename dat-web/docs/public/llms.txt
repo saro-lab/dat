@@ -1,41 +1,136 @@
-# DAT
+# DAT — Distributed Access Token
 
-> Distributed Access Token - a token specification where expiry, an encrypted region and key
-> rotation are part of the wire format rather than optional extras, with clients for many languages
-> that all speak the same protocol.
+> This document targets DAT 4.7.x and later.
+> Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
+> The DAT wire protocol, CMS v1 routes, and public error-code meanings are unchanged.
 
-A DAT is one ASCII string of five dot-separated fields - `expire.cid.plain.secure.signature` - read
-by slicing at the delimiters, with **no JSON parsing anywhere**. Every token carries an expiration
-time because the format has nowhere to omit it. Sensitive data goes in a `secure` region that is
-AES-GCM encrypted by construction, so there is no separate encryption spec to bolt on. The
-certificate that signs a token also carries the window during which it may issue, so key rolling
-happens on a schedule instead of whenever an operator remembers. The token names no algorithm at
-all - the certificate decides - which removes the `alg`-confusion attack surface that JWT has.
-Clients exist for Rust, Java/Kotlin, JavaScript/TypeScript, Python, C#, Go, Ruby and C/C++; a token
-issued by any of them verifies in all the others.
+DAT is a bearer-token specification with a fixed five-field ASCII wire format, mandatory expiration, a public byte region, an AES-GCM encrypted byte region, and certificate-selected signatures. DAT certificates bind an immutable certificate ID to an issuance window, DAT TTL, algorithms, and keys. DAT CMS is optional and distributes certificates with a version cursor.
 
-## Docs
+## Non-negotiable protocol rules
 
-- [Overview](https://dat.saro.me/llms/overview.md): What DAT is, the manager/certificate/token model, cluster roles, plain vs secure, client list
-- [Token format](https://dat.saro.me/llms/token.md): The five fields, canonical parsing rules, issuance and verification steps
-- [Certificate](https://dat.saro.me/llms/certificate.md): Certificate fields, issuance window and lifecycle, algorithms, verify-only export, rotation
-- [CMS sync](https://dat.saro.me/llms/cms-sync.md): `DatCmsManager` configuration, the sync protocol, why startup never fails on a sync error, why verifyOnly stays off unless asked
-- [Error codes](https://dat.saro.me/llms/errors.md): Every `DAT_*` code with retry class and impact, plus a symptom index
-- [Integration patterns](https://dat.saro.me/llms/integration.md): Issuing and verifying tiers, payload design, refresh, revocation, the mistakes that actually happen
+- DAT is exactly `expire.cid.plain.secure.signature`.
+- A certificate is exactly `cid.start.duration.ttl.sig-alg.crypto-alg.sig-key.crypto-key`.
+- DAT time accepts only `expire > now`; `expire == now` is expired.
+- Certificate verification accepts `certificate_expire >= now`.
+- Certificate issuance uses the inclusive window `start <= now <= start + duration`.
+- The signature covers the original ASCII bytes of `expire.cid.plain.secure`.
+- `plain` is public Base64Url-encoded bytes. Put secrets and personal data in `secure`.
+- Empty `secure` is valid and round-trips as empty bytes.
+- ECDSA verify-only retains the AES key and removes signing authority. HMAC verify-only is unsupported.
+- Rotate keys with a new `cid`; do not replace key material under an existing `cid`.
+- CMS import is `clear=false`: existing CIDs win, response-internal duplicate CIDs reject the whole response, and state commits atomically.
+- A successful CMS version-only body preserves certificates, issuer, and the existing client version.
+- Do not change CMS v1 paths, error-code meanings, algorithm wire names, or byte serialization as a refactor.
+- Supported signature names: `HMAC-SHA256-MFS`, `HMAC-SHA384-MFS`, `HMAC-SHA512-MFS`, `ECDSA-P256`, `ECDSA-P384`, `ECDSA-P521`. Supported encryption names: `IV-AES128-GCM`, `IV-AES256-GCM`. JWT-style aliases (`ES256`, `A256GCM`, ...) are not valid.
+
+## Integration rules
+
+- Choose issuer versus verifier role before selecting full or verify-only certificates.
+- Never use parse-without-verification output for authentication or authorization.
+- Initial CMS synchronization is best-effort; manager construction remains usable and exposes the concrete last error.
+- Use the language's immediate manual sync API when failure must reach the caller.
+- Configure timeouts, obey each runtime's redirect policy, and stop/close/dispose the manager during application shutdown.
+- Use stable error codes and retry classes, not message text.
+- Only `DAT_SIG_MISMATCH` and `DAT_CRYPTO_TAG_MISMATCH` are flagged by the public security-event API.
+- Current clients map non-2xx CMS responses by HTTP status only; they do not retain the server JSON `code` or `details`.
+- An empty CMS token-role list opens only that role's endpoints and logs `DAT_AUTH_DISABLED`.
 
 ## Platforms
 
-- [Rust](https://dat.saro.me/llms/platform-rust.md): Crate `dat`, cargo features, `DatCmsManager` / `DatManager`, `DatError` matching - the reference implementation
-- [Java & Kotlin](https://dat.saro.me/llms/platform-jvm.md): `me.saro:dat`, `DatResult` instead of exceptions, both languages side by side
-- [JavaScript & TypeScript](https://dat.saro.me/llms/platform-javascript.md): `saro-dat`, Node 24 + ESM requirements, async API, BigInt time arguments
-- [Python](https://dat.saro.me/llms/platform-python.md): `saro-dat`, builder setup, `DatError` catching, FastAPI dependency
-- [C#](https://dat.saro.me/llms/platform-csharp.md): `saro-dat`, `IDisposable` lifetimes, DI registration, exception filters
-- [Go](https://dat.saro.me/llms/platform-go.md): `github.com/saro-lab/dat/dat-go/v4`, sentinel errors, `dat.Code` / `dat.Retry` helpers
-- [Ruby](https://dat.saro.me/llms/platform-ruby.md): `saro-dat`, `Saro::Dat::Error` rescuing, Rack middleware
-- [C & C++](https://dat.saro.me/llms/platform-c.md): vcpkg port, out-parameter and ownership conventions, CMS without a builder
+Each platform below has its own machine-oriented documentation set under `llms/<project>/`: an overview (purpose, install, quick usage), an API reference, and either an integration checklist (clients) or an operations reference (the CMS server). All platforms implement the same DAT wire protocol and CMS v1 contract described above; only language ergonomics, transport details, and lifecycle mechanics differ.
 
-## Optional
+### DAT CMS server — `dat-cms`
 
-- [Full docs site](https://dat.saro.me/): The same material written for people, in many languages
-- [Source](https://github.com/saro-lab/dat): Every client and the CMS server in one repository
-- [DAT CMS](https://dat.saro.me/svc/docker-saro-lab-dat-cms): The certificate management service - Docker, Kubernetes, binary
+Optional certificate creation, storage, and version-cursor distribution service (Rust, scratch container image). Runs the CMS v1 HTTP API that every client manager below can synchronize against.
+
+- [Overview](https://dat.saro.me/llms/dat-cms/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-cms/api.md)
+- [Operations](https://dat.saro.me/llms/dat-cms/operations.md)
+- [Errors](https://dat.saro.me/llms/dat-cms/errors.md)
+
+### Go — `dat-go`
+
+Package `github.com/saro-lab/dat/dat-go/v4`.
+
+- [Overview](https://dat.saro.me/llms/dat-go/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-go/api.md)
+- [Errors](https://dat.saro.me/llms/dat-go/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-go/integration.md)
+
+### Java / Kotlin — `dat-maven`
+
+Maven coordinate `me.saro:dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-maven/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-maven/api.md)
+- [Errors](https://dat.saro.me/llms/dat-maven/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-maven/integration.md)
+
+### JavaScript / TypeScript — `dat-npm`
+
+npm package `saro-dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-npm/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-npm/api.md)
+- [Errors](https://dat.saro.me/llms/dat-npm/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-npm/integration.md)
+
+### C# / .NET — `dat-nuget`
+
+NuGet package `saro-dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-nuget/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-nuget/api.md)
+- [Errors](https://dat.saro.me/llms/dat-nuget/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-nuget/integration.md)
+
+### Python — `dat-pypi`
+
+PyPI package `saro-dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-pypi/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-pypi/api.md)
+- [Errors](https://dat.saro.me/llms/dat-pypi/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-pypi/integration.md)
+
+### Ruby — `dat-ruby`
+
+Gem `saro-dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-ruby/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-ruby/api.md)
+- [Errors](https://dat.saro.me/llms/dat-ruby/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-ruby/integration.md)
+
+### Rust — `dat-rust`
+
+Crate `dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-rust/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-rust/api.md)
+- [Errors](https://dat.saro.me/llms/dat-rust/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-rust/integration.md)
+
+### C / C++ — `dat-vcpkg`
+
+vcpkg port `dat`.
+
+- [Overview](https://dat.saro.me/llms/dat-vcpkg/overview.md)
+- [API reference](https://dat.saro.me/llms/dat-vcpkg/api.md)
+- [Errors](https://dat.saro.me/llms/dat-vcpkg/errors.md)
+- [Integration checklist](https://dat.saro.me/llms/dat-vcpkg/integration.md)
+
+## Validation and release status
+
+The common CMS fixture has 42 cases and per-runtime numeric profiles. The 4.7.0 work has passed the available macOS arm64, final Linux scratch amd64/arm64, language-level, sanitizer, interop, and package-build checks recorded in the repository execution plan. Python 3.10–3.13 and Ruby 3.1.7 passed their full suites. PostgreSQL 17, MySQL 8.4, and MariaDB 12 passed authenticated CMS operations with CA-verified TLS, and all three rejected an unrelated CA. Rust core and strictness tests passed Miri; the complete macOS async suite cannot run under Miri because its `kqueue` syscall is unsupported. Release allocation values were reproduced, and the parser, CMS sync, and CMS contract stress groups each passed 1,000 repeated cycles. Native Windows and a deployment-duration operational soak remain external gates. Python `urllib` cannot forcibly cancel every blocked operating-system call.
+
+## Human documentation
+
+Korean is the source for human documentation. Persian, Marathi, Vietnamese, Telugu, Hausa, Turkish, Swahili, Tamil, Thai, and Italian provide native translations for the seven core pages and complete UI dictionaries. Shared library, service, and tool guides continue to use the English technical reference where a locale-specific page is unavailable.
+
+- [Human-site locales, selector search, and layout behavior](https://dat.saro.me/llms/site-locales.md)
+- [Korean original](https://dat.saro.me/ko/)
+- [English reference](https://dat.saro.me/en/)
+- [Japanese reference](https://dat.saro.me/ja/)
+- [Client guides](https://dat.saro.me/en/libs/)
+- [CMS deployment guide](https://dat.saro.me/en/svc/docker-saro-lab-dat-cms)

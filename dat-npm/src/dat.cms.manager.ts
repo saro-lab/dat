@@ -14,6 +14,10 @@ export class DatCmsManager {
     private version: number;
     private manager: DatManager;
     private scheduler: any;
+    private activeController: AbortController|null = null;
+    private stopped: boolean = false;
+    private connectTimeoutMs: number;
+    private syncTimeoutMs: number;
     private isSyncing: boolean = false;
     private _logger: Logger|any;
     private _lastError: DatError|null = new DatError(DatErrorCodes.CMS_NOT_SYNCED);
@@ -23,13 +27,17 @@ export class DatCmsManager {
         token: string,
         version: number,
         manager: DatManager,
-        scheduler: any
+        scheduler: any,
+        connectTimeoutMs: number,
+        syncTimeoutMs: number,
     ) {
         this.uri = uri;
         this.token = token;
         this.version = version;
         this.manager = manager;
         this.scheduler = scheduler;
+        this.connectTimeoutMs = connectTimeoutMs;
+        this.syncTimeoutMs = syncTimeoutMs;
     }
 
     getManager(): DatManager {
@@ -66,7 +74,7 @@ export class DatCmsManager {
         }
     }
 
-    private async syncOrThrow(): Promise<void> {
+    async syncOrThrow(): Promise<void> {
         if (this.isSyncing) {
             this._logger.debug(`cms sync skipped, previous sync still running: ${this.uri}`);
             throw new DatError(DatErrorCodes.CMS_SYNC_IN_PROGRESS);
@@ -74,15 +82,25 @@ export class DatCmsManager {
 
         this.isSyncing = true;
         const newUrl = `${this.uri}?version=${this.version}`;
+        let controller: AbortController|null = null;
+        let totalTimer: ReturnType<typeof setTimeout>|null = null;
+        let connectTimer: ReturnType<typeof setTimeout>|null = null;
 
         try {
+            controller = new AbortController();
+            this.activeController = controller;
+            totalTimer = this.syncTimeoutMs > 0 ? setTimeout(() => controller!.abort(), this.syncTimeoutMs) : null;
+            connectTimer = this.connectTimeoutMs > 0 ? setTimeout(() => controller!.abort(), this.connectTimeoutMs) : null;
             let response: Response;
             try {
                 response = await fetch(newUrl, {
                     headers: {
                         'Authorization': this.token
-                    }
+                    },
+                    redirect: "manual",
+                    signal: controller.signal,
                 });
+                if (connectTimer) clearTimeout(connectTimer);
             } catch (e) {
                 throw new DatError(DatErrorCodes.CMS_UNREACHABLE, `cannot reach ${this.uri}`, e);
             }
@@ -91,24 +109,36 @@ export class DatCmsManager {
                 throw DatCmsManager.httpStatusError(response.status);
             }
 
-            const body = await response.text();
+            let bytes: Uint8Array;
+            try {
+                bytes = new Uint8Array(await response.arrayBuffer());
+            } catch (e) {
+                throw new DatError(DatErrorCodes.CMS_UNREACHABLE, `cannot read ${this.uri}`, e);
+            }
+            if (bytes.some(byte => byte > 0x7f)) {
+                throw new DatError(DatErrorCodes.CMS_MALFORMED, "response is not strict ASCII");
+            }
+            const body = new TextDecoder("ascii", {fatal: true}).decode(bytes);
+            if (body.length === 0) {
+                throw new DatError(DatErrorCodes.CMS_MALFORMED, "response is empty");
+            }
             const iof = body.indexOf("\n");
-
-            if (iof === 0) {
+            const versionLine = iof < 0 ? body : body.substring(0, iof);
+            if (versionLine.length === 0) {
                 throw new DatError(DatErrorCodes.CMS_MALFORMED, "response has no version line");
-            } else if (iof > 0) {
-                const versionLine = body.substring(0, iof).trim();
-                if (!/^[0-9]+$/.test(versionLine)) {
-                    throw new DatError(DatErrorCodes.CMS_MALFORMED, "version line is not a plain decimal integer");
-                }
-                const newVersion = Number(versionLine);
-                if (!Number.isSafeInteger(newVersion)) {
-                    throw new DatError(DatErrorCodes.CMS_MALFORMED, "version line exceeds the safe integer range");
-                }
+            }
+            if (!/^[0-9]+$/.test(versionLine)) {
+                throw new DatError(DatErrorCodes.CMS_MALFORMED, "version line is not a plain decimal integer");
+            }
+            const newVersion = Number(versionLine);
+            if (!Number.isSafeInteger(newVersion)) {
+                throw new DatError(DatErrorCodes.CMS_MALFORMED, "version line exceeds the safe integer range");
+            }
+            const newCertificates = iof < 0 ? "" : body.substring(iof + 1).trim();
+            if (newCertificates.length > 0) {
                 if (newVersion < this.version) {
                     this._logger.warn(DatErrorCodes.CMS_VERSION_RESET, this.version, newVersion);
                 }
-                const newCertificates = body.substring(iof + 1).trim();
                 let renew: number;
                 try {
                     renew = await this.manager.imports(newCertificates, false);
@@ -121,6 +151,9 @@ export class DatCmsManager {
                 this._logger.debug(`no new certificate: ${newUrl}`);
             }
         } finally {
+            if (totalTimer) clearTimeout(totalTimer);
+            if (connectTimer) clearTimeout(connectTimer);
+            this.activeController = null;
             this.isSyncing = false;
         }
     }
@@ -138,6 +171,8 @@ export class DatCmsManager {
     }
 
     stop(): void {
+        this.stopped = true;
+        this.activeController?.abort();
         if (this.scheduler) {
             clearInterval(this.scheduler);
             this.scheduler = null;
@@ -154,6 +189,8 @@ class DatCmsManagerBuilder {
     private _token: string = "";
     private _verifyOnly: boolean = false;
     private _intervalSeconds: number = 60;
+    private _connectTimeoutSeconds: number = 5;
+    private _syncTimeoutSeconds: number = 15;
     private _logger: Logger|any = {
         debug: () => {},
         info: () => {},
@@ -198,6 +235,9 @@ class DatCmsManagerBuilder {
         return this;
     }
 
+    connectTimeoutSeconds(seconds: number): this { this._connectTimeoutSeconds = seconds; return this; }
+    syncTimeoutSeconds(seconds: number): this { this._syncTimeoutSeconds = seconds; return this; }
+
     async build(): Promise<DatCmsManager> {
         if (this._uri.pathname.length > 1) {
             throw new DatError(DatErrorCodes.CONFIG_URI_INVALID, `must be path-less: ${this._uri}`);
@@ -212,7 +252,8 @@ class DatCmsManagerBuilder {
         const manager = new DatManager();
         let scheduler: any = null;
 
-        const cms = new (DatCmsManager as any)(uri, this._token, 0, manager, null);
+        const cms = new (DatCmsManager as any)(uri, this._token, 0, manager, null,
+            this._connectTimeoutSeconds * 1000, this._syncTimeoutSeconds * 1000);
         cms._logger = this._logger;
         
         await cms.sync();

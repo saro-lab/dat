@@ -3,57 +3,44 @@ layout: home
 ---
 
 <script setup lang="ts">
-import {useRoot, useTranslate} from "../.vitepress/src/langs";
+import {useRoot} from "../.vitepress/src/langs";
 import {getLibTags} from "../.vitepress/src/libs";
 import DatExample from "../.vitepress/ui/DatExample.vue";
 import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
 
 const root = useRoot();
-const {t} = useTranslate();
 const tags = getLibTags(root.value);
-
-/** Language/registry → emoji, purely decorative. Falls back to a generic package icon. */
 const TAG_ICON: Record<string, string> = {
-    Rust: '🦀', Cargo: '📦',
-    Java: '☕', Kotlin: '🟣', Maven: '📦',
-    JavaScript: '🟨', TypeScript: '🔷', Npm: '📦',
-    Python: '🐍', Pypi: '📦',
-    'C#': '🟩', Nuget: '📦',
-    Go: '🐹',
-    Ruby: '💎', Gems: '📦',
+    Rust: '🦀', Cargo: '📦', Java: '☕', Kotlin: '🟣', Maven: '📦',
+    JavaScript: '🟨', TypeScript: '🔷', Npm: '📦', Python: '🐍', Pypi: '📦',
+    'C#': '🟩', Nuget: '📦', Go: '🐹', Ruby: '💎', Gems: '📦',
     'C++': '🔧', C: '🔧', Vcpkg: '📦',
 };
 function tagIcon(name: string): string {
     return TAG_ICON[name] || (name === '...' ? '' : '📦');
 }
-
 const features = [
-    {icon: '⚡', title: 'Formato de trama binaria', desc: 'Diseñado con campos binarios de ancho fijo, que se leen directamente por desplazamiento sin ningún paso de análisis. Se emite y se verifica con una sobrecarga mínima, sin codificación ni decodificación JSON.'},
-    {icon: '🔐', title: 'Rotación de claves obligatoria', desc: 'Los certificados se sustituyen automáticamente según un ciclo fijo y el siguiente certificado siempre está listo antes de que expire el actual. Esto descarta estructuralmente el incidente operativo típico de JWT en el que una clave permanece igual durante años.'},
-    {icon: '⏱️', title: 'Separación entre la ventana de emisión y el TTL', desc: 'La "ventana de emisión" del certificado y el "período de validez de los tokens emitidos" son valores separados, de modo que los tokens ya emitidos siguen verificándose hasta que se agota su TTL, incluso después de que el certificado deje de emitir.'},
-    {icon: '🌐', title: 'Clientes nativos para los principales lenguajes', desc: 'Dispone de clientes oficiales para Rust, Java/Kotlin, JavaScript/TypeScript, Python, Go, C#, Ruby y C/C++, cada uno con una API idiomática de su lenguaje.'},
+    {icon: '⏱️', title: 'La caducidad forma parte de la especificación', desc: 'Cada DAT tiene una fecha de caducidad. No es necesario interpretar la duración del token por separado en cada aplicación.'},
+    {icon: '🔏', title: 'Separa las áreas pública y cifrada', desc: 'Guarda en plain los valores necesarios para el enrutamiento y en secure los que no deben quedar expuestos.'},
+    {icon: '🔑', title: 'Selecciona la clave mediante un certificado', desc: 'El cid del token indica el certificado que debe verificarlo. Los tokens anteriores siguen siendo verificables durante una rotación de claves.'},
+    {icon: '🌐', title: 'Los servicios no se consultan directamente', desc: 'Si cada servicio dispone del mismo certificado, el servidor emisor y el servidor verificador pueden operar por separado.'},
 ];
 </script>
 
 <div class="g-glass rd-box md hero">
 
 <div class="hero-title"><a :href="`${root}/intro`">DAT</a></div>
-<div class="hero-sub">{{t('description')}}</div>
+<div class="hero-sub">Distributed Access Token</div>
 
 <div class="hero-desc">
-DAT (Distributed Access Token) es un token de autenticación distribuido en el que todos los servidores que emiten y
-verifican sesiones solo necesitan compartir una única especificación. Está construido sobre campos binarios de ancho
-fijo, por lo que se lee y se escribe directamente por desplazamiento sin coste de análisis, y el propio protocolo
-separa la ventana de emisión del TTL para que la rotación de certificados (key rolling) pueda imponerse con
-independencia del lenguaje o de la implementación.
+DAT es un token de acceso que varios servicios emiten y verifican conforme a una misma especificación. El token contiene la fecha de caducidad, el ID del certificado,
+datos públicos, datos cifrados y una firma. El servidor verificador comprueba el token con su propio certificado sin consultar al servidor emisor en cada ocasión.
 </div>
 
 <div class="hero-desc">
-El DAT Certificate Management Service (CMS) se encarga automáticamente de la creación, la propagación y la expiración
-de los certificados de todo el clúster según una planificación programada (Cron), de modo que las claves pueden rotar
-de forma segura sin que los tokens ya emitidos fallen la verificación porque varios servidores todavía no hayan
-sincronizado por completo el nuevo certificado.
+Un certificado reúne el método de firma y cifrado del token, las claves, el periodo de emisión y el TTL. Con DAT CMS, los servicios pueden sincronizar certificados
+completos o exclusivos para verificación sin tener que distribuirlos manualmente.
 </div>
 
 <div class="feature-grid">
@@ -64,48 +51,45 @@ sincronizado por completo el nuevo certificado.
     </div>
 </div>
 
-<div class="section-title">Arquitectura general</div>
+<div class="section-title">Flujo de uso</div>
 
 <ArchFlow
     :user="{label: 'Usuario', icon: 'person'}"
-    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['Crea certificados por periodo de validez', 'Limpia los caducados']}"
+    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['Creación y almacenamiento de certificados', 'Entrega de certificados a los servicios']}"
     :service="{servers: [
-        {label: 'Servidor de inicio de sesión', kind: 'issuer', icon: 'login',
-         request: 'Solicitud de inicio de sesión', response: 'Emite un DAT con el certificado', sync: 'Sync de certificados de emisión'},
-        {label: 'Servidores de contenido', kind: 'verifier', icon: 'apps',
-         request: 'Solicitud de contenido con DAT', response: 'Verifica el DAT y responde', sync: 'Sync de certificados de verificación'},
+        {label: 'Servicio emisor', kind: 'issuer', icon: 'login', request: 'Solicitud de autenticación', response: 'Emisión de DAT', sync: 'Sincronización de certificados aptos para emitir'},
+        {label: 'Servicio verificador', kind: 'verifier', icon: 'apps', request: 'Solicitud con DAT', response: 'Respuesta tras la verificación', sync: 'Sincronización de certificados exclusivos para verificación'},
     ]}"
 />
 
 <div class="hero-desc">
-Solo el servidor de inicio de sesión recibe certificados con los que puede emitir; los servidores de contenido
-reciben certificados de solo verificación y comprueban con ellos el DAT que llega. El usuario trata con un único
-servicio y un servidor de contenido nunca tiene que hablar con el servidor de inicio de sesión.
+El servicio emisor crea un DAT con el certificado completo, mientras que el servicio verificador lo comprueba con un certificado exclusivo para verificación.
+DAT CMS es opcional; en entornos que distribuyen los certificados directamente, puede usarse únicamente el gestor local del cliente.
 </div>
 
-<div class="section-title">Estructura del token</div>
+<div class="section-title">Estructura de DAT</div>
 
 <WireFormat
-    hint="Pase el cursor sobre cada campo para ver su descripción."
+    hint="Pasa el cursor sobre cada campo para ver su descripción."
     :segments="[
-        {name: 'expire', type: 'uint64 (decimal)', kind: 'meta', note: 'Momento de expiración del token: lo impone la especificación.'},
-        {name: 'cid', type: 'uint64 (hexadecimal)', kind: 'meta', note: 'ID del certificado que se usará para la verificación.'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'Datos públicos que cualquiera puede leer.'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'Datos cifrados con AES-GCM.'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'Firma sobre los cuatro campos anteriores.'},
+        {name: 'expire', type: 'uint64 (decimal)', kind: 'meta', note: 'Unix time en que caduca el DAT.'},
+        {name: 'cid', type: 'uint64 (hexadecimal)', kind: 'meta', note: 'ID del certificado que se usará para verificar.'},
+        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'Bytes públicos sin cifrar.'},
+        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'Bytes protegidos con AES-GCM.'},
+        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'Firma que verifica todos los campos anteriores.'},
     ]"
 />
 
-<a :href="`${root}/svc/docker-saro-lab-dat-cms`" class="cta-banner">
-    <div class="cta-icon">🚀</div>
+<a :href="`${root}/intro`" class="cta-banner">
+    <div class="cta-icon">📘</div>
     <div class="cta-text">
-        <div class="cta-title">{{t('dat_cms')}} Guía de despliegue</div>
-        <div class="cta-desc">Kubernetes (multi-pod) · Docker · binario (Linux, macOS, Windows) — genere ahora mismo el comando de ejecución</div>
+        <div class="cta-title">Conoce DAT</div>
+        <div class="cta-desc">Explicación paso a paso de las funciones del token, el certificado y los servicios emisor y verificador.</div>
     </div>
     <div class="cta-arrow">→</div>
 </a>
 
-<div class="section-title">{{t('platform_support')}}</div>
+<div class="section-title">Bibliotecas</div>
 <div>
     <a v-for="tag in tags" :key="tag.link" :href="tag.link" class="g-chip">
         <span v-if="tagIcon(tag.name)">{{tagIcon(tag.name)}}</span>{{tag.name}}

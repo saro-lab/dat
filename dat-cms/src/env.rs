@@ -22,6 +22,7 @@ pub struct EnvServer {
     pub port: u16,
     pub db_uri: String,
     pub db_cache_secs: u64,
+    pub db_query_timeout_secs: u64,
     pub debug: bool,
 }
 
@@ -41,7 +42,12 @@ fn bind() -> Env {
     let log = log_config(&server);
     let cron = EnvCron::new(&server);
     let token = EnvToken::new();
-    Env { server, log, cron, token }
+    Env {
+        server,
+        log,
+        cron,
+        token,
+    }
 }
 
 impl EnvServer {
@@ -56,10 +62,12 @@ impl EnvServer {
         println!("port: {}", port);
 
         let db_uri = env_str("DB_URI", "sqlite:./data/data.db");
-        println!("db_uri: {}", db_uri);
+        println!("database: {}", database_kind(&db_uri));
 
         let db_cache_secs = env_parse("DB_CACHE_SECS", 30);
         println!("db_cache_secs: {}", db_cache_secs);
+        let db_query_timeout_secs = env_parse("DB_QUERY_TIMEOUT_SECS", 30);
+        println!("db_query_timeout_secs: {}", db_query_timeout_secs);
 
         let debug = env_str("DEBUG", if cfg!(debug_assertions) { "1" } else { "0" }) == "1";
         println!("mode: {}", if debug { "debug" } else { "release" });
@@ -70,11 +78,11 @@ impl EnvServer {
             port,
             db_uri,
             db_cache_secs,
-            debug
+            db_query_timeout_secs,
+            debug,
         }
     }
 }
-
 
 fn log_config(server: &EnvServer) -> LogConfig {
     let log_console = env_str("LOG_CONSOLE", "1") == "1";
@@ -82,7 +90,14 @@ fn log_config(server: &EnvServer) -> LogConfig {
     let log_json = log_file_type == "JSON";
     let log_file = log_json || log_file_type == "TEXT";
     println!("log console: {}", if log_console { "on" } else { "off" });
-    println!("log file: {}", if log_file { if log_json { "json" } else { "text" } } else { "off" });
+    println!(
+        "log file: {}",
+        if log_file {
+            if log_json { "json" } else { "text" }
+        } else {
+            "off"
+        }
+    );
     LogConfig {
         console: log_console,
         json: log_json,
@@ -95,7 +110,14 @@ fn log_config(server: &EnvServer) -> LogConfig {
 
 impl EnvCron {
     fn new(env_server: &EnvServer) -> Option<Self> {
-        let cron = env_str("SINGLE_NODE", if env_server.debug { "HMAC-SHA512-MFS,IV-AES256-GCM" } else { "" });
+        let cron = env_str(
+            "SINGLE_NODE",
+            if env_server.debug {
+                "HMAC-SHA512-MFS,IV-AES256-GCM"
+            } else {
+                ""
+            },
+        );
         if cron.is_empty() {
             None
         } else {
@@ -120,20 +142,31 @@ ex) HMAC-SHA512-MFS, IV-AES256-GCM, 0 0/30 * * * *, 1200, 10800, 600
             if parts.len() != 6 {
                 panic!("invalid SINGLE_NODE argument: {cron}\n{}", arg_example);
             }
-            DatSignatureAlgorithm::from_str(parts[0]).unwrap_or_else(|_| panic!("invalid signature algorithm\n{arg_example}"));
-            DatCryptoAlgorithm::from_str(parts[1]).unwrap_or_else(|_| panic!("invalid crypto algorithm\n{arg_example}"));
+            DatSignatureAlgorithm::from_str(parts[0])
+                .unwrap_or_else(|_| panic!("invalid signature algorithm\n{arg_example}"));
+            DatCryptoAlgorithm::from_str(parts[1])
+                .unwrap_or_else(|_| panic!("invalid crypto algorithm\n{arg_example}"));
 
             let cmd = RegisterCertificateCommand {
                 signature_algorithm: parts[0].to_string(),
                 crypto_algorithm: parts[1].to_string(),
-                certificate_propagation_delay_seconds: parts[3].parse::<i64>().unwrap_or_else(|_| panic!("invalid certificate propagation delay seconds\n{arg_example}")),
-                dat_issuance_duration_seconds: parts[4].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat issuance duration seconds\n{arg_example}")),
-                dat_ttl_seconds: parts[5].parse::<i64>().unwrap_or_else(|_| panic!("invalid dat ttl seconds\n{arg_example}")),
+                certificate_propagation_delay_seconds: parts[3].parse::<i64>().unwrap_or_else(
+                    |_| panic!("invalid certificate propagation delay seconds\n{arg_example}"),
+                ),
+                dat_issuance_duration_seconds: parts[4].parse::<i64>().unwrap_or_else(|_| {
+                    panic!("invalid dat issuance duration seconds\n{arg_example}")
+                }),
+                dat_ttl_seconds: parts[5]
+                    .parse::<i64>()
+                    .unwrap_or_else(|_| panic!("invalid dat ttl seconds\n{arg_example}")),
             };
-            cmd.validate().unwrap_or_else(|reason| panic!("invalid SINGLE_NODE argument: {reason}\n{arg_example}"));
+            cmd.validate().unwrap_or_else(|reason| {
+                panic!("invalid SINGLE_NODE argument: {reason}\n{arg_example}")
+            });
 
             Some(EnvCron {
-                expression: Job::schedule_to_cron(parts[2]).unwrap_or_else(|_| panic!("invalid cron expression\n{arg_example}")),
+                expression: Job::schedule_to_cron(parts[2])
+                    .unwrap_or_else(|_| panic!("invalid cron expression\n{arg_example}")),
                 cmd,
             })
         }
@@ -163,12 +196,27 @@ impl EnvToken {
 
     fn warn_if_disabled(&self) {
         for (name, allows, risk) in [
-            ("TOKEN_MASTER", &self.master, "certificate issuance is fully open"),
-            ("TOKEN_CERT_FULL", &self.cert_full, "full certificate export is fully open"),
-            ("TOKEN_CERT_VERIFY", &self.cert_verify, "verify-only export is fully open"),
+            (
+                "TOKEN_MASTER",
+                &self.master,
+                "certificate issuance is fully open",
+            ),
+            (
+                "TOKEN_CERT_FULL",
+                &self.cert_full,
+                "full certificate export is fully open",
+            ),
+            (
+                "TOKEN_CERT_VERIFY",
+                &self.cert_verify,
+                "verify-only export is fully open",
+            ),
         ] {
             if allows.is_empty() {
-                println!("[WARN] {}: {name} is not set, {risk}", crate::codes::AUTH_DISABLED);
+                println!(
+                    "[WARN] {}: {name} is not set, {risk}",
+                    crate::codes::AUTH_DISABLED
+                );
             }
         }
     }
@@ -181,7 +229,7 @@ fn env_token(key: &str) -> Vec<String> {
     if !tokens.is_empty() {
         for token in tokens.split(',') {
             if !regex_token.is_match(token) {
-                panic!("Tokens must be alphanumeric (a-z, A-Z, 0-9):\n{key}={token}");
+                panic!("Tokens in {key} must be alphanumeric (a-z, A-Z, 0-9)");
             }
             vec.push(String::from(token));
         }
@@ -189,9 +237,22 @@ fn env_token(key: &str) -> Vec<String> {
     vec
 }
 
+fn database_kind(uri: &str) -> &'static str {
+    if uri.starts_with("sqlite:") {
+        "sqlite"
+    } else if uri.starts_with("postgres:") || uri.starts_with("postgresql:") {
+        "postgresql"
+    } else if uri.starts_with("mysql:") {
+        "mysql"
+    } else {
+        "configured"
+    }
+}
 
 fn env_str(key: &str, default_value: &str) -> String {
-    if let Ok(v) = env::var(key) && !v.is_empty() {
+    if let Ok(v) = env::var(key)
+        && !v.is_empty()
+    {
         v
     } else {
         default_value.to_string()
@@ -200,11 +261,30 @@ fn env_str(key: &str, default_value: &str) -> String {
 
 fn env_parse<F: FromStr>(key: &str, default_value: F) -> F
 where
-    <F as FromStr>::Err: std::fmt::Debug
+    <F as FromStr>::Err: std::fmt::Debug,
 {
-    if let Ok(v) = env::var(key) && !v.is_empty() {
-        v.parse::<F>().unwrap_or_else(|_| panic!("invalid argument {}: {}", key, v))
+    if let Ok(v) = env::var(key)
+        && !v.is_empty()
+    {
+        v.parse::<F>()
+            .unwrap_or_else(|_| panic!("invalid argument {}: {}", key, v))
     } else {
         default_value
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn database_kind_does_not_include_credentials_or_query() {
+        assert_eq!(
+            database_kind("postgres://user:secret@db/name?sslmode=require"),
+            "postgresql"
+        );
+        assert_eq!(database_kind("mysql://user:secret@db/name"), "mysql");
+        assert_eq!(database_kind("sqlite:./data/data.db?mode=rwc"), "sqlite");
+        assert_eq!(database_kind("opaque-secret"), "configured");
     }
 }

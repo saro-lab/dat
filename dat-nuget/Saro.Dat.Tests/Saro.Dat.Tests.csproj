@@ -39,6 +39,10 @@
       <ProjectReference Include="..\Saro.Dat\Saro.Dat.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Fixtures\cms_v1_state_transitions.json" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
 
 
 </Project>

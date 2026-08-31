@@ -1,94 +1,70 @@
+# What is DAT?
 
-# DAT (Distributed Access Token)
-
----
-
-## Why DAT Was Created
-
-Many systems today have adopted JWT, but the following structural limitations show up in real production environments.<br/>
-DAT was designed as a new token specification to solve them.
-
-#### 🧩 Fragmented Security Specifications and Lack of Enforcement
-JWT offers encryption standards such as JWE, but their use is not enforced. <br/>
-As a result, many development environments skip encryption altogether or transmit data in non-standard ways, creating security vulnerabilities.
-
-#### 🔑 Security Risk of Static Keys
-Signature key rolling is not mandatory, so a single key is frequently used for a long period. If that key is stolen, the security of the entire system can collapse — and breaches caused exactly this way have happened at large commerce sites.
-
-#### 📉 Performance Degradation from Overhead
-JWT goes through a JSON parsing pass on every request and consumes a considerable amount of CPU. In environments that demand high performance, this parsing cost can become the overall bottleneck of the system.
-
----
-
-## Core Philosophy of DAT
-
-DAT is designed on the principle that security must be enforced rather than optional, and that performance is not negotiable.
-
-#### ⚡ Light and Fast
+DAT (Distributed Access Token) is an access-token specification used by issuing and verifying services that share the same certificates. Because verification does not require another request to the issuing service or a central session store, authentication results can be passed between less tightly coupled services.
 
 <WireFormat
-    hint="Hover over a field to see its description."
-    :segments="[
-        {name: 'expire', type: 'uint64 (decimal)', kind: 'meta', note: 'Expiration time. Mandated by the specification, so it cannot be omitted.'},
-        {name: 'cid', type: 'uint64 (hex)', kind: 'meta', note: 'ID of the certificate to verify with.'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'Data exposed to the client.'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'Encrypted data. It cannot be read without the certificate.'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'Signature over the four preceding fields.'},
-    ]"
+  hint="The dot-separated fields form a single DAT."
+  :segments="[
+    {name: 'expire', type: 'uint64', kind: 'meta', note: 'Expiration Unix time'},
+    {name: 'cid', type: 'uint64', kind: 'meta', note: 'Certificate ID'},
+    {name: 'plain', type: 'bytes', kind: 'plain', note: 'Public data'},
+    {name: 'secure', type: 'bytes', kind: 'secure', note: 'Encrypted data'},
+    {name: 'signature', type: 'bytes', kind: 'sig', note: 'Body signature'},
+  ]"
 />
 
-As shown above, a DAT has exactly five fixed fields separated by dots (`.`). Because the position of every field is fixed by the specification, each value can be sliced out just by locating the delimiters — no JSON parsing required.
+## Components
 
-#### 🔐 Enforced Security
+### DAT
 
-DAT physically separates the plain region and the **encrypted (Secure)** region when transmitting data.<br/>
-Sensitive information is required to be encrypted, and the whole process is protected by the standard algorithms declared in the certificate (ECDSA, AES-GCM, and so on).
+A string that a user or service sends with a request. It includes an expiration time and certificate ID, and can carry both public and encrypted data.
 
-The encryption algorithm is **decided by the certificate**, not by the token. Since the token carries no algorithm information, there is no attack surface for the algorithm confusion attacks that stem from JWT's `alg` header.
+### Certificate
 
-#### 🔄 Enforced Key Rolling
+Contains the algorithms, keys, and time ranges required to create and verify DATs. The certificate ID, `cid`, is immutable; use a new `cid` when rotating keys.
 
-A DAT certificate directly manages the **key lifecycle**, not just token issuance and expiration.<br/>
-"From when until when may this certificate issue tokens" is baked into the certificate at the specification level, so once that window passes, no new token can be created with it. A situation where an administrator carelessly keeps using one key for years simply cannot arise by construction.
+### Manager
 
-#### ⏱️ Issuance Window Separated from Validity Period
+The client library's manager stores certificates, creates DATs with a certificate that is currently issuable, and verifies each DAT with the certificate matching its `cid`.
 
-"How long a certificate may issue tokens" and "how long an issued token stays alive" are two different values.<br/>
-Because of that, tokens already issued can live out their full lifetime even after the certificate stops issuing, while the cluster naturally moves on to the next certificate in the meantime.
+### DAT CMS
 
----
+An optional server that creates, stores, and distributes certificates to services. It can provide full certificates to issuing services and verify-only certificates to services that only verify tokens.
 
-## Authentication Mechanism Comparison
+## Issuance and verification
 
-| Category | **DAT**                       | **JWT** | **Session**           |
-| --- |-------------------------------| --- |---------------------------|
-| **Authentication model** | **Distributed verification**  | Distributed verification | Centralized          |
-| **Data structure** | **Raw bytes<br/>(fixed-offset based)** | JSON<br/>(key-value, text based) | Serialized object<br/>(object serialization) |
-| **Parsing mechanism** | **Direct byte mapping**       | Requires JSON parsing and type casting | Requires object deserialization and I/O          |
-| **Processing performance** | **Highest (parsing overhead minimized)** | Moderate (depends on JSON processing performance) | Low (network/disk I/O)         |
-| **Encryption** | **Built in**                  | Requires a separate JWE implementation (complex) | Not applicable                     |
-| **Key management** | **System-enforced rolling (security enforced)** | Implemented by hand (risk of careless management) | Not applicable                     |
-| **Key validity period** | **Mandated explicitly by the key specification** | Optional (permanent if unmanaged) | Managed by the central server                  |
-| **Algorithm selection** | **Decided by the certificate (absent from the token)** | `alg` in the token header | Not applicable                     |
-| **Expiration time** | **Mandatory field by specification** | Optional claim (`exp`) | Managed by the server                   |
+<ArchFlow
+  :user="{label: 'User', icon: 'person'}"
+  :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['Certificate management', 'Version-based synchronization']}"
+  :service="{servers: [
+    {label: 'Issuing service', kind: 'issuer', icon: 'login', request: 'Credentials', response: 'DAT', sync: 'Full certificates'},
+    {label: 'Verifying service', kind: 'verifier', icon: 'apps', request: 'DAT', response: 'Protected feature', sync: 'Verify-only certificates'},
+  ]}"
+/>
 
----
+The issuing service chooses the `plain` and `secure` data and creates a DAT. The verifying service checks the expiration time, signature, and ciphertext before passing both data regions to the application. Because `plain` is signed but not encrypted, do not put secrets or personal data in it.
 
-## {{t('bench_title')}} {#performance}
+## Why verification still works after certificates change
 
-<BenchBars />
+Once a new certificate becomes issuable, subsequent DATs use its new `cid`. The previous certificate remains available for verification until the TTL of every DAT it issued has elapsed. This allows key rotation and the verification period of existing tokens to be managed together.
 
----
+## Where DAT fits
 
-## Next Documents
+- Environments where authentication and application features are handled by different services
+- Environments where multiple runtimes issue or verify the same token format
+- Systems that need to carry short-lived authorization data without a central session lookup
+- Systems that need to separate public routing information from protected data within one token
 
-- [{{t('menu_spec_dat')}}](./spec/dat) — the token wire format and canonical rules
-- [{{t('menu_spec_cert')}}](./spec/dat-certificate) — certificate structure, algorithms, and lifecycle
-- [{{t('menu_spec_cms')}}](./spec/cms) — certificate distribution and behavior you need to know in operation
+DAT does not define the authorization policy itself. A valid DAT and an application's decision to allow a request are separate matters.
+
+## Next steps
+
+- [DAT specification](./spec/dat): token fields and verification rules
+- [Certificates](./spec/dat-certificate): keys and time ranges
+- [DAT CMS specification](./spec/cms): synchronization contract
+- [Libraries](./libs/): application integration
 
 <script setup lang="ts">
-import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
-import BenchBars from "../.vitepress/ui/BenchBars.vue";
-const {t} = useTranslate();
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 </script>

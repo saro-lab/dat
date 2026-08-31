@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 namespace Saro.Dat;
 
-public class DatCmsManager : IDisposable
+public class DatCmsManager : IDisposable, IAsyncDisposable
 {
     private readonly string _uri;
     private string _token;
@@ -10,9 +10,11 @@ public class DatCmsManager : IDisposable
     private readonly HttpClient _client;
     private readonly bool _ownsClient;
     private readonly PeriodicTimer? _timer;
+    private readonly Task? _syncLoop;
     private readonly CancellationTokenSource _cts = new();
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly ILogger? _logger;
+    private readonly TimeSpan? _requestTimeout;
     private int _disposed;
     private volatile DatException? _lastError = new(DatErrorCode.CmsNotSynced);
 
@@ -26,7 +28,8 @@ public class DatCmsManager : IDisposable
         HttpClient client,
         bool ownsClient,
         long intervalSeconds,
-        ILogger? logger)
+        ILogger? logger,
+        TimeSpan? requestTimeout)
     {
         _uri = uri;
         _token = token;
@@ -35,11 +38,12 @@ public class DatCmsManager : IDisposable
         _client = client;
         _ownsClient = ownsClient;
         _logger = logger;
+        _requestTimeout = requestTimeout;
 
         if (intervalSeconds > 0)
         {
             _timer = new PeriodicTimer(TimeSpan.FromSeconds(intervalSeconds));
-            _ = RunSyncLoop();
+            _syncLoop = RunSyncLoop();
         }
     }
 
@@ -104,7 +108,7 @@ public class DatCmsManager : IDisposable
         }
     }
 
-    private async Task SyncOrThrow()
+    public async Task SyncOrThrow()
     {
         if (!await _lock.WaitAsync(0))
         {
@@ -117,11 +121,13 @@ public class DatCmsManager : IDisposable
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, newUrl);
             request.Headers.Add("Authorization", _token);
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+            if (_requestTimeout is { } requestTimeout) timeout.CancelAfter(requestTimeout);
 
             HttpResponseMessage response;
             try
             {
-                response = await _client.SendAsync(request, _cts.Token);
+                response = await _client.SendAsync(request, timeout.Token);
             }
             catch (HttpRequestException e)
             {
@@ -139,29 +145,36 @@ public class DatCmsManager : IDisposable
                     throw HttpStatusError((int)response.StatusCode);
                 }
 
-                string body = await response.Content.ReadAsStringAsync(_cts.Token);
+                byte[] bytes;
+                try
+                {
+                    bytes = await response.Content.ReadAsByteArrayAsync(timeout.Token);
+                }
+                catch (OperationCanceledException e) when (!_cts.IsCancellationRequested)
+                {
+                    throw new DatException(DatErrorCode.CmsUnreachable, $"request to {_uri} timed out", e);
+                }
+                if (bytes.Length == 0 || bytes.Any(b => b == 0 || b > 0x7f))
+                    throw new DatException(DatErrorCode.CmsMalformed, "response is not strict ASCII");
+                string body = System.Text.Encoding.ASCII.GetString(bytes);
                 int iof = body.IndexOf('\n');
 
-                if (iof == 0)
+                string versionLine = iof >= 0 ? body[..iof] : body;
+                if (versionLine.Length == 0 || versionLine.Any(c => c is < '0' or > '9') ||
+                    !long.TryParse(versionLine, System.Globalization.NumberStyles.None,
+                        System.Globalization.CultureInfo.InvariantCulture, out long newVersion))
                 {
-                    throw new DatException(DatErrorCode.CmsMalformed, "response has no version line");
+                    throw new DatException(DatErrorCode.CmsMalformed, "version line is not a plain decimal integer");
                 }
 
-                if (iof > 0)
+                string newCertificates = iof >= 0 ? body[(iof + 1)..] : "";
+                if (newCertificates.Length > 0)
                 {
-                    string versionLine = body[..iof].Trim();
-                    if (!long.TryParse(versionLine, System.Globalization.NumberStyles.None,
-                            System.Globalization.CultureInfo.InvariantCulture, out long newVersion))
-                    {
-                        throw new DatException(DatErrorCode.CmsMalformed, "version line is not a plain decimal integer");
-                    }
-
                     if (newVersion < version)
                     {
                         _logger?.LogWarning("{Code}: {from} -> {to}", DatErrorCode.CmsVersionReset, version, newVersion);
                     }
 
-                    string newCertificates = body[(iof + 1)..].Trim();
                     int renewCount;
                     try
                     {
@@ -175,8 +188,7 @@ public class DatCmsManager : IDisposable
                     Interlocked.Exchange(ref _version, newVersion);
                     _logger?.LogInformation("renew {renewCount} certificates: {Url}", renewCount, newUrl);
                 }
-                else
-                {
+                else {
                     _logger?.LogDebug("no new certificate: {Url}", newUrl);
                 }
             }
@@ -198,10 +210,17 @@ public class DatCmsManager : IDisposable
 
     public void Dispose()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
+        DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
 
+    public async ValueTask DisposeAsync()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0) return;
         _cts.Cancel();
         _timer?.Dispose();
+        if (_syncLoop != null) await _syncLoop.ConfigureAwait(false);
+        await _lock.WaitAsync().ConfigureAwait(false);
+        _lock.Release();
         _cts.Dispose();
         _lock.Dispose();
         _manager.Dispose();
@@ -217,6 +236,8 @@ public class DatCmsManager : IDisposable
         private string _token = "";
         private bool _verifyOnly = false;
         private long _intervalSeconds = 60L;
+        private long _connectTimeoutSeconds = 5L;
+        private long _requestTimeoutSeconds = 15L;
         private ILogger? _logger;
 
         public DatCmsManagerBuilder Client(HttpClient client)
@@ -276,6 +297,20 @@ public class DatCmsManager : IDisposable
             return this;
         }
 
+        public DatCmsManagerBuilder ConnectTimeoutSeconds(long seconds)
+        {
+            if (seconds < 0) throw new DatException(DatErrorCode.ConfigArgumentInvalid, "timeout must not be negative");
+            _connectTimeoutSeconds = seconds;
+            return this;
+        }
+
+        public DatCmsManagerBuilder RequestTimeoutSeconds(long seconds)
+        {
+            if (seconds < 0) throw new DatException(DatErrorCode.ConfigArgumentInvalid, "timeout must not be negative");
+            _requestTimeoutSeconds = seconds;
+            return this;
+        }
+
         public DatCmsManagerBuilder Logger(ILogger? logger)
         {
             _logger = logger;
@@ -301,10 +336,14 @@ public class DatCmsManager : IDisposable
             string uriStr = $"{_uri.Scheme}://{_uri.Host}:{_uri.Port}{path}";
 
             bool ownsClient = _client == null;
-            var client = _client ?? new HttpClient();
+            var client = _client ?? new HttpClient(new SocketsHttpHandler {
+                AllowAutoRedirect = false,
+                ConnectTimeout = _connectTimeoutSeconds == 0 ? Timeout.InfiniteTimeSpan : TimeSpan.FromSeconds(_connectTimeoutSeconds)
+            }) { Timeout = Timeout.InfiniteTimeSpan };
 
             var manager = DatManager.NewInstance();
-            var cms = new DatCmsManager(uriStr, _token, 0, manager, client, ownsClient, _intervalSeconds, _logger);
+            TimeSpan? requestTimeout = _requestTimeoutSeconds == 0 ? null : TimeSpan.FromSeconds(_requestTimeoutSeconds);
+            var cms = new DatCmsManager(uriStr, _token, 0, manager, client, ownsClient, _intervalSeconds, _logger, requestTimeout);
 
             await cms.Sync();
 

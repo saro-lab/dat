@@ -7,7 +7,18 @@ fn decimal_accepts_only_pure_digits() {
     assert_eq!(parse_u64_dec("0"), Some(0));
     assert_eq!(parse_u64_dec("18446744073709551615"), Some(u64::MAX));
 
-    for bad in ["+100", "-1", " 100", "100 ", "1_0", "0x10", "zzzz", "1e3", "", "１００"] {
+    for bad in [
+        "+100",
+        "-1",
+        " 100",
+        "100 ",
+        "1_0",
+        "0x10",
+        "zzzz",
+        "1e3",
+        "",
+        "１００",
+    ] {
         assert_eq!(parse_u64_dec(bad), None, "must reject {bad:?}");
     }
     assert_eq!(parse_u64_dec("18446744073709551616"), None);

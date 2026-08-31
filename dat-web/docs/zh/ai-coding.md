@@ -1,55 +1,67 @@
-# AI 编程指南
+# AI 氛围编程
 
-## 氛围编程（Vibe Coding）示例
+将当前项目和想实现的行为告诉 AI，可让 DAT 更易于集成。在以下示例中，只需按项目修改 URL 和环境变量名。
 
+## 简单实现
+
+想快速创建基本结构时，使用此提示词。
+
+```text
+我正在使用 Kotlin 和 Spring Boot。
+请向 Spring Security 添加 DAT 认证。
+
+首先阅读 https://dat.saro.me/llms.txt，并查看
+DAT 规范和官方库文档。
+
+验证 Authorization 标头中的 Bearer 令牌，
+认证成功时将用户信息放入 SecurityContext。
+
+此服务器不签发 DAT，只进行验证。
+它必须从 DAT CMS 接收仅验证证书。
+
+先在项目中查找 CMS 服务器 URL 和令牌设置。
+如果找不到，请询问我，不要虚构值。
+
+使用官方 Java/Kotlin DAT 库，
+并遵循现有项目结构和编码风格。
 ```
-请把 DAT 应用到当前这个 Web 服务器的会话认证上。
-它是一种类似 JWT 的分布式访问令牌，文档在 https://dat.saro.me/llms.txt
-请先读完文档再开始。把整套 llms 文档全部下载下来放进 docs/dat 文件夹，并同步更新智能体文档。
 
-- 项目：Java Spring Boot，正在使用 Spring Security
-- 目标：把会话替换为 DAT
-- DAT-CMS 服务器：http://localhost:8088 请改为写在配置属性里
-- 签名算法：HMAC-SHA512-MFS
-- 加密算法：IV-AES256-GCM
-- 其余一律使用默认值
+## 详细实现
 
-不要凭猜测编造文档中没有的 API。
+想精确指定认证流程和错误处理时，使用此提示词。
+
+```text
+此项目使用 Kotlin、Spring Boot 和 Spring Security。
+请先查看当前安全配置，再添加 DAT 认证。
+
+首先阅读 https://dat.saro.me/llms.txt，并查看
+DAT 规范、证书同步和官方库 API。
+
+请实现以下要求。
+
+- 从 Authorization: Bearer 标头读取 DAT。
+- 如果没有 DAT，作为匿名请求继续。
+- DAT 无效或过期时返回 401。
+- 验证成功时，将用户 ID 和权限放入 SecurityContext。
+- 只从 plain 中读取可安全公开的值。
+- 从已验证的 secure 数据中读取用户 ID 和权限。
+- 此服务器仅验证，因此使用 DAT CMS 的仅验证证书。
+- 从环境变量读取 CMS URL 和令牌。
+- 如果启动时证书同步失败，也应使应用启动失败。
+- 运行时自动刷新证书，关闭时关闭管理器。
+- 使用 DAT 错误代码区分失败原因，不要使用错误消息。
+- 不要记录原始 DAT、CMS 令牌或个人数据。
+
+先检查项目的 Spring Security 配置和用户/权限模型。
+如果 CMS URL、令牌环境变量或 secure 数据格式不明确，请在实现前询问。
+只使用官方 Java/Kotlin DAT 库的 public API。
+
+编辑代码前，请简要说明认证流程和将修改的文件。
 ```
 
+## 应该选择哪个示例？
 
-## 算法
+- 如果想先获得可运行代码，请使用**简单实现**。
+- 如果需要生产环境的认证流程，请使用**详细实现**。
 
-### 签名
-
-| 算法 | 特征 |
-| --- |---|
-| `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · 基于哈希<br/>· 对称密钥<br/>· 速度快<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
-| `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · 基于椭圆曲线<br/>· 非对称密钥<br/>· 以速度换取安全性<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
-
-- HMAC 的**速度具有压倒性优势**，因此如果只在意抵御外部入侵，推荐选择 HMAC。
-  - [查看各算法与各语言的基准测试](./intro#performance)
-- 使用 ECDSA 时，得益于公钥结构，可以把签发服务器与验证服务器分开部署；在权限与角色划分清晰的大规模服务器系统中采用它，可以理解为强化了针对内部人员入侵的安全性。
-
-### 加密
-
-| 名称 | 密钥长度 |
-| --- |---|
-| `IV-AES128-GCM` | 128 位 |
-| `IV-AES256-GCM` | 256 位 |
-
-- DAT 所加密的数据很短，因此 128 位与 256 位在实测中几乎没有差别。
-- AES 实际上几乎不消耗资源，所以推荐安全余量更大的 256 位。
-
-
-## DAT-CMS 服务器
-
-**[安装 DAT-CMS](./svc/docker-saro-lab-dat-cms)**
-
-DAT-CMS 并非必需，但如果需要向多台服务器分发证书并将密钥轮换自动化，则强烈建议安装。
-
-## 后续文档
-
-- [DAT 是什么？](./intro) - DAT 的设计背景
-- [DAT 规范](./spec/dat) - 令牌的传输格式
-- [所有库](./libs/) - 各语言的安装方法与示例
+如果 AI 提问，请先提供 CMS URL、保存令牌的环境变量，以及 `secure` 中存储的用户信息。

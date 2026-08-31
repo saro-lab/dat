@@ -25,24 +25,32 @@ pub fn init(config: &LogConfig) {
             .build(&config.file_dir)
             .expect("Failed to create file appender");
 
-        let level = if config.debug { LevelFilter::DEBUG } else { LevelFilter::INFO };
+        let level = if config.debug {
+            LevelFilter::DEBUG
+        } else {
+            LevelFilter::INFO
+        };
 
         if config.json {
-            Some(fmt::layer().json()
-                .with_span_list(false)
-                .with_target(true)
-                .with_thread_ids(true)
-                .with_writer(file_appender)
-                .with_filter(level)
-                .boxed()
+            Some(
+                fmt::layer()
+                    .json()
+                    .with_span_list(false)
+                    .with_target(true)
+                    .with_thread_ids(true)
+                    .with_writer(file_appender)
+                    .with_filter(level)
+                    .boxed(),
             )
         } else {
-            Some(fmt::layer().with_ansi(false)
-                .with_target(true)
-                .with_thread_ids(true)
-                .with_writer(file_appender)
-                .with_filter(level)
-                .boxed()
+            Some(
+                fmt::layer()
+                    .with_ansi(false)
+                    .with_target(true)
+                    .with_thread_ids(true)
+                    .with_writer(file_appender)
+                    .with_filter(level)
+                    .boxed(),
             )
         }
     } else {
@@ -50,13 +58,18 @@ pub fn init(config: &LogConfig) {
     };
 
     let console = if config.console {
-        Some(fmt::layer()
-            .with_level(true)
-            .with_target(true)
-            .with_thread_ids(true)
-            .with_line_number(true)
-            .with_writer(stdout)
-            .with_filter(if config.debug { LevelFilter::DEBUG } else { LevelFilter::INFO })
+        Some(
+            fmt::layer()
+                .with_level(true)
+                .with_target(true)
+                .with_thread_ids(true)
+                .with_line_number(true)
+                .with_writer(stdout)
+                .with_filter(if config.debug {
+                    LevelFilter::DEBUG
+                } else {
+                    LevelFilter::INFO
+                }),
         )
     } else {
         None
@@ -72,36 +85,11 @@ pub fn init(config: &LogConfig) {
 
 fn setup_panic_hook() {
     panic::set_hook(Box::new(move |panic_info| {
-        let payload = panic_info.payload().downcast_ref::<&str>()
-            .copied()
-            .or_else(|| panic_info.payload().downcast_ref::<String>().map(|s| s.as_str()))
-            .unwrap_or("Unknown error");
-
-        let location = panic_info.location()
+        let location = panic_info
+            .location()
             .map(|x| format!("{}:{}", x.file(), x.line()))
             .unwrap_or_else(|| "unknown".to_string());
 
-        tracing::error!(
-            message = payload,
-            location = location,
-            backtrace = backtrace_head(),
-        );
+        tracing::error!(code = crate::codes::STORE_UNKNOWN, location, "PANIC");
     }));
-}
-
-fn backtrace_head() -> String {
-    const LINES: usize = 5;
-
-    std::backtrace::Backtrace::force_capture()
-        .to_string()
-        .lines()
-        .skip_while(|l| {
-            l.contains("backtrace")
-                || l.contains("panic")
-                || l.contains("unwind")
-                || l.trim_start().starts_with("at ")
-        })
-        .take(LINES)
-        .collect::<Vec<_>>()
-        .join("\n")
 }

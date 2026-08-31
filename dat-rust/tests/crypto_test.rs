@@ -5,7 +5,9 @@ use rand::RngExt;
 
 fn rand_string() -> String {
     let mut rng = rand::rng();
-    (0..100).map(|_| { rng.sample(rand::distr::Alphanumeric) as char }).collect()
+    (0..100)
+        .map(|_| rng.sample(rand::distr::Alphanumeric) as char)
+        .collect()
 }
 fn encrypt_and_decrypt(alg: DatCryptoAlgorithm, rand_string: String) -> Result<(), DatError> {
     let tag = format!("Crypto {}", alg);
@@ -22,7 +24,9 @@ fn encrypt_and_decrypt(alg: DatCryptoAlgorithm, rand_string: String) -> Result<(
     println!("{tag} Encrypt1: {encrypt}");
     let decrypt = parse_key.decrypt(decode_base64_url(encrypt.clone())?)?;
     assert_eq!(rand_bytes, decrypt);
-    let fail_decrypt = DatCrypto::generate(alg).decrypt(decode_base64_url(encrypt)?).is_ok();
+    let fail_decrypt = DatCrypto::generate(alg)
+        .decrypt(decode_base64_url(encrypt)?)
+        .is_ok();
     assert!(!fail_decrypt || rand_string.is_empty());
     println!("{tag} Pass {:?} / Fail {}", rand_bytes, fail_decrypt);
     Ok(())
@@ -32,9 +36,7 @@ fn encrypt_and_decrypt(alg: DatCryptoAlgorithm, rand_string: String) -> Result<(
 fn test() {
     let alg_arr = DatCryptoAlgorithm::list();
     alg_arr.iter().for_each(|alg| {
-        (1..20).for_each(|_| {
-            assert!(encrypt_and_decrypt(*alg, rand_string()).is_ok())
-        });
+        (1..20).for_each(|_| assert!(encrypt_and_decrypt(*alg, rand_string()).is_ok()));
         assert!(encrypt_and_decrypt(*alg, "".to_string()).is_ok())
     })
 }

@@ -1,94 +1,70 @@
+# 什么是 DAT？
 
-# DAT (Distributed Access Token)
-
----
-
-## DAT 的引入背景
-
-如今许多系统都采用了 JWT，但在实际的生产环境中却存在以下结构性的局限。<br/>
-为了解决这些问题，我们设计了全新的令牌规范 DAT。
-
-#### 🧩 安全规范的碎片化与强制性不足
-JWT 虽然提供了 JWE 这样的加密标准，但并不强制使用。<br/>
-因此在许多开发环境中，加密被省略，或者以非标准的方式传输数据，从而引发安全漏洞。
-
-#### 🔑 使用静态密钥（Static Key）带来的安全风险
-由于签名密钥的轮换（Key Rolling）并非强制要求，长期使用单一密钥的情况屡见不鲜。这可能导致密钥一旦被窃取，整个系统的安全性随之崩塌；事实上，大型电商网站就曾因此发生过入侵事故。
-
-#### 📉 开销导致的性能下降
-JWT 在每次请求时都要经历 JSON 解析过程，消耗相当可观的 CPU 资源。在要求高性能的环境中，这种解析开销可能成为整个系统的瓶颈。
-
----
-
-## DAT 的核心理念
-
-DAT 的设计原则是：安全不应是可选项而应是强制项，性能则不容妥协。
-
-#### ⚡ 轻量且快速
+DAT (Distributed Access Token) 是一种由共享同一证书的签发服务和验证服务使用的访问令牌规范。验证无需再向签发服务发起请求，也无需中央会话存储，因此可在耦合较松的服务间传递认证结果。
 
 <WireFormat
-    hint="将鼠标悬停在各字段上即可查看说明。"
-    :segments="[
-        {name: 'expire', type: 'uint64 (十进制)', kind: 'meta', note: '过期时间。由规范强制要求，不可省略。'},
-        {name: 'cid', type: 'uint64 (十六进制)', kind: 'meta', note: '用于验证的证书 ID。'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: '向客户端公开的数据。'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: '加密后的数据。没有证书就无法读取。'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: '对前面四个字段的签名。'},
-    ]"
+  hint="由点分隔的字段组成一个 DAT。"
+  :segments="[
+    {name: 'expire', type: 'uint64', kind: 'meta', note: '过期 Unix 时间'},
+    {name: 'cid', type: 'uint64', kind: 'meta', note: '证书 ID'},
+    {name: 'plain', type: 'bytes', kind: 'plain', note: '公开数据'},
+    {name: 'secure', type: 'bytes', kind: 'secure', note: '加密数据'},
+    {name: 'signature', type: 'bytes', kind: 'sig', note: '正文签名'},
+  ]"
 />
 
-如上所示，DAT 只有以点（`.`）分隔的五个固定字段。由于字段的位置由规范确定，因此无需 JSON 解析，只要找到分隔符就能切分出各个值。
+## 组成部分
 
-#### 🔐 强制的安全性
+### DAT
 
-DAT 在数据传输时，将明文（Plain）区域与**加密（Secure）** 区域进行了物理分离。<br/>
-敏感信息必须被强制加密，并且整个过程都由证书中声明的标准算法（ECDSA、AES-GCM 等）加以保护。
+用户或服务随请求发送的字符串。它包含有效期和证书 ID，并可同时携带公开数据和加密数据。
 
-加密算法由**证书决定**，而非由令牌决定。令牌中不含任何算法信息，因此不存在源自 JWT `alg` 头部的算法混淆攻击面。
+### 证书
 
-#### 🔄 强制的密钥轮换
+包含创建和验证 DAT 所需的算法、密钥和时间范围。证书 ID `cid` 不可变；轮换密钥时请使用新的 `cid`。
 
-DAT 证书不仅管理令牌的签发与过期，还直接管理**密钥的生命周期**。<br/>
-证书在规范层面就写死了“从何时到何时可以签发”，一旦超出该期限，就无法再用该证书生成新的令牌。因此，管理员因疏忽而把同一把密钥用上好几年的情况，从结构上就不会发生。
+### 管理器
 
-#### ⏱️ 签发期限与有效期的分离
+客户端库的管理器存储证书，用当前可签发的证书创建 DAT，并用与各 DAT 的 `cid` 匹配的证书进行验证。
 
-“证书可以签发令牌的期限”与“已签发令牌的存活期限”是两个不同的值。<br/>
-得益于此，即使证书停止签发之后，已经发出的令牌仍能走完自己的寿命，而集群则在这段时间里自然地过渡到下一张证书。
+### DAT CMS
 
----
+一个可选服务器，用于创建、存储证书并将其分发给服务。它可向签发服务提供完整证书，向仅验证令牌的服务提供仅验证证书。
 
-## 认证机制比较
+## 签发与验证
 
-| 分类 | **DAT**                       | **JWT** | **Session**           |
-| --- |-------------------------------| --- |---------------------------|
-| **认证方式** | **分布式验证**                     | 分布式验证 | 集中式          |
-| **数据结构** | **Raw Bytes<br/>（基于固定偏移量）** | JSON<br/>（基于 Key-Value 文本） | Serialized Object<br/>（对象序列化） |
-| **解析机制** | **字节数据即时映射**            | 需要 JSON 解析和类型转换 | 需要对象反序列化和 I/O          |
-| **处理性能** | **最高（解析开销最小化）**          | 中等（依赖 JSON 处理性能） | 低（网络/磁盘 I/O）         |
-| **加密** | **默认内置**                     | 需要单独实现 JWE（复杂） | 不适用                     |
-| **密钥管理** | **系统强制轮换（强制安全）**         | 需要自行实现（存在疏于管理的风险） | 不适用                     |
-| **密钥有效期** | **在密钥规范中强制明确**              | 可选（未管理时永久有效） | 由中央服务器管理                  |
-| **算法选择** | **由证书决定（令牌中不含）**          | 令牌头部的 `alg` | 不适用                     |
-| **过期时间** | **规范上的必填字段**                 | 可选声明（`exp`） | 由服务器管理                   |
+<ArchFlow
+  :user="{label: '用户', icon: 'person'}"
+  :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['证书管理', '基于版本的同步']}"
+  :service="{servers: [
+    {label: '签发服务', kind: 'issuer', icon: 'login', request: '凭据', response: 'DAT', sync: '完整证书'},
+    {label: '验证服务', kind: 'verifier', icon: 'apps', request: 'DAT', response: '受保护功能', sync: '仅验证证书'},
+  ]}"
+/>
 
----
+签发服务选择 `plain` 和 `secure` 数据并创建 DAT。验证服务检查有效期、签名和密文，然后将两个数据区域交给应用。`plain` 已签名但未加密，请勿在其中放入机密或个人数据。
 
-## {{t('bench_title')}} {#performance}
+## 证书更改后仍可验证的原因
 
-<BenchBars />
+新证书可签发后，之后的 DAT 使用其新 `cid`。之前的证书在其签发的所有 DAT 的 TTL 结束前仍可用于验证。这样可一并管理密钥轮换和现有令牌的验证期。
 
----
+## DAT 适用场景
 
-## 后续文档
+- 认证与应用功能由不同服务处理的环境
+- 多种运行时签发或验证同一令牌格式的环境
+- 无需中央会话查询即可携带短期授权数据的系统
+- 需在同一令牌内分离公开路由信息与受保护数据的系统
 
-- [{{t('menu_spec_dat')}}](./spec/dat) — 令牌的传输格式与规范化规则
-- [{{t('menu_spec_cert')}}](./spec/dat-certificate) — 证书结构、算法与生命周期
-- [{{t('menu_spec_cms')}}](./spec/cms) — 证书分发以及运维时需要了解的行为
+DAT 本身不定义授权策略。DAT 有效与应用是否允许请求是两件不同的事。
+
+## 后续步骤
+
+- [DAT 规范](./spec/dat)：令牌字段和验证规则
+- [证书](./spec/dat-certificate)：密钥与时间范围
+- [DAT CMS 规范](./spec/cms)：同步契约
+- [库](./libs/)：应用集成
 
 <script setup lang="ts">
-import {useTranslate} from "../.vitepress/src/langs";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
-import BenchBars from "../.vitepress/ui/BenchBars.vue";
-const {t} = useTranslate();
+import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 </script>

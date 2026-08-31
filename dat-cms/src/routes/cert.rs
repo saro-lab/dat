@@ -1,10 +1,10 @@
 use crate::api::{Api, ApiResult};
-use crate::database::db;
 use crate::dto::cert::{CertificateList, ListCertificatesQuery, RegisterCertificateCommand};
 use crate::env::ENV;
 use crate::extract::{ApiPath, ApiQuery};
 use crate::request_context::RequestContext;
-use crate::services::cert_service;
+use crate::state::AppState;
+use axum::extract::State;
 use axum::routing::{get, post};
 use axum::{Extension, Router};
 use serde::Deserialize;
@@ -16,7 +16,7 @@ pub struct GetCertificateQuery {
     pub version: Option<i64>,
 }
 
-pub fn router() -> Router {
+pub fn router() -> Router<AppState> {
     Router::new()
         .route(format!("/{API_VERSION}/cert/{{signature_algorithm}}/{{crypto_algorithm}}/{{certificate_propagation_delay_seconds}}/{{dat_issuance_duration_seconds}}/{{dat_ttl_seconds}}").as_str(), post(generate_certificate))
         .route(format!("/{API_VERSION}/certs").as_str(), get(get_certificate_list))
@@ -52,6 +52,7 @@ pub async fn generate_certificate(
         dat_issuance_duration_seconds,
         dat_ttl_seconds,
     )): ApiPath<(String, String, i64, i64, i64)>,
+    State(state): State<AppState>,
     Extension(ctx): Extension<RequestContext>,
 ) -> ApiResult<String> {
     ctx.is_master()?;
@@ -64,9 +65,11 @@ pub async fn generate_certificate(
     };
     cmd.validate_algorithms()?;
     if let Err(reason) = cmd.validate() {
-        return Err(Api::bad_request().details(serde_json::Value::from(reason)).into());
+        return Err(Api::bad_request()
+            .details(serde_json::Value::from(reason))
+            .into());
     }
-    let (new_cid, delete_count) = cert_service::register(cmd, db()).await?;
+    let (new_cid, delete_count) = state.certificates.register(cmd, &state.db).await?;
     tracing::info!(
         "{} GENERATE CERTIFICATE [{new_cid}] / DELETE {delete_count} CERTIFICATES",
         ctx.ip()
@@ -77,16 +80,19 @@ pub async fn generate_certificate(
 pub async fn get_certificate_list(
     ApiQuery(params): ApiQuery<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
+    State(state): State<AppState>,
 ) -> ApiResult<String> {
     ctx.is_cert_full()?;
-    let certs = cert_service::list(
-        ListCertificatesQuery {
-            version: params.version.unwrap_or(0),
-            verify_only: false,
-        },
-        db(),
-    )
-    .await?;
+    let certs = state
+        .certificates
+        .list(
+            ListCertificatesQuery {
+                version: params.version.unwrap_or(0),
+                verify_only: false,
+            },
+            &state.db,
+        )
+        .await?;
     tracing::info!("{} GET {} CERTIFICATES", ctx.ip(), certs.size());
     Ok(certs.export(params.version.is_some()))
 }
@@ -94,16 +100,19 @@ pub async fn get_certificate_list(
 pub async fn get_certificate_list_json(
     ApiQuery(params): ApiQuery<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
+    State(state): State<AppState>,
 ) -> ApiResult<Api<CertificateList>> {
     ctx.is_cert_full()?;
-    let certs = cert_service::list(
-        ListCertificatesQuery {
-            version: params.version.unwrap_or(0),
-            verify_only: false,
-        },
-        db(),
-    )
-    .await?;
+    let certs = state
+        .certificates
+        .list(
+            ListCertificatesQuery {
+                version: params.version.unwrap_or(0),
+                verify_only: false,
+            },
+            &state.db,
+        )
+        .await?;
     tracing::info!("{} GET {} CERTIFICATES", ctx.ip(), certs.size());
     Ok(Api::ok(certs))
 }
@@ -111,16 +120,19 @@ pub async fn get_certificate_list_json(
 pub async fn get_certificate_verify_only_list(
     ApiQuery(params): ApiQuery<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
+    State(state): State<AppState>,
 ) -> ApiResult<String> {
     ctx.is_cert_verify()?;
-    let certs = cert_service::list(
-        ListCertificatesQuery {
-            version: params.version.unwrap_or(0),
-            verify_only: true,
-        },
-        db(),
-    )
-    .await?;
+    let certs = state
+        .certificates
+        .list(
+            ListCertificatesQuery {
+                version: params.version.unwrap_or(0),
+                verify_only: true,
+            },
+            &state.db,
+        )
+        .await?;
     tracing::info!("{} GET {} VERIFY CERTIFICATES", ctx.ip(), certs.size());
     Ok(certs.export(params.version.is_some()))
 }
@@ -128,16 +140,19 @@ pub async fn get_certificate_verify_only_list(
 pub async fn get_certificate_verify_only_list_json(
     ApiQuery(params): ApiQuery<GetCertificateQuery>,
     Extension(ctx): Extension<RequestContext>,
+    State(state): State<AppState>,
 ) -> ApiResult<Api<CertificateList>> {
     ctx.is_cert_verify()?;
-    let certs = cert_service::list(
-        ListCertificatesQuery {
-            version: params.version.unwrap_or(0),
-            verify_only: true,
-        },
-        db(),
-    )
-    .await?;
+    let certs = state
+        .certificates
+        .list(
+            ListCertificatesQuery {
+                version: params.version.unwrap_or(0),
+                verify_only: true,
+            },
+            &state.db,
+        )
+        .await?;
     tracing::info!("{} GET {} VERIFY CERTIFICATES", ctx.ip(), certs.size());
     Ok(Api::ok(certs))
 }

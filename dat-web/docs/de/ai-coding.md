@@ -1,55 +1,67 @@
-# Leitfaden für KI-Coding
+# Vibe Coding mit AI
 
-## Beispiel für Vibe-Coding
+DAT lässt sich leichter einführen, wenn Sie der AI Ihr aktuelles Projekt und das gewünschte Verhalten beschreiben. Passen Sie in den folgenden Beispielen nur die Adresse und die Namen der Umgebungsvariablen an Ihr Projekt an.
 
+## Einfache Implementierung
+
+Verwenden Sie diese Anfrage, wenn Sie schnell eine Grundstruktur erstellen möchten.
+
+```text
+Ich verwende Kotlin und Spring Boot.
+Füge DAT-Authentifizierung zu Spring Security hinzu.
+
+Lies zuerst https://dat.saro.me/llms.txt und prüfe
+die DAT-Spezifikation und die Verwendung der offiziellen Bibliothek.
+
+Prüfe das Bearer token im Authorization-Header und
+lege bei erfolgreicher Authentifizierung die Benutzerdaten im SecurityContext ab.
+
+Dieser Server stellt keine DAT aus, sondern prüft sie nur.
+Er muss von DAT CMS Zertifikate ausschließlich zur Prüfung abrufen.
+
+Suche zuerst im Projekt nach der CMS-Serveradresse und der Tokenkonfiguration.
+Falls du sie nicht findest, frage mich. Erfinde keine Werte.
+
+Verwende die offizielle DAT-Bibliothek für Java/Kotlin und passe die Implementierung
+an die vorhandene Projektstruktur und den bestehenden Codestil an.
 ```
-Wende DAT auf die Sitzungsauthentifizierung dieses Webservers an.
-Es ist ein verteilter Access Token wie JWT, die Dokumentation findest du unter https://dat.saro.me/llms.txt
-Lies sie zuerst. Lade den gesamten llms-Dokumentensatz herunter, lege ihn im Ordner docs/dat ab und aktualisiere auch die Agentendokumentation.
 
-- Projekt: Java Spring Boot, verwendet Spring Security
-- Ziel: die Sitzung durch DAT ersetzen
-- DAT-CMS-Server: http://localhost:8088 - in die Properties auslagern
-- Signaturalgorithmus: HMAC-SHA512-MFS
-- Verschlüsselungsalgorithmus: IV-AES256-GCM
-- Für alles Übrige die Standardwerte
+## Detaillierte Implementierung
 
-Erfinde keine APIs, die nicht in der Dokumentation stehen.
+Verwenden Sie diese Anfrage, wenn Authentifizierung und Fehlerbehandlung genau festgelegt werden sollen.
+
+```text
+Dieses Projekt verwendet Kotlin, Spring Boot und Spring Security.
+Prüfe die aktuelle Sicherheitskonfiguration und füge DAT-Authentifizierung hinzu.
+
+Lies zuerst https://dat.saro.me/llms.txt und prüfe
+die DAT-Spezifikation, das Verfahren zur Zertifikatssynchronisierung und die API der offiziellen Bibliothek.
+
+Für die Implementierung gelten folgende Bedingungen.
+
+- Lies DAT aus dem Header Authorization: Bearer.
+- Wenn kein DAT vorhanden ist, führe die Anfrage anonym fort.
+- Wenn DAT ungültig oder abgelaufen ist, antworte mit 401.
+- Lege nach erfolgreicher Prüfung Benutzer-ID und Berechtigungen im SecurityContext ab.
+- Lies aus plain nur Werte, die öffentlich sein dürfen.
+- Lies Benutzer-ID und Berechtigungen aus den geprüften secure-Daten.
+- Dieser Server prüft nur und verwendet deshalb verify-only-Zertifikate von DAT CMS.
+- Beziehe CMS-Adresse und Token aus Umgebungsvariablen.
+- Wenn die Zertifikatssynchronisierung beim Start fehlschlägt, muss auch der Anwendungsstart fehlschlagen.
+- Aktualisiere Zertifikate während des Betriebs automatisch und schließe den Manager beim Beenden.
+- Unterscheide Fehlerursachen anhand des DAT-Fehlercodes und nicht anhand der Fehlermeldung.
+- Protokolliere weder den ursprünglichen DAT noch das CMS-Token oder personenbezogene Daten.
+
+Prüfe zuerst die Spring-Security-Konfiguration sowie die Benutzer- und Berechtigungsstruktur des Projekts.
+Wenn CMS-Adresse, Token-Umgebungsvariablen oder Format der secure-Daten nicht ermittelt werden können, frage vor der Implementierung nach.
+Verwende ausschließlich die öffentliche API der offiziellen DAT-Bibliothek für Java/Kotlin.
+
+Erläutere vor der Codeänderung kurz den Authentifizierungsablauf und die zu ändernden Dateien.
 ```
 
+## Welches Beispiel eignet sich?
 
-## Algorithmen
+- Wenn Sie zunächst lauffähigen Code erstellen möchten, verwenden Sie **Einfache Implementierung**.
+- Für einen Authentifizierungsablauf in einer Produktionsumgebung verwenden Sie **Detaillierte Implementierung**.
 
-### Signatur
-
-| Algorithmus | Merkmale |
-| --- |---|
-| `HMAC-SHA256-MFS`<br/>`HMAC-SHA384-MFS`<br/>`HMAC-SHA512-MFS` | · hashbasiert<br/>· symmetrischer Schlüssel<br/>· hohe Geschwindigkeit<br/>· [HMAC](https://en.wikipedia.org/wiki/HMAC) |
-| `ECDSA-P256`<br/>`ECDSA-P384`<br/>`ECDSA-P521` | · auf elliptischen Kurven basierend<br/>· asymmetrischer Schlüssel<br/>· Sicherheit, die mit Geschwindigkeit erkauft wird<br/>· [ECDSA](https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm) |
-
-- HMAC ist **überwältigend schneller**. Kommt es allein darauf an, Angreifer von außen abzuwehren, ist HMAC die richtige Wahl.
-  - [Benchmarks nach Algorithmus und Sprache ansehen](./intro#performance)
-- ECDSA erlaubt es dank seiner Public-Key-Struktur, den ausstellenden Server und die Verifizierungsserver voneinander zu trennen. In einem großen System, in dem Berechtigungen und Rollen bereits getrennt sind, stärkt das die Sicherheit gegenüber Angriffen von innen.
-
-### Verschlüsselung
-
-| Name | Schlüssellänge |
-| --- |---|
-| `IV-AES128-GCM` | 128 Bit |
-| `IV-AES256-GCM` | 256 Bit |
-
-- Die von DAT verschlüsselten Daten sind kurz, daher besteht zwischen 128 Bit und 256 Bit praktisch kein messbarer Unterschied.
-- AES kostet so gut wie keine Ressourcen, deshalb wird 256 Bit für die zusätzliche Sicherheitsreserve empfohlen.
-
-
-## DAT-CMS-Server
-
-**[DAT-CMS installieren](./svc/docker-saro-lab-dat-cms)**
-
-DAT-CMS ist nicht zwingend erforderlich, die Installation wird jedoch dringend empfohlen, wenn Sie Zertifikate auf mehrere Server verteilen und das Key-Rolling automatisieren möchten.
-
-## Weiterführende Dokumente
-
-- [Was ist DAT?](./intro) - Hintergrund des Entwurfs von DAT
-- [DAT-Spezifikation](./spec/dat) - Wire-Format des Tokens
-- [Alle Bibliotheken](./libs/) - Installation und Beispiele je Sprache
+Wenn die AI nachfragt, nennen Sie zuerst die CMS-Adresse, den Namen der Umgebungsvariable für das Token und die in `secure` gespeicherten Benutzerdaten.

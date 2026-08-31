@@ -3,55 +3,44 @@ layout: home
 ---
 
 <script setup lang="ts">
-import {useRoot, useTranslate} from "../.vitepress/src/langs";
+import {useRoot} from "../.vitepress/src/langs";
 import {getLibTags} from "../.vitepress/src/libs";
 import DatExample from "../.vitepress/ui/DatExample.vue";
 import ArchFlow from "../.vitepress/ui/ArchFlow.vue";
 import WireFormat from "../.vitepress/ui/WireFormat.vue";
 
 const root = useRoot();
-const {t} = useTranslate();
 const tags = getLibTags(root.value);
-
-/** Language/registry → emoji, purely decorative. Falls back to a generic package icon. */
 const TAG_ICON: Record<string, string> = {
-    Rust: '🦀', Cargo: '📦',
-    Java: '☕', Kotlin: '🟣', Maven: '📦',
-    JavaScript: '🟨', TypeScript: '🔷', Npm: '📦',
-    Python: '🐍', Pypi: '📦',
-    'C#': '🟩', Nuget: '📦',
-    Go: '🐹',
-    Ruby: '💎', Gems: '📦',
+    Rust: '🦀', Cargo: '📦', Java: '☕', Kotlin: '🟣', Maven: '📦',
+    JavaScript: '🟨', TypeScript: '🔷', Npm: '📦', Python: '🐍', Pypi: '📦',
+    'C#': '🟩', Nuget: '📦', Go: '🐹', Ruby: '💎', Gems: '📦',
     'C++': '🔧', C: '🔧', Vcpkg: '📦',
 };
 function tagIcon(name: string): string {
     return TAG_ICON[name] || (name === '...' ? '' : '📦');
 }
-
 const features = [
-    {icon: '⚡', title: 'بائنری فریم فارمیٹ', desc: 'فکسڈ چوڑائی والے بائنری فیلڈز کے ساتھ ڈیزائن کیا گیا، بغیر کسی پارسنگ مرحلے کے براہ راست آفسیٹ سے پڑھا جاتا ہے۔ کسی JSON انکوڈنگ/ڈی کوڈنگ کے بغیر، کم سے کم اوور ہیڈ کے ساتھ جاری اور تصدیق کیا جاتا ہے۔'},
-    {icon: '🔐', title: 'لازمی کی رولنگ', desc: 'سرٹیفکیٹس ایک مقررہ شیڈول پر خود بخود تبدیل ہوتے ہیں، اور موجودہ سرٹیفکیٹ کی میعاد ختم ہونے سے پہلے اگلا سرٹیفکیٹ ہمیشہ تیار ہوتا ہے۔ یہ ساختی طور پر اس JWT طرز کے آپریشنل واقعے کو روکتا ہے جہاں ایک کی برسوں تک جوں کی توں رہ جاتی ہے۔'},
-    {icon: '⏱️', title: 'اجراء کی مدت اور TTL کی علیحدگی', desc: 'سرٹیفکیٹ کی "اجراء کی ممکنہ مدت" اور "جاری کردہ ٹوکن کی میعاد" الگ الگ ہیں، اس لیے سرٹیفکیٹ کے اجراء بند کر دینے کے بعد بھی پہلے سے جاری ٹوکنز ان کی TTL ختم ہونے تک تصدیق ہوتے رہتے ہیں۔'},
-    {icon: '🌐', title: 'بڑی زبانوں کے لیے نیٹو کلائنٹس', desc: 'Rust، Java/Kotlin، JavaScript/TypeScript، Python، Go، C#، Ruby اور C/C++ کے لیے سرکاری کلائنٹس دستیاب ہیں، ہر ایک اپنی زبان کے مطابق API کے ساتھ۔'},
+    {icon: '⏱️', title: 'میعاد ختم ہونا specification کا حصہ ہے', desc: 'ہر DAT کی میعاد ختم ہونے کا وقت ہوتا ہے۔ ہر application ٹوکن کی مدت کی الگ تشریح نہیں کرتی۔'},
+    {icon: '🔏', title: 'عوامی اور encrypted حصے الگ ہیں', desc: 'routing کے لیے درکار values کو plain میں اور پوشیدہ رہنے والی values کو secure میں رکھیں۔'},
+    {icon: '🔑', title: 'Certificates keys منتخب کرتے ہیں', desc: 'ٹوکن کا cid تصدیق کے certificate کی نشاندہی کرتا ہے۔ keys rotate ہونے پر بھی موجودہ ٹوکن قابلِ تصدیق رہتے ہیں۔'},
+    {icon: '🌐', title: 'Services ایک دوسرے سے query نہیں کرتیں', desc: 'جب ہر service کے پاس یکساں certificates ہوں تو issuing اور verifying servers الگ کام کر سکتے ہیں۔'},
 ];
 </script>
 
 <div class="g-glass rd-box md hero">
 
 <div class="hero-title"><a :href="`${root}/intro`">DAT</a></div>
-<div class="hero-sub">{{t('description')}}</div>
+<div class="hero-sub">Distributed Access Token</div>
 
 <div class="hero-desc">
-DAT (Distributed Access Token) ایک تقسیم شدہ توثیقی ٹوکن ہے — سیشنز جاری یا تصدیق کرنے والے ہر سرور کو صرف ایک ہی
-وضاحت پر متفق ہونا ہوتا ہے۔ یہ فکسڈ چوڑائی والے بائنری فیلڈز پر بنایا گیا ہے، بغیر کسی پارسنگ لاگت کے براہ راست
-آفسیٹ سے پڑھتا اور لکھتا ہے، اور پروٹوکول خود اجراء کی مدت کو TTL سے الگ رکھتا ہے تاکہ سرٹیفکیٹ روٹیشن (کی رولنگ)
-کو زبان یا نفاذ سے آزادانہ طور پر نافذ کیا جا سکے۔
+DAT ایک access token ہے جسے متعدد services ایک ہی specification کے تحت issue اور verify کرتی ہیں۔ ٹوکن میں میعاد ختم ہونے کا وقت،
+certificate ID، عوامی data، encrypted data اور signature ہوتے ہیں۔ verifying server ہر بار issuing server سے پوچھنے کے بجائے اپنے certificate سے ٹوکن چیک کرتا ہے۔
 </div>
 
 <div class="hero-desc">
-DAT سرٹیفکیٹ مینجمنٹ سروس (CMS) ایک شیڈول شدہ cron جاب کے مطابق پورے کلسٹر میں سرٹیفکیٹس کی تخلیق، تقسیم اور
-میعاد ختم ہونے کا انتظام خودکار طور پر کرتی ہے، تاکہ کیز محفوظ طریقے سے روٹیٹ ہو سکیں بغیر اس واقعے کے کہ کئی سرورز
-کے نئے سرٹیفکیٹ کے ساتھ مکمل ہم آہنگ ہونے سے پہلے جاری کیا گیا ٹوکن تصدیق میں ناکام ہو جائے۔
+Certificate میں ٹوکن کے signature اور encryption methods، keys، issuance period اور TTL شامل ہوتے ہیں۔ DAT CMS کے ذریعے services
+certificates خود تقسیم کرنے کے بجائے full یا verify-only certificates synchronize کر سکتی ہیں۔
 </div>
 
 <div class="feature-grid">
@@ -62,47 +51,45 @@ DAT سرٹیفکیٹ مینجمنٹ سروس (CMS) ایک شیڈول شدہ cron
     </div>
 </div>
 
-<div class="section-title">مجموعی فن تعمیر</div>
+<div class="section-title">یہ کیسے کام کرتا ہے</div>
 
 <ArchFlow
     :user="{label: 'صارف', icon: 'person'}"
-    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['مدتِ میعاد کے مطابق سرٹیفکیٹ بنانا', 'ختم شدہ سرٹیفکیٹ ہٹانا']}"
+    :cms="{label: 'DAT CMS', icon: 'workspace_premium', note: ['certificates بنائیں اور محفوظ کریں', 'services کو certificates تقسیم کریں']}"
     :service="{servers: [
-        {label: 'لاگ ان سرور', kind: 'issuer', icon: 'login',
-         request: 'لاگ ان درخواست', response: 'سرٹیفکیٹ سے DAT جاری', sync: 'اجرا کے قابل سرٹیفکیٹ ہم آہنگی'},
-        {label: 'کنٹینٹ سرورز', kind: 'verifier', icon: 'apps',
-         request: 'DAT کے ساتھ کنٹینٹ درخواست', response: 'DAT کی تصدیق کے بعد سروس', sync: 'صرف تصدیقی سرٹیفکیٹ ہم آہنگی'},
+        {label: 'Issuing service', kind: 'issuer', icon: 'login', request: 'تصدیقی درخواست', response: 'DAT issue کریں', sync: 'issuable certificates synchronize کریں'},
+        {label: 'Verifying service', kind: 'verifier', icon: 'apps', request: 'DAT کے ساتھ درخواست', response: 'تصدیق کے بعد جواب', sync: 'verify-only certificates synchronize کریں'},
     ]}"
 />
 
 <div class="hero-desc">
-اجرا کے قابل سرٹیفکیٹ صرف لاگ ان سرور کو ملتے ہیں؛ کنٹینٹ سرورز کو صرف تصدیقی سرٹیفکیٹ ملتے ہیں جن سے وہ آنے والے DAT کی جانچ کرتے ہیں۔
-صارف کو صرف ایک سروس سے واسطہ پڑتا ہے، اور کنٹینٹ سرور کو لاگ ان سرور سے بات کرنے کی ضرورت کبھی نہیں پڑتی۔
+Issuing service full certificates سے DAT بناتی ہے، جبکہ verifying service انہیں verify-only certificates سے چیک کرتی ہے۔
+DAT CMS اختیاری ہے؛ certificates براہِ راست تقسیم کرنے والے ماحول صرف client کا local manager استعمال کر سکتے ہیں۔
 </div>
 
-<div class="section-title">ٹوکن کا ڈھانچہ</div>
+<div class="section-title">DAT کی ساخت</div>
 
 <WireFormat
-    hint="ہر فیلڈ پر ماؤس لے جائیں تو اس کی تفصیل دکھائی دے گی۔"
+    hint="تفصیل دیکھنے کے لیے ہر field پر pointer رکھیں۔"
     :segments="[
-        {name: 'expire', type: 'uint64 (اعشاری)', kind: 'meta', note: 'ٹوکن کی میعاد ختم ہونے کا وقت — وضاحت میں لازمی ہے۔'},
-        {name: 'cid', type: 'uint64 (سولہ اعشاری)', kind: 'meta', note: 'تصدیق میں استعمال ہونے والا سرٹیفکیٹ ID۔'},
-        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'عوامی ڈیٹا جسے کوئی بھی پڑھ سکتا ہے۔'},
-        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'AES-GCM سے خفیہ کیا گیا ڈیٹا۔'},
-        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'پہلے چاروں فیلڈز پر مکمل دستخط۔'},
+        {name: 'expire', type: 'uint64 (decimal)', kind: 'meta', note: 'وہ Unix وقت جب DAT کی میعاد ختم ہوتی ہے۔'},
+        {name: 'cid', type: 'uint64 (hex)', kind: 'meta', note: 'تصدیق میں استعمال ہونے والی certificate ID۔'},
+        {name: 'plain', type: 'Base64Url', kind: 'plain', note: 'عوامی bytes جو encrypted نہیں ہیں۔'},
+        {name: 'secure', type: 'Base64Url', kind: 'secure', note: 'AES-GCM سے محفوظ bytes۔'},
+        {name: 'signature', type: 'Base64Url', kind: 'sig', note: 'تمام پچھلے fields کی تصدیق کرنے والا signature۔'},
     ]"
 />
 
-<a :href="`${root}/svc/docker-saro-lab-dat-cms`" class="cta-banner">
-    <div class="cta-icon">🚀</div>
+<a :href="`${root}/intro`" class="cta-banner">
+    <div class="cta-icon">📘</div>
     <div class="cta-text">
-        <div class="cta-title">{{t('dat_cms')}} ڈیپلائمنٹ گائیڈ</div>
-        <div class="cta-desc">Kubernetes (ملٹی پوڈ) · Docker · بائنری (Linux، macOS، Windows) — ابھی رن کمانڈ تیار کریں</div>
+        <div class="cta-title">DAT کے ساتھ شروع کریں</div>
+        <div class="cta-desc">tokens، certificates، issuing services اور verifying services کے کردار ترتیب سے جانیں۔</div>
     </div>
     <div class="cta-arrow">→</div>
 </a>
 
-<div class="section-title">{{t('platform_support')}}</div>
+<div class="section-title">Libraries</div>
 <div>
     <a v-for="tag in tags" :key="tag.link" :href="tag.link" class="g-chip">
         <span v-if="tagIcon(tag.name)">{{tagIcon(tag.name)}}</span>{{tag.name}}

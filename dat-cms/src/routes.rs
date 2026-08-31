@@ -1,7 +1,8 @@
-use crate::api::{handle_panic, Api};
+use crate::api::{Api, handle_panic};
 use crate::codes;
 use crate::env::ENV;
-use crate::request_context::{request_context_layer, RequestContext};
+use crate::request_context::{RequestContext, request_context_layer};
+use crate::state::AppState;
 use axum::http::StatusCode;
 use axum::middleware::from_fn;
 use axum::response::{IntoResponse, Response};
@@ -11,7 +12,7 @@ use tower_http::catch_panic::CatchPanicLayer;
 mod cert;
 mod debug;
 
-pub fn router() -> Router {
+pub fn router() -> Router<AppState> {
     let mut router = Router::new().merge(cert::router());
 
     if ENV.server.debug {
@@ -30,7 +31,13 @@ async fn handle_error_404(
     uri: axum::http::Uri,
     Extension(ctx): Extension<RequestContext>,
 ) -> Response {
-    tracing::error!("{}: 404 {} {} {}", codes::REQ_NOT_FOUND, method, uri.path(), ctx.ip());
+    tracing::error!(
+        "{}: 404 {} {} {}",
+        codes::REQ_NOT_FOUND,
+        method,
+        uri.path(),
+        ctx.ip()
+    );
     Api::not_found().into_response()
 }
 
@@ -39,6 +46,12 @@ async fn handle_error_405(
     uri: axum::http::Uri,
     Extension(ctx): Extension<RequestContext>,
 ) -> Response {
-    tracing::error!("{}: 405 {} {} {}", codes::REQ_NOT_FOUND, method, uri.path(), ctx.ip());
+    tracing::error!(
+        "{}: 405 {} {} {}",
+        codes::REQ_NOT_FOUND,
+        method,
+        uri.path(),
+        ctx.ip()
+    );
     (StatusCode::METHOD_NOT_ALLOWED, Api::not_found()).into_response()
 }

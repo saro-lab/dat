@@ -1,9 +1,12 @@
+import http.client
 import logging
+import socket
 import threading
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from typing import Optional, Union
+from urllib.parse import urlparse
 
 from .dat_manager import DatManager
 from .dat import Dat, DatPayload
@@ -12,6 +15,28 @@ from .error import DatError, DatRetry
 from .util import parse_u64
 
 logger = logging.getLogger(__name__)
+
+
+class _CleanupTimer(threading.Timer):
+    def run(self):
+        try:
+            super().run()
+        finally:
+            self.function = None
+            self.args = None
+            self.kwargs = None
+
+
+class _SameOriginRedirect(urllib.request.HTTPRedirectHandler):
+    def __init__(self, origin: str):
+        super().__init__()
+        self._origin = origin
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        parsed = urlparse(newurl)
+        if (parsed.scheme, parsed.netloc) != self._origin:
+            raise urllib.error.URLError("cross-origin redirect is not allowed")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
 def _http_status_error(status: int) -> DatError:
@@ -34,13 +59,17 @@ class DatCmsManager:
         token: str,
         interval_seconds: int = 60,
         verify_only: bool = False,
-        dat_manager: Optional[DatManager] = None
+        dat_manager: Optional[DatManager] = None,
+        connect_timeout_seconds: float = 5,
+        sync_timeout_seconds: float = 15,
     ):
         self._uri = uri
         self._token = token
         self._interval_seconds = interval_seconds
         self._verify_only = verify_only
         self._manager = dat_manager or DatManager()
+        self._connect_timeout_seconds = connect_timeout_seconds
+        self._sync_timeout_seconds = sync_timeout_seconds
         self._version = 0
         self._state_lock = threading.Lock()
         self._sync_lock = threading.Lock()
@@ -56,7 +85,7 @@ class DatCmsManager:
     def _schedule_sync(self):
         with self._state_lock:
             if not self._stopped:
-                self._timer = threading.Timer(self._interval_seconds, self._run_sync_task)
+                self._timer = _CleanupTimer(self._interval_seconds, self._run_sync_task)
                 self._timer.daemon = True
                 self._timer.start()
 
@@ -78,7 +107,7 @@ class DatCmsManager:
 
     def sync(self):
         try:
-            self._sync_or_raise()
+            self.sync_or_raise()
             self._last_error = None
         except DatError as e:
             if e.retry is not DatRetry.STATE:
@@ -88,7 +117,7 @@ class DatCmsManager:
             self._last_error = DatError(E.CMS_UNKNOWN, "unclassified cms failure", e)
             logger.exception("[CRITICAL] DAT CMS SYNC %s", self._uri)
 
-    def _sync_or_raise(self):
+    def sync_or_raise(self):
         if not self._sync_lock.acquire(blocking=False):
             logger.debug("cms sync skipped, previous sync still running: %s", self._uri)
             raise DatError(E.CMS_SYNC_IN_PROGRESS)
@@ -100,7 +129,10 @@ class DatCmsManager:
             request.add_header("Authorization", self._token)
 
             try:
-                response_cm = urllib.request.urlopen(request, timeout=10)
+                parsed = urlparse(self._uri)
+                opener = urllib.request.build_opener(_SameOriginRedirect((parsed.scheme, parsed.netloc)))
+                timeout = self._sync_timeout_seconds or self._connect_timeout_seconds or None
+                response_cm = opener.open(request, timeout=timeout)
             except urllib.error.HTTPError as e:
                 raise _http_status_error(e.code) from e
             except urllib.error.URLError as e:
@@ -110,29 +142,32 @@ class DatCmsManager:
                 if not (200 <= response.status <= 299):
                     raise _http_status_error(response.status)
 
-                body = response.read().decode('utf-8')
-
-                if not body:
-                    logger.debug("No new certificate: %s", url)
-                    return
-
+                try:
+                    body_bytes = response.read()
+                except (OSError, socket.timeout, http.client.HTTPException) as e:
+                    raise DatError(E.CMS_UNREACHABLE, f"cannot read {self._uri}", e) from e
+                if not body_bytes:
+                    raise DatError(E.CMS_MALFORMED, "response is empty")
+                if any(byte > 0x7f for byte in body_bytes):
+                    raise DatError(E.CMS_MALFORMED, "response is not strict ASCII")
+                body = body_bytes.decode('ascii')
                 lines = body.split('\n', 1)
-                if len(lines) < 2:
-                    if body.startswith('\n'):
-                        raise DatError(E.CMS_MALFORMED, "response has no version line")
-                    logger.debug("No new certificate: %s", url)
-                    return
-
-                new_version_str = lines[0].strip()
-                new_certificates = lines[1].strip()
+                new_version_str = lines[0]
+                new_certificates = lines[1].strip() if len(lines) == 2 else ""
 
                 if not new_version_str:
                     raise DatError(E.CMS_MALFORMED, "version line is empty")
 
                 try:
+                    if not new_version_str.isascii() or not new_version_str.isdecimal() or not new_version_str:
+                        raise DatError(E.CMS_MALFORMED, "version line is not a plain decimal u64")
                     new_version = parse_u64(new_version_str)
                 except DatError as e:
                     raise DatError(E.CMS_MALFORMED, "version line is not a plain decimal u64", e) from e
+
+                if not new_certificates:
+                    logger.debug("No new certificate: %s", url)
+                    return
 
                 if new_version < self._version:
                     logger.warning("%s: %d -> %d", E.CMS_VERSION_RESET, self._version, new_version)
@@ -166,6 +201,8 @@ class DatCmsManagerBuilder:
         self._token = ""
         self._verify_only = False
         self._interval_seconds = 60
+        self._connect_timeout_seconds = 5
+        self._sync_timeout_seconds = 15
 
     def uri(self, uri: str):
         self._uri = uri.rstrip('/')
@@ -186,6 +223,14 @@ class DatCmsManagerBuilder:
     def interval_off(self):
         return self.interval_seconds(0)
 
+    def connect_timeout_seconds(self, seconds: float):
+        self._connect_timeout_seconds = seconds
+        return self
+
+    def sync_timeout_seconds(self, seconds: float):
+        self._sync_timeout_seconds = seconds
+        return self
+
     def build(self) -> DatCmsManager:
         from urllib.parse import urlparse
         parsed = urlparse(self._uri)
@@ -205,5 +250,7 @@ class DatCmsManagerBuilder:
             uri=final_uri,
             token=self._token,
             interval_seconds=self._interval_seconds,
-            verify_only=self._verify_only
+            verify_only=self._verify_only,
+            connect_timeout_seconds=self._connect_timeout_seconds,
+            sync_timeout_seconds=self._sync_timeout_seconds,
         )

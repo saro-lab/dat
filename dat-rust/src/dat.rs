@@ -22,12 +22,12 @@ impl Dat {
     }
     #[inline]
     pub(crate) fn plain(&self) -> Result<Vec<u8>, DatError> {
-        decode_base64_url(&self.dat[self.plain_pos.. self.secure_pos - 1])
+        decode_base64_url(&self.dat[self.plain_pos..self.secure_pos - 1])
             .map_err(|_| DatError::TokenMalformed("plain field is not base64url"))
     }
     #[inline]
     pub(crate) fn secure(&self) -> Result<Vec<u8>, DatError> {
-        decode_base64_url(&self.dat[self.secure_pos.. ])
+        decode_base64_url(&self.dat[self.secure_pos..])
             .map_err(|_| DatError::TokenMalformed("secure field is not base64url"))
     }
 
@@ -50,7 +50,7 @@ impl FromStr for Dat {
     }
 }
 
-impl <'a>TryFrom<&'a str> for Dat {
+impl<'a> TryFrom<&'a str> for Dat {
     type Error = DatError;
     fn try_from(dat: &'a str) -> Result<Self, Self::Error> {
         dat.to_string().try_into()
@@ -63,16 +63,27 @@ impl TryFrom<String> for Dat {
         let mut parts = dat.split('.');
 
         let expire_str = parts.next().unwrap_or("");
-        let cid_str = parts.next().ok_or(DatError::TokenMalformed("expected exactly 5 dot-separated fields"))?;
-        let plain = parts.next().ok_or(DatError::TokenMalformed("expected exactly 5 dot-separated fields"))?;
-        let secure = parts.next().ok_or(DatError::TokenMalformed("expected exactly 5 dot-separated fields"))?;
-        let signature = parts.next().ok_or(DatError::TokenMalformed("expected exactly 5 dot-separated fields"))?;
+        let cid_str = parts.next().ok_or(DatError::TokenMalformed(
+            "expected exactly 5 dot-separated fields",
+        ))?;
+        let plain = parts.next().ok_or(DatError::TokenMalformed(
+            "expected exactly 5 dot-separated fields",
+        ))?;
+        let secure = parts.next().ok_or(DatError::TokenMalformed(
+            "expected exactly 5 dot-separated fields",
+        ))?;
+        let signature = parts.next().ok_or(DatError::TokenMalformed(
+            "expected exactly 5 dot-separated fields",
+        ))?;
         if parts.next().is_some() {
-            return Err(DatError::TokenMalformed("expected exactly 5 dot-separated fields"));
+            return Err(DatError::TokenMalformed(
+                "expected exactly 5 dot-separated fields",
+            ));
         }
 
-        let expire = parse_u64_dec(expire_str)
-            .ok_or(DatError::TokenMalformed("expire field is not a plain decimal u64"))?;
+        let expire = parse_u64_dec(expire_str).ok_or(DatError::TokenMalformed(
+            "expire field is not a plain decimal u64",
+        ))?;
         if expire <= now_unix_timestamp() {
             return Err(DatError::TokenExpired);
         }

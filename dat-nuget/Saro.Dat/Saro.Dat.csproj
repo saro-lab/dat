@@ -9,7 +9,7 @@
 
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>saro-dat</PackageId>
-        <Version>4.6.1</Version>
+        <Version>4.7.0</Version>
         <Authors>Marker Seoul</Authors>
         <Company>SARO</Company>
 

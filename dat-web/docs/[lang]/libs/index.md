@@ -1,11 +1,5 @@
-# {{t('menu_libs_index')}}
-
-{{t('libs_intro')}}
-
-<LibraryList />
+<LibraryIndexGuide />
 
 <script setup lang="ts">
-import LibraryList from '../../.vitepress/ui/LibraryList.vue';
-import { useTranslate } from '../../.vitepress/src/langs';
-const { t } = useTranslate();
+import LibraryIndexGuide from '../../.vitepress/ui/LibraryIndexGuide.vue';
 </script>

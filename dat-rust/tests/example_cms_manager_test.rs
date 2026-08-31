@@ -8,16 +8,20 @@ mod dat_cms {
 
     #[inline]
     pub fn get_cms_manager() -> Result<Arc<DatCmsManager>, DatError> {
-        DAT_CMS_MANAGER.get()
+        DAT_CMS_MANAGER
+            .get()
             .map(|manager| Arc::clone(manager))
-            .ok_or(DatError::InternalUnknown("dat auto sync manager not initialized"))
+            .ok_or(DatError::InternalUnknown(
+                "dat auto sync manager not initialized",
+            ))
     }
 
     async fn test_auto_sync() -> Result<(), DatError> {
         let manager = get_cms_manager()?;
 
         let plain = "Unicode 유니코드 ユニコード 万国码 يونيكود यूनिकोड Юникод 🦄💻";
-        let secure = "Ciphertext 암호문 暗号文 密文 Шифротекст Texte chiffré Geheimtext نص مشفر सिफरपाठ 🔐";
+        let secure =
+            "Ciphertext 암호문 暗号文 密文 Шифротекст Texte chiffré Geheimtext نص مشفر सिफरपाठ 🔐";
 
         let dat = manager.issue(plain, secure)?;
 
@@ -41,16 +45,20 @@ mod dat_cms {
             .init();
 
         let manager = DatCmsManager::builder()
-            .url("http://localhost:8088").unwrap()
+            .url("http://localhost:8088")
+            .unwrap()
             .interval_off()
             .interval(std::time::Duration::from_secs(1))
             .token("12345678901b")
-            .build().await;
-        DAT_CMS_MANAGER.set(manager).map_err(|_| "failed to set auto sync manager".to_string()).unwrap();
+            .build()
+            .await;
+        DAT_CMS_MANAGER
+            .set(manager)
+            .map_err(|_| "failed to set auto sync manager".to_string())
+            .unwrap();
 
         let _ = test_auto_sync().await;
 
         tokio::time::sleep(std::time::Duration::from_secs(10)).await
     }
-
 }

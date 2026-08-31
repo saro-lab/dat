@@ -17,8 +17,35 @@ pub struct CachedCertificate {
 
 impl CachedCertificate {
     pub fn issuable(&self) -> bool {
-        let now = now_unix_timestamp();
-        self.issuance_start <= now && self.issuance_end > now
+        self.issuable_at(now_unix_timestamp())
+    }
+
+    fn issuable_at(&self, now: u64) -> bool {
+        self.issuance_start <= now && now <= self.issuance_end
+    }
+}
+
+#[cfg(test)]
+mod export_tests {
+    use super::*;
+
+    fn certificate(start: u64, end: u64) -> CachedCertificate {
+        CachedCertificate {
+            version: 1,
+            full: String::new(),
+            verify_only: String::new(),
+            issuance_start: start,
+            issuance_end: end,
+        }
+    }
+
+    #[test]
+    fn issuance_window_includes_both_boundaries() {
+        let cert = certificate(100, 200);
+        assert!(!cert.issuable_at(99));
+        assert!(cert.issuable_at(100));
+        assert!(cert.issuable_at(200));
+        assert!(!cert.issuable_at(201));
     }
 }
 
@@ -89,17 +116,56 @@ impl CertificateList {
     }
 
     pub fn export(&self, prefix_version: bool) -> String {
-        let mut result = String::new();
+        let certificate_bytes = self.list.iter().map(String::len).sum::<usize>();
+        let separators = self.list.len().saturating_sub(1);
+        let version_bytes = if prefix_version {
+            self.version.to_string().len()
+        } else {
+            0
+        };
+        let newline_after_version = prefix_version && !self.list.is_empty();
+        let mut result = String::with_capacity(
+            version_bytes + certificate_bytes + separators + usize::from(newline_after_version),
+        );
 
         if prefix_version {
-            result.push_str(self.version.to_string().as_str());
-            if !&self.list.is_empty() {
+            result.push_str(&self.version.to_string());
+            if newline_after_version {
                 result.push('\n');
             }
         }
 
-        result.push_str(&self.list.join("\n"));
+        for (index, certificate) in self.list.iter().enumerate() {
+            if index != 0 {
+                result.push('\n');
+            }
+            result.push_str(certificate);
+        }
 
         result
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CertificateList;
+
+    #[test]
+    fn plaintext_export_preserves_response_bytes() {
+        let list = CertificateList {
+            version: 42,
+            list: vec!["a.cert".to_string(), "b.cert".to_string()],
+        };
+
+        assert_eq!(list.export(true), "42\na.cert\nb.cert");
+        assert_eq!(list.export(false), "a.cert\nb.cert");
+        assert_eq!(
+            CertificateList {
+                version: 42,
+                list: Vec::new(),
+            }
+            .export(true),
+            "42"
+        );
     }
 }
