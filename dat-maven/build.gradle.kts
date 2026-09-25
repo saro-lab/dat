@@ -4,7 +4,7 @@ import java.net.URI
 import java.util.*
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "2.4.10"
+    id("org.jetbrains.kotlin.jvm") version "2.4.20"
 	id("org.ec4j.editorconfig") version "0.1.0"
 	id("idea")
 	signing
@@ -13,7 +13,7 @@ plugins {
 
 val datGroupId = "me.saro"
 val datArtifactId = "dat"
-val datVersion = "4.7.0"
+val datVersion = "4.7.1"
 
 group = datGroupId
 version = datVersion
@@ -23,12 +23,12 @@ repositories {
 }
 
 dependencies {
-    implementation("org.bouncycastle:bcprov-jdk18on:1.85.2")
-    implementation("org.slf4j:slf4j-api:2.0.18")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
+    implementation("org.slf4j:slf4j-api:2.0.20")
 
 	testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.1.3")
-    testImplementation("ch.qos.logback:logback-classic:1.6.2")
+    testImplementation("ch.qos.logback:logback-classic:1.6.4")
 }
 
 java {
