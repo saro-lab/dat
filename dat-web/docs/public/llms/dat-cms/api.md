@@ -1,6 +1,6 @@
 # DAT CMS — API Reference
 
-This document targets DAT 4.7.x and later; the endpoint contract below is unchanged across the 4.7.x line. Source-verified against `dat-cms/src/routes/cert.rs`, `dat-cms/src/dto/cert.rs`, and `dat-cms/src/services/cert_service.rs`.
+This document targets DAT 4.7.1 and later; the endpoint contract below is unchanged across the 4.7.x line. Source-verified against `dat-cms/src/routes/cert.rs`, `dat-cms/src/dto/cert.rs`, and `dat-cms/src/services/cert_service.rs`.
 
 ## Endpoints
 
@@ -9,7 +9,7 @@ This document targets DAT 4.7.x and later; the endpoint contract below is unchan
 | `GET /health` | none | `OK` |
 | `GET /ip` | none | request client IP as text |
 | `GET /version/api` | none | `v1` |
-| `GET /version` | `TOKEN_MASTER` | CMS server version string (`CARGO_PKG_VERSION`, e.g. `4.7.0`) |
+| `GET /version` | `TOKEN_MASTER` | CMS server version string (`CARGO_PKG_VERSION`, e.g. `4.7.1`) |
 | `POST /v1/cert/{signature_algorithm}/{crypto_algorithm}/{certificate_propagation_delay_seconds}/{dat_issuance_duration_seconds}/{dat_ttl_seconds}` | `TOKEN_MASTER` | `OK` |
 | `GET /v1/certs?version=N` | `TOKEN_CERT_FULL` | plain full-certificate response |
 | `GET /v1/certs.json?version=N` | `TOKEN_CERT_FULL` | JSON success envelope |

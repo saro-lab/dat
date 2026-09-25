@@ -1,6 +1,6 @@
 # dat-rust API Reference
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. Source-verified against `dat-rust/src/{manager,cms_manager,certificate,payload,dat,error}.rs`. Module paths below assume `use dat::...`.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. Source-verified against `dat-rust/src/{manager,cms_manager,certificate,payload,dat,error}.rs`. Module paths below assume `use dat::...`.
 
 ## `DatManager` (`dat::manager::DatManager`)
 
@@ -9,7 +9,7 @@ In-process certificate store. Not networked; `DatCmsManager` wraps one of these.
 | Method | Signature | Notes |
 | --- | --- | --- |
 | `new()` / `Default` | `fn new() -> Self` | Starts with no certificates and no issuer |
-| `issue` | `fn issue(&self, plain: &str, secure: &str) -> Result<String, DatError>` | Text-only input. There is no separate byte-input `issue` in 4.7.0; Base64/hex-encode binary payloads yourself before calling `issue` if you need literal bytes in `plain`/`secure` |
+| `issue` | `fn issue(&self, plain: &str, secure: &str) -> Result<String, DatError>` | Text-only input. There is no separate byte-input `issue` in 4.7.1; Base64/hex-encode binary payloads yourself before calling `issue` if you need literal bytes in `plain`/`secure` |
 | `parse` | `fn parse<E: Into<DatError>>(&self, dat: impl TryInto<Dat, Error = E>) -> Result<DatPayload, DatError>` | Verifies the signature before returning; accepts `&str`, `String`, or an already-parsed `Dat` |
 | `parse_without_verify` | same shape as `parse` | Skips signature verification. Do not use for authentication/authorization — see [integration.md](./integration.md) |
 | `export_cids` | `fn export_cids(&self) -> Vec<u64>` | Currently held certificate IDs |

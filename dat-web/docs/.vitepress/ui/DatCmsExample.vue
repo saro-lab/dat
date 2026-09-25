@@ -220,6 +220,9 @@ import {
 } from "saro-dat";
 import CodeBox from "./CodeBox.vue";
 import {useTranslate} from "../src/langs";
+import {findLibrary} from "../src/libs";
+const cms = findLibrary('Docker', 'sarolab/dat-cms')!;
+const cmsImage = `${cms.id}:${cms.version}`;
 const {t} = useTranslate();
 const help = (key: string) => t(key).replace(/\{(\w+)\}/g, (_, k) => t(k));
 
@@ -513,7 +516,7 @@ async function makeCode() {
       _ln = `^`;
     }
     let dockerOptions = options.map(e => `  -e ${e} ${_ln}\n`).join('');
-    code.value = `${_env} run -d --name dat-cms -p ${_port || '8088'}:80 ${_ln}\n${dockerOptions}  sarolab/dat-cms`
+    code.value = `${_env} run -d --name dat-cms -p ${_port || '8088'}:80 ${_ln}\n${dockerOptions}  ${cmsImage}`
   } else if (_isBinary) {
     codeLang.value = 'bash';
     let _bash = binaryBash.value;
@@ -585,7 +588,7 @@ spec:
         - name: nexus-registry-secret
       containers:
         - name: publisher-cms
-          image: sarolab/dat-cms:latest
+          image: ${cmsImage}
           imagePullPolicy: Always
           ports:
             - containerPort: 80${k8sOptions}${volumeMounts}

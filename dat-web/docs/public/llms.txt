@@ -41,7 +41,7 @@ Each platform below has its own machine-oriented documentation set under `llms/<
 
 ### DAT CMS server — `dat-cms`
 
-Optional certificate creation, storage, and version-cursor distribution service (Rust, scratch container image). Runs the CMS v1 HTTP API that every client manager below can synchronize against.
+Version `4.7.1`. Optional certificate creation, storage, and version-cursor distribution service (Rust, scratch container image). Runs the CMS v1 HTTP API that every client manager below can synchronize against.
 
 - [Overview](https://dat.saro.me/llms/dat-cms/overview.md)
 - [API reference](https://dat.saro.me/llms/dat-cms/api.md)
@@ -104,7 +104,7 @@ Gem `saro-dat`.
 
 ### Rust — `dat-rust`
 
-Crate `dat`.
+Crate `dat`, version `4.7.1`.
 
 - [Overview](https://dat.saro.me/llms/dat-rust/overview.md)
 - [API reference](https://dat.saro.me/llms/dat-rust/api.md)

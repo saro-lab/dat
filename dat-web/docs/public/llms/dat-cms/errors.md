@@ -1,6 +1,6 @@
 # DAT CMS — Server Error Reference
 
-This document targets DAT 4.7.x and later; the error-code catalog below is unchanged across the 4.7.x line. Source-verified against `dat-cms/src/codes.rs`.
+This document targets DAT 4.7.1 and later; the error-code catalog below is unchanged across the 4.7.x line. Source-verified against `dat-cms/src/codes.rs`.
 
 All server error responses are the JSON envelope `{"code":"<CODE>","details":{...}}`; `details` is optional. See [api.md](./api.md) for where each code is emitted.
 

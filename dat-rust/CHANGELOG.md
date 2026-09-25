@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [4.7.1] - 2026-09-25
+
+### Changed
+
+- Updated the Rust crate version and documentation examples to 4.7.1.
+- Retained wire and API compatibility with the 4.7.x release line.
+
 ## [4.7.0] - 2026-08-29
 
 ### Added

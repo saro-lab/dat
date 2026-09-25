@@ -1,6 +1,6 @@
 # dat-rust Integration Checklist
 
-This document targets DAT 4.7.x and later for the `dat` crate. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. See [main llms.txt](https://dat.saro.me/llms.txt) for the protocol-wide checklist; this file is the Rust-specific translation.
+This document targets DAT 4.7.1 and later for the `dat` crate. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. See [main llms.txt](https://dat.saro.me/llms.txt) for the protocol-wide checklist; this file is the Rust-specific translation.
 
 ## Role and certificate deployment
 
@@ -41,6 +41,6 @@ This document targets DAT 4.7.x and later for the `dat` crate. Any release shari
 
 ## Testing and release status
 
-- [ ] The 4.7.0 core and strictness test suites pass under Miri. The full macOS async test suite cannot run under Miri because Miri does not implement the `kqueue` syscall it depends on — do not treat a Miri run on macOS as covering the async/CMS path; rely on the native async test run for that coverage.
+- [ ] The 4.7.0 core and strictness test suites passed under Miri. The full macOS async test suite cannot run under Miri because Miri does not implement the `kqueue` syscall it depends on — do not treat a Miri run on macOS as covering the async/CMS path; rely on the native async test run for that coverage.
 
 See [api.md](./api.md) for exact signatures and [errors.md](./errors.md) for the full code catalog.

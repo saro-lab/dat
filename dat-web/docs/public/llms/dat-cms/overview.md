@@ -1,6 +1,6 @@
 # DAT CMS — Overview
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible: the protocol, CMS contract, and error-code meanings are unchanged across the 4.7.x line.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible: the protocol, CMS contract, and error-code meanings are unchanged across the 4.7.x line.
 
 For the full DAT wire protocol and CMS v1 contract shared by every platform, read [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) first. This document only covers what is specific to the `dat-cms` server implementation.
 

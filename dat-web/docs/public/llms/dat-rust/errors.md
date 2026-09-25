@@ -1,5 +1,7 @@
 # dat-rust Error Reference
 
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here.
+
 `dat::error::DatError` is a `Clone + Eq + std::error::Error` enum. Match on `.code()` (the stable `DAT_*` string), not the enum variant name or the `Display`/message text, for cross-language and cross-version stability.
 
 ```rust

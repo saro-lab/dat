@@ -1,6 +1,6 @@
 # dat-rust Overview
 
-This document targets DAT 4.7.x and later for the `dat` crate (`dat-rust`). Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here.
+This document targets DAT 4.7.1 and later for the `dat` crate (`dat-rust`). Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here.
 
 For the full DAT wire protocol, certificate grammar, algorithm names, CMS v1 contract, and error catalog shared by every platform, see the [main llms.txt](https://dat.saro.me/llms.txt). This document only covers what is specific to the Rust crate.
 
@@ -28,14 +28,14 @@ This split is a deliberate performance choice, not unfinished backend consolidat
 
 ```toml
 [dependencies]
-dat = "4.7.0"
+dat = "4.7.1"
 ```
 
 Enable CMS v1 client support (pulls in `tokio` with the `time` feature and `reqwest`) with the `dat_cms` feature, or the `full` feature (`dat_cms` + `tracing` log lines):
 
 ```toml
 [dependencies]
-dat = { version = "4.7.0", features = ["full"] }
+dat = { version = "4.7.1", features = ["full"] }
 ```
 
 See docs.rs for the full list of feature flags.

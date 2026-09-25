@@ -1,6 +1,6 @@
 # DAT CMS — Operations Reference
 
-This document targets DAT 4.7.x and later; the operational behavior below is unchanged across the 4.7.x line. Source-verified against `dat-cms/Dockerfile`, `dat-cms/src/env.rs`, `dat-cms/src/cron.rs`, and `dat-cms/src/services/cert_service.rs`.
+This document targets DAT 4.7.1 and later; the operational behavior below is unchanged across the 4.7.x line. Source-verified against `dat-cms/Dockerfile`, `dat-cms/src/env.rs`, `dat-cms/src/cron.rs`, and `dat-cms/src/services/cert_service.rs`.
 
 ## Container
 
@@ -21,7 +21,7 @@ docker run --rm -p 8088:8088 \
   -e TOKEN_MASTER='masterToken' \
   -e TOKEN_CERT_FULL='fullToken' \
   -e TOKEN_CERT_VERIFY='verifyToken' \
-  sarolab/dat-cms:4.7.x
+  sarolab/dat-cms:4.7.1
 ```
 
 The image already runs as UID/GID `10001`; mount `/data` writable by that UID/GID for SQLite.

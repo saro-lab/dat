@@ -18,7 +18,7 @@
   -e TOKEN_MASTER='replace-with-a-secret' \
   -e TOKEN_CERT_FULL='replace-with-a-secret' \
   -e TOKEN_CERT_VERIFY='replace-with-a-secret' \
-  sarolab/dat-cms</code></pre>
+  {{ cmsImage }}</code></pre>
 
       <h2>데이터베이스</h2>
       <p><code>DB_URI</code>로 SQLite, PostgreSQL 또는 MySQL 연결을 지정합니다. MariaDB는 MySQL 프로토콜로 연결합니다. CMS는 인증서 조회 결과를 스냅샷으로 캐시하며, 저장소 갱신이 일시적으로 실패하면 마지막으로 성공한 스냅샷을 계속 제공합니다.</p>
@@ -63,7 +63,7 @@
   runAsGroup: 10001
 containers:
   - name: dat-cms
-    image: sarolab/dat-cms
+    image: {{ cmsImage }}
     ports: [{ containerPort: 8088 }]
     readinessProbe: { httpGet: { path: /health, port: 8088 } }
     livenessProbe: { httpGet: { path: /health, port: 8088 } }</code></pre>
@@ -85,7 +85,7 @@ containers:
   -e TOKEN_MASTER='replace-with-a-secret' \
   -e TOKEN_CERT_FULL='replace-with-a-secret' \
   -e TOKEN_CERT_VERIFY='replace-with-a-secret' \
-  sarolab/dat-cms</code></pre>
+  {{ cmsImage }}</code></pre>
 
       <h2>Database</h2>
       <p>Use <code>DB_URI</code> to configure a SQLite, PostgreSQL, or MySQL connection. MariaDB connects through the MySQL protocol. CMS caches certificate query results as a snapshot and continues serving the last successful snapshot when a storage refresh fails temporarily.</p>
@@ -130,7 +130,7 @@ containers:
   runAsGroup: 10001
 containers:
   - name: dat-cms
-    image: sarolab/dat-cms
+    image: {{ cmsImage }}
     ports: [{ containerPort: 8088 }]
     readinessProbe: { httpGet: { path: /health, port: 8088 } }
     livenessProbe: { httpGet: { path: /health, port: 8088 } }</code></pre>
@@ -152,7 +152,7 @@ containers:
   -e TOKEN_MASTER='replace-with-a-secret' \
   -e TOKEN_CERT_FULL='replace-with-a-secret' \
   -e TOKEN_CERT_VERIFY='replace-with-a-secret' \
-  sarolab/dat-cms</code></pre>
+  {{ cmsImage }}</code></pre>
 
       <h2>{{ sharedText.cms.databaseTitle }}</h2>
       <p v-html="renderInline(sharedText.cms.databaseBody1)" />
@@ -191,7 +191,7 @@ containers:
   runAsGroup: 10001
 containers:
   - name: dat-cms
-    image: sarolab/dat-cms
+    image: {{ cmsImage }}
     ports: [{ containerPort: 8088 }]
     readinessProbe: { httpGet: { path: /health, port: 8088 } }
     livenessProbe: { httpGet: { path: /health, port: 8088 } }</code></pre>
@@ -205,7 +205,10 @@ import { useData } from 'vitepress'
 import DatCmsExample from './DatCmsExample.vue'
 import { useRoot } from '../src/langs'
 import { getGuideLocale } from '../src/guideLocales'
+import { findLibrary } from '../src/libs'
 
+const cms = findLibrary('Docker', 'sarolab/dat-cms')!
+const cmsImage = `${cms.id}:${cms.version}`
 const { localeIndex } = useData()
 const isKorean = computed(() => localeIndex.value === 'ko')
 const isEnglish = computed(() => localeIndex.value === 'en')
