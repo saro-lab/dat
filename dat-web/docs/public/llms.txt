@@ -37,7 +37,7 @@ DAT is a bearer-token specification with a fixed five-field ASCII wire format, m
 
 ## Platforms
 
-Each platform below has its own machine-oriented documentation set under `llms/<project>/`: an overview (purpose, install, quick usage), an API reference, and either an integration checklist (clients) or an operations reference (the CMS server). All platforms implement the same DAT wire protocol and CMS v1 contract described above; only language ergonomics, transport details, and lifecycle mechanics differ.
+The Go and C/C++ clients are version `4.7.0`; the other clients and the CMS server are version `4.7.1`. Each platform below has its own machine-oriented documentation set under `llms/<project>/`: an overview (purpose, install, quick usage), an API reference, and either an integration checklist (clients) or an operations reference (the CMS server). All platforms implement the same DAT wire protocol and CMS v1 contract described above; only language ergonomics, transport details, and lifecycle mechanics differ.
 
 ### DAT CMS server — `dat-cms`
 

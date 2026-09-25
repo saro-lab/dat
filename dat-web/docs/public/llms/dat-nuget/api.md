@@ -1,6 +1,6 @@
 # saro-dat (C# / .NET) — API Reference
 
-This document targets DAT 4.7.x and later; any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. Source-verified against `Saro.Dat/*.cs`. All types live in namespace `Saro.Dat`.
+This document targets DAT 4.7.1 and later; any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. Source-verified against `Saro.Dat/*.cs`. All types live in namespace `Saro.Dat`.
 
 ## `DatManager`
 

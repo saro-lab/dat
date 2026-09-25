@@ -1,6 +1,6 @@
 # saro-dat (C# / .NET) — Overview
 
-This document targets DAT 4.7.x and later for the `dat-nuget` client (NuGet package `saro-dat`, namespace `Saro.Dat`, targets `net8.0`/`net10.0`). Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. The full DAT wire protocol, certificate grammar, and CMS v1 contract are documented at [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) and apply unchanged to this client.
+This document targets DAT 4.7.1 and later for the `dat-nuget` client (NuGet package `saro-dat`, namespace `Saro.Dat`, targets `net8.0`/`net10.0`). Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. The full DAT wire protocol, certificate grammar, and CMS v1 contract are documented at [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) and apply unchanged to this client.
 
 ## Install
 

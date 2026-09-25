@@ -1,6 +1,6 @@
 # dat-maven Integration Checklist
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
 
 JVM-specific checklist. Applies on top of the platform-agnostic rules in [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt).
 

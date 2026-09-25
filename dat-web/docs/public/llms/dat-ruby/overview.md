@@ -1,6 +1,6 @@
 # DAT Ruby — Overview
 
-This document targets DAT 4.7.x and later for the `saro-dat` gem (`dat-ruby`). Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. See https://dat.saro.me/llms.txt for the full cross-language protocol contract (wire grammar, certificate grammar, algorithm names, CMS v1 endpoints, and the complete `DAT_*` error catalog).
+This document targets DAT 4.7.1 and later for the `saro-dat` gem (`dat-ruby`). Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. See https://dat.saro.me/llms.txt for the full cross-language protocol contract (wire grammar, certificate grammar, algorithm names, CMS v1 endpoints, and the complete `DAT_*` error catalog).
 
 ## What this gem does
 
@@ -12,7 +12,7 @@ This document targets DAT 4.7.x and later for the `saro-dat` gem (`dat-ruby`). A
 - `Saro::Dat::Dat`, `Saro::Dat::DatPayload` — parsed-token and decrypted-payload value objects.
 - `Saro::Dat::Error` / `Saro::Dat::ErrorCode` — the stable `DAT_*` error contract.
 
-Required Ruby: `>= 2.7.0` (per `saro-dat.gemspec`). Runtime dependencies: `openssl ~> 4.0.2`, `base64`, `logger`.
+Required Ruby: `>= 2.7.0` (per `saro-dat.gemspec`). Runtime dependencies: `openssl ~> 4.0.2`, `base64`, `logger`. Development tests use Minitest `~> 6.0.6` and Parallel `~> 2.2.0`, which require Ruby `>= 3.3` for the development bundle.
 
 ## Install
 

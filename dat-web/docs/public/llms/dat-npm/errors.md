@@ -1,6 +1,6 @@
 # dat-npm Error Reference
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. It describes the stable public error strings in `saro-dat`; DAT wire and CMS v1 error contracts are unchanged across the 4.7.x line.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. It describes the stable public error strings in `saro-dat`; DAT wire and CMS v1 error contracts are unchanged across the 4.7.x line.
 
 ## Accessing errors in JavaScript/TypeScript
 

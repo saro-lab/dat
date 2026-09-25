@@ -1,6 +1,6 @@
 # dat-maven Error Contract
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
 
 Errors surface as `me.saro.dat.exception.DatException` (a `RuntimeException`). Its message is `"<code>"` or `"<code>: <detail>"` when a detail string was supplied.
 

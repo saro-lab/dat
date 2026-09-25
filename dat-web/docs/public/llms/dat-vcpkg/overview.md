@@ -8,6 +8,8 @@ This document targets DAT 4.7.x and later for the C/C++ (vcpkg) DAT implementati
 
 Package identity: vcpkg port name `dat`, CMake package `dat` (`find_package(dat CONFIG REQUIRED)`, target `dat::dat` after `vcpkg_cmake_config_fixup`).
 
+The 4.7.0 client has been built and functionally tested with OpenSSL `3.6.4` and libcurl `8.22.0`. These are validation versions, not new minimum dependency requirements.
+
 ## Install
 
 ```shell

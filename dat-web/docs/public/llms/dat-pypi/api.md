@@ -1,6 +1,6 @@
 # dat-pypi API reference
 
-Source-verified against `dat-pypi/src/saro_dat/*.py`. This document targets DAT 4.7.x and later; any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. Package/module: `saro_dat`.
+Source-verified against `dat-pypi/src/saro_dat/*.py`. This document targets DAT 4.7.1 and later; any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. Package/module: `saro_dat`.
 
 ## `DatManager`
 

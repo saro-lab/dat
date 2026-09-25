@@ -1,6 +1,6 @@
 # dat-pypi — Python DAT client
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. See [dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) for the full protocol contract, error catalog, and non-negotiable rules shared across every DAT client.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. See [dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) for the full protocol contract, error catalog, and non-negotiable rules shared across every DAT client.
 
 ## What this library does
 
@@ -9,7 +9,7 @@ This document targets DAT 4.7.x and later. Any release sharing the same minor ve
 - Distribution name (PyPI): `saro-dat`
 - Import module name: `saro_dat` (underscore; distribution and import names differ)
 - Requires Python `>=3.10` (PEP 613 `typing.TypeAlias` floor)
-- Runtime dependency: `cryptography>=50.0.0`
+- Runtime dependency: `cryptography>=50.0.1`
 - Source suite passed on Python 3.10, 3.11, 3.12, and 3.13
 
 ## Install

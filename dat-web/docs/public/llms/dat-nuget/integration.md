@@ -1,6 +1,6 @@
 # saro-dat (C# / .NET) — Integration Checklist
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. DAT wire protocol and CMS v1 remain compatible with existing clients.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. DAT wire protocol and CMS v1 remain compatible with existing clients.
 
 ## Role and certificate deployment
 

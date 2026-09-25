@@ -1,6 +1,6 @@
 # dat-npm API Reference
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. Source-verified against `dat-npm/src`. All methods that touch cryptography or CMS I/O are `async` and return `Promise`.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. Source-verified against `dat-npm/src`. All methods that touch cryptography or CMS I/O are `async` and return `Promise`.
 
 ## `Dat`
 

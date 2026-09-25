@@ -1,6 +1,6 @@
 # DAT Ruby — Integration Checklist
 
-This document targets DAT 4.7.x and later for the `saro-dat` gem. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. This is the Ruby-specific checklist; see `dat-web/docs/public/llms.txt` for the protocol-wide checklist this extends.
+This document targets DAT 4.7.1 and later for the `saro-dat` gem. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. This is the Ruby-specific checklist; see `dat-web/docs/public/llms.txt` for the protocol-wide checklist this extends.
 
 ## Role and certificate deployment
 
@@ -37,6 +37,7 @@ This document targets DAT 4.7.x and later for the `saro-dat` gem. Any release sh
 
 - [ ] Pin `gem "saro-dat", "~> 4.7"` (or the exact patch version in use) so any 4.7.x upgrade stays wire- and API-compatible.
 - [ ] The 4.7.0 test suite passed 76 test runs / 1,795 assertions on Ruby `3.1.7`; re-validate on the deployment's actual Ruby minor version, and confirm `openssl` gem `~> 4.0.2` compatibility on that platform.
+- [ ] The 4.7.1 dependency refresh passed the same 76 test runs / 1,795 assertions on Ruby `4.0.5` with Minitest `6.0.6` and Parallel `2.2.0`. The development bundle requires Ruby `>= 3.3`.
 - [ ] Preserve protocol compatibility: do not introduce a new DAT field, endpoint contract, or error-code meaning as a "Ruby-side" change.
 
 See `overview.md` for install/usage, `api.md` for exact method signatures, and `errors.md` for the full error catalog.

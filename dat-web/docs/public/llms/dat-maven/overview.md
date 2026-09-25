@@ -1,6 +1,6 @@
 # dat-maven Overview
 
-This document targets DAT 4.7.x and later for the JVM (Java/Kotlin) DAT client. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
+This document targets DAT 4.7.1 and later for the JVM (Java/Kotlin) DAT client. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible.
 
 `dat-maven` implements the DAT wire protocol and DAT CMS v1 client contract described at [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt). Read that document first for the non-negotiable protocol rules; this document and its siblings (`api.md`, `errors.md`, `integration.md`) cover only JVM-specific mechanics.
 
@@ -14,7 +14,7 @@ This document targets DAT 4.7.x and later for the JVM (Java/Kotlin) DAT client. 
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("me.saro:dat:4.7.0")
+    implementation("me.saro:dat:4.7.1")
 }
 ```
 
@@ -23,7 +23,7 @@ dependencies {
 <dependency>
   <groupId>me.saro</groupId>
   <artifactId>dat</artifactId>
-  <version>4.7.0</version>
+  <version>4.7.1</version>
 </dependency>
 ```
 

@@ -1,6 +1,6 @@
 # DAT Ruby — API Reference
 
-This document targets DAT 4.7.x and later for the `saro-dat` gem. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. This describes the actual API (`lib/saro/dat/*.rb`); all classes live under `Saro::Dat`.
+This document targets DAT 4.7.1 and later for the `saro-dat` gem. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. This describes the actual API (`lib/saro/dat/*.rb`); all classes live under `Saro::Dat`.
 
 ## `Saro::Dat::DatManager`
 

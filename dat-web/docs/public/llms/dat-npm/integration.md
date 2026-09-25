@@ -1,6 +1,6 @@
 # dat-npm Integration Checklist
 
-This document targets DAT 4.7.x and later for `saro-dat`. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. See [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) for the full protocol contract.
+This document targets DAT 4.7.1 and later for `saro-dat`. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here. See [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt) for the full protocol contract.
 
 ## Runtime and packaging
 

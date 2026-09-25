@@ -1,6 +1,6 @@
 # dat-npm Overview
 
-This document targets DAT 4.7.x and later for the `saro-dat` npm package. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here.
+This document targets DAT 4.7.1 and later for the `saro-dat` npm package. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible with what is described here.
 
 For the full DAT wire protocol, certificate grammar, CMS v1 contract, and cross-language error catalog, see [https://dat.saro.me/llms.txt](https://dat.saro.me/llms.txt). This file only covers what is specific to the JavaScript/TypeScript implementation.
 

@@ -1,6 +1,6 @@
 # dat-maven API Reference
 
-This document targets DAT 4.7.x and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. Source-verified against `dat-maven/src/main/kotlin/me/saro/dat/`. Package identity: Maven `me.saro:dat`. All classes below are `me.saro.dat.dat.*` unless noted.
+This document targets DAT 4.7.1 and later. Any release sharing the same minor version (4.7.x) is fully wire- and API-compatible. Source-verified against `dat-maven/src/main/kotlin/me/saro/dat/`. Package identity: Maven `me.saro:dat`. All classes below are `me.saro.dat.dat.*` unless noted.
 
 ## `DatManager`
 
