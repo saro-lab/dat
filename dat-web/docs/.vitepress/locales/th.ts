@@ -153,7 +153,7 @@ export const th = {
     cms_binary: 'ไบนารี',
     cms_opt_env: 'ตัวเลือก (ตัวแปรสภาพแวดล้อม)',
     cms_opt_hostname_desc: 'ใช้เฉพาะกับชื่อไฟล์บันทึก',
-    cms_opt_port_desc: 'พอร์ตของบริการ',
+    cms_opt_port_desc: 'Docker/Podman: พอร์ตโฮสต์ Kubernetes: พอร์ต Service ภายในคอนเทนเนอร์ใช้ 80 เสมอ ส่วน PORT ใช้กับไบนารีที่รันโดยตรงเท่านั้น',
     cms_opt_db_uri_desc: 'URI ของฐานข้อมูล',
     cms_supported: 'รองรับ',
     cms_opt_debug_desc: 'โหมดดีบัก',

@@ -43,6 +43,8 @@ The Go and C/C++ clients are version `4.7.0`; the other clients and the CMS serv
 
 Version `4.7.1`. Optional certificate creation, storage, and version-cursor distribution service (Rust, scratch container image). Runs the CMS v1 HTTP API that every client manager below can synchronize against.
 
+Container images listen on port `80` and ignore `PORT`; standalone binaries default to `8088` and accept `PORT`. Deployment mappings are described in the [operations reference](https://dat.saro.me/llms/dat-cms/operations.md).
+
 When `DB_URI` is omitted, CMS creates and uses `./data/data.db` with SQLite. Missing parent directories are created automatically for file-backed SQLite databases; the container includes `/data` owned by UID/GID `10001:10001`.
 
 - [Overview](https://dat.saro.me/llms/dat-cms/overview.md)

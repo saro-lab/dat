@@ -167,7 +167,7 @@ export const ko = {
     cms_binary: '바이너리',
     cms_opt_env: '옵션 (환경 변수)',
     cms_opt_hostname_desc: '로그 파일 이름에만 사용됩니다',
-    cms_opt_port_desc: '서비스 포트',
+    cms_opt_port_desc: 'Docker/Podman은 호스트 포트, Kubernetes는 Service 접속 포트입니다. 컨테이너 내부는 항상 80이며, 바이너리만 PORT로 변경합니다.',
     cms_opt_db_uri_desc: '데이터베이스 URI',
     cms_supported: '지원',
     cms_opt_debug_desc: '디버그 모드',

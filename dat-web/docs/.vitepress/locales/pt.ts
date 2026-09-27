@@ -161,7 +161,7 @@ export const pt = {
     cms_binary: 'Binário',
     cms_opt_env: 'Opções (variáveis de ambiente)',
     cms_opt_hostname_desc: 'Usado apenas nos nomes dos arquivos de log',
-    cms_opt_port_desc: 'Porta do serviço',
+    cms_opt_port_desc: 'Docker/Podman: porta do host. Kubernetes: porta do Service. O contêiner sempre escuta em 80; PORT se aplica apenas a binários independentes.',
     cms_opt_db_uri_desc: 'URI do banco de dados',
     cms_supported: 'Suportado',
     cms_opt_debug_desc: 'Modo de depuração',

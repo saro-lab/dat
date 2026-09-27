@@ -56,7 +56,7 @@ export const it = {
   err_invalid_kube_ns: 'Namespace Kubernetes non valido', err_invalid_kube_replicas: 'Numero di repliche Kubernetes non valido (1–12)',
   cms_certs: 'Certificati', cms_status: 'Stato', cms_debug_mode_only: 'Solo modalità debug', cms_binary: 'Binario',
   cms_opt_env: 'Opzioni (variabili d’ambiente)', cms_opt_hostname_desc: 'Usato solo nei nomi dei file di log',
-  cms_opt_port_desc: 'Porta del servizio', cms_opt_db_uri_desc: 'URI del database', cms_supported: 'Supportato',
+  cms_opt_port_desc: 'Docker/Podman: porta host. Kubernetes: porta del Service. Il container usa sempre la porta 80; PORT vale solo per i binari autonomi.', cms_opt_db_uri_desc: 'URI del database', cms_supported: 'Supportato',
   cms_opt_debug_desc: 'Modalità debug', cms_opt_log_console_desc: 'Output della console', cms_no_out: 'Nessun output',
   cms_value: 'Valore', cms_log_text_desc: 'Usa un file di log testuale',
   cms_log_json_desc: 'Usa un file di log JSON (per ELK)', cms_no_log_file: 'Nessun file di log',

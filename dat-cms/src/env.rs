@@ -58,7 +58,11 @@ impl EnvServer {
         let hostname = env_str("HOSTNAME", "localhost");
         println!("hostname: {}", hostname);
 
-        let port = env_parse("PORT", 8088);
+        let port = if cfg!(feature = "container") {
+            80
+        } else {
+            env_parse("PORT", 8088)
+        };
         println!("port: {}", port);
 
         let db_uri = env_str("DB_URI", "sqlite:./data/data.db");

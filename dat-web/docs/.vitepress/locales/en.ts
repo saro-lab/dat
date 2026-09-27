@@ -166,7 +166,7 @@ export const en = {
     cms_binary: 'Binary',
     cms_opt_env: 'Options (environment variables)',
     cms_opt_hostname_desc: 'Used only in log file names',
-    cms_opt_port_desc: 'Service port',
+    cms_opt_port_desc: 'Docker/Podman: host port. Kubernetes: Service port. The container always listens on 80; only standalone binaries use PORT.',
     cms_opt_db_uri_desc: 'Database URI',
     cms_supported: 'Supported',
     cms_opt_debug_desc: 'Debug mode',

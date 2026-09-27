@@ -38,15 +38,15 @@
       </div>
     </div>
 
-    <div v-if="!isKubernetes" class="field-grid two">
+    <div class="field-grid" :class="{ two: !isKubernetes }">
       <div>
         <div class="g-label-row">
           <span class="g-label">Port</span>
-          <span class="g-label-note">{{t('default')}}: 8088</span>
+          <span class="g-label-note">{{t('default')}}: {{ defaultPort }}</span>
         </div>
         <input class="w-full" type="text" inputmode="numeric" v-model="port" @input="makeCode"/>
       </div>
-      <div>
+      <div v-if="!isKubernetes">
         <div class="g-label-row">
           <span class="g-label">Hostname</span>
           <span class="g-label-note">{{t('default')}}: Auto</span>
@@ -236,6 +236,7 @@ const operatingEnvironmentList = ['Kubernetes', 'Docker', 'Podman', 'Binary'];
 const operatingEnvironment = ref(operatingEnvironmentList[1]);
 
 const isKubernetes = computed(() => operatingEnvironment.value == operatingEnvironmentList[0]);
+const defaultPort = computed(() => isKubernetes.value ? '80' : '8088');
 const kubeNamespace = ref('yournamespace');
 const kubeReplicas = ref('2');
 
@@ -296,21 +297,18 @@ async function makeCode() {
   const _isDockerLike = _env == 'docker' || _env == 'podman';
   const _isBinary = _env == 'binary';
   const _isDebug = mode.value == 'debug';
-  let _port = port.value.trim().replace('8088', '');
-  if (_port != '' && !(Number(_port) >= 80 && Number(_port) < 65535)) {
+  let _port = port.value.trim() || defaultPort.value;
+  if (!/^\d+$/.test(_port) || Number(_port) < 1 || Number(_port) > 65535) {
     addError(`${t('ignored')}: ${t('err_invalid_port')}`);
-    _port = '';
+    _port = defaultPort.value;
   }
+  _port = String(Number(_port));
   if (!_isKube) {
     if (hostname.value.trim()) {
       options.push(`HOSTNAME="${hostname.value.replace(/"/g, '').trim()}"`)
     }
-    if (_isDockerLike) {
-
-    } else {
-      if (_port) {
-        options.push(`PORT="${_port}"`)
-      }
+    if (_isBinary && _port !== '8088') {
+      options.push(`PORT="${_port}"`)
     }
 
   }
@@ -471,9 +469,10 @@ async function makeCode() {
   let curlAuthMaster = _tokenMaster ? `-H "Authorization: ${_tokenMaster}" ` : '';
   let curlAuthCertFull = _tokenCertFull ? `-H "Authorization: ${_tokenCertFull}" ` : '';
   let curlAuthCertVerify = _tokenCertVerify ? `-H "Authorization: ${_tokenCertVerify}" ` : '';
-  let curlHost = `http://localhost:${_port || '8088'}`;
+  const kubePortSuffix = _port === '80' ? '' : `:${_port}`;
+  let curlHost = `http://localhost:${_port}`;
   if (_isKube) {
-    curlHost = `http://dat.${_kubeNamespace}.svc.cluster.local`;
+    curlHost = `http://dat.${_kubeNamespace}.svc.cluster.local${kubePortSuffix}`;
   }
   let _apiVer = 'v1';
   let curlPathGen = `/${_apiVer}/cert/${_sa}/${_ca}/${_cronDelay}/${_cronDur}/${_cronDatTtl}`;
@@ -516,7 +515,7 @@ async function makeCode() {
       _ln = `^`;
     }
     let dockerOptions = options.map(e => `  -e ${e} ${_ln}\n`).join('');
-    code.value = `${_env} run -d --name dat-cms -p ${_port || '8088'}:80 ${_ln}\n${dockerOptions}  ${cmsImage}`
+    code.value = `${_env} run -d --name dat-cms -p ${_port}:80 ${_ln}\n${dockerOptions}  ${cmsImage}`
   } else if (_isBinary) {
     codeLang.value = 'bash';
     let _bash = binaryBash.value;
@@ -535,13 +534,13 @@ async function makeCode() {
     }
 
     code.value = _code;
-  } else if (isKubernetes) {
+  } else if (_isKube) {
     let _kubeReplicas = kubeReplicas.value;
     if (!(Number(_kubeReplicas) > 0 && Number(_kubeReplicas) <= 12)) {
       addError(`${t('ignored')}: ${t('err_invalid_kube_replicas')} - ${t('default')}: 2`);
       _kubeReplicas = '2';
     }
-    let curlInKube = `curl ${curlAuthMaster}-X POST http://dat${curlPathGen}`;
+    let curlInKube = `curl ${curlAuthMaster}-X POST http://dat${kubePortSuffix}${curlPathGen}`;
     codeLang.value = 'yaml';
 
     let volumeMounts = '';
@@ -590,6 +589,10 @@ spec:
         - name: publisher-cms
           image: ${cmsImage}
           imagePullPolicy: Always
+          securityContext:
+            capabilities:
+              drop: ["ALL"]
+              add: ["NET_BIND_SERVICE"]
           ports:
             - containerPort: 80${k8sOptions}${volumeMounts}
           readinessProbe:
@@ -618,7 +621,7 @@ spec:
     app: dat
   ports:
     - protocol: TCP
-      port: 80
+      port: ${_port}
       targetPort: 80
   type: LoadBalancer
 ---

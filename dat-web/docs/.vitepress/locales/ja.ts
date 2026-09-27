@@ -43,7 +43,7 @@ export const ja = {
     err_invalid_kube_ns: '無効な Kubernetes 名前空間', err_invalid_kube_replicas: '無効な Kubernetes replicas (1–12)',
 
     cms_certs: '証明書', cms_status: '状態', cms_debug_mode_only: 'デバッグモードのみ', cms_binary: 'バイナリ', cms_opt_env: 'オプション (環境変数)', cms_opt_hostname_desc: 'ログファイル名でのみ使用されます',
-    cms_opt_port_desc: 'サービスポート', cms_opt_db_uri_desc: 'データベース URI', cms_supported: '対応', cms_opt_debug_desc: 'デバッグモード', cms_opt_log_console_desc: 'コンソール出力', cms_no_out: '出力なし', cms_value: '値',
+    cms_opt_port_desc: 'Docker/Podman はホストポート、Kubernetes は Service の接続ポートです。コンテナー内部は常に 80 で、PORT は単体バイナリーでのみ使います。', cms_opt_db_uri_desc: 'データベース URI', cms_supported: '対応', cms_opt_debug_desc: 'デバッグモード', cms_opt_log_console_desc: 'コンソール出力', cms_no_out: '出力なし', cms_value: '値',
     cms_log_text_desc: 'テキストログファイルを使用', cms_log_json_desc: 'JSON ログファイルを使用 (ELK 用)', cms_no_log_file: 'ログファイルなし', cms_disabled: '無効', cms_schedule: 'スケジュール', cms_set_default_value: 'デフォルト値を設定',
     cms_k8s_multi_pods_example: 'Kubernetes 複数 Pod の例', cms_ex: '例:',
 

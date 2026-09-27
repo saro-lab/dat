@@ -34,7 +34,7 @@ export const tr = {
   err_invalid_cron: 'Geçersiz Cron ifadesi', err_invalid_delay: 'Geçersiz token verme gecikmesi', err_invalid_issue_dur: 'Geçersiz DAT verme süresi', err_invalid_dat_ttl: 'Geçersiz DAT TTL',
   err_invalid_kube_ns: 'Geçersiz Kubernetes ad alanı', err_invalid_kube_replicas: 'Geçersiz Kubernetes replika sayısı (1–12)',
   cms_certs: 'Sertifikalar', cms_status: 'Durum', cms_debug_mode_only: 'Yalnızca hata ayıklama modu', cms_binary: 'İkili dosya', cms_opt_env: 'Seçenekler (ortam değişkenleri)', cms_opt_hostname_desc: 'Yalnızca günlük dosyası adlarında kullanılır',
-  cms_opt_port_desc: 'Servis bağlantı noktası', cms_opt_db_uri_desc: 'Veritabanı URI’si', cms_supported: 'Desteklenir', cms_opt_debug_desc: 'Hata ayıklama modu', cms_opt_log_console_desc: 'Konsol çıktısı', cms_no_out: 'Çıktı yok',
+  cms_opt_port_desc: 'Docker/Podman: ana makine portu. Kubernetes: Service portu. Konteyner daima 80 portunu kullanır; PORT yalnızca bağımsız ikili dosyalar içindir.', cms_opt_db_uri_desc: 'Veritabanı URI’si', cms_supported: 'Desteklenir', cms_opt_debug_desc: 'Hata ayıklama modu', cms_opt_log_console_desc: 'Konsol çıktısı', cms_no_out: 'Çıktı yok',
   cms_value: 'Değer', cms_log_text_desc: 'Metin günlük dosyası kullanır', cms_log_json_desc: 'JSON günlük dosyası kullanır (ELK için)', cms_no_log_file: 'Günlük dosyası yok',
   cms_disabled: 'Devre dışı', cms_schedule: 'Zamanlama', cms_set_default_value: 'Varsayılan değeri ayarla', cms_k8s_multi_pods_example: 'Çok podlu Kubernetes örneği', cms_ex: 'Örnek:',
   cms_help_cert_issue_delay: `

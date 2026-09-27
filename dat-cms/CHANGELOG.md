@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+- Fixed the container HTTP port at 80, independent of `PORT`; standalone binaries retain their configurable port with an 8088 default.
+- Granted the container binary `NET_BIND_SERVICE` so the non-root user can bind to port 80.
+- Corrected Docker/Podman port mappings, Kubernetes service ports and probes, and website deployment examples.
 - Restored automatic SQLite parent-directory creation and provided a writable `/data` directory in the non-root container image so startup works without `DB_URI`.
 
 ## [4.7.1] - 2026-09-25
@@ -24,7 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Added cache snapshots with monotonic freshness checks, serialized refreshes, and last-known-good fallback on refresh failure.
 - Added transactional certificate registration and cache invalidation after commit.
 - Added an injectable application/certificate-service state and configurable database query timeout.
-- Added a pinned scratch-based container image that runs as a non-root user on port 8088.
+- Added a pinned scratch-based container image that runs as a non-root user.
 
 ### Changed
 

@@ -20,8 +20,11 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,id=global-registry-${TAR
         *) echo "unsupported target architecture: ${TARGETARCH}" >&2; exit 1 ;; \
     esac && \
     RUSTFLAGS="-C target-feature=+crt-static" \
-    cargo build --locked --release --target "${RUST_TARGET}" && \
+    cargo build --locked --release --features container --target "${RUST_TARGET}" && \
     cp "target/${RUST_TARGET}/release/dat-cms" /work/dat-cms
+
+RUN apk add --no-cache libcap-setcap && \
+    setcap 'cap_net_bind_service=+ep' /work/dat-cms
 
 FROM scratch
 
@@ -31,7 +34,5 @@ COPY --from=builder --chown=10001:10001 /runtime/data /data
 
 USER 10001:10001
 
-ENV PORT=8088
-
-EXPOSE 8088
+EXPOSE 80
 ENTRYPOINT ["/dat-cms"]

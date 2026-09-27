@@ -32,7 +32,7 @@ export const zh = {
     err_invalid_issue_times: '无效的签发时间 (Begin, Duration, TTL)', err_issue_begin_range: '签发开始时间必须在 0 至 253405000799999 之间', err_issue_dur_range: '签发期间必须大于 0 秒', err_dat_ttl_range: 'DAT TTL 必须大于 0', err_gen_count_range: '生成数量必须在 1 至 100 之间',
     err_invalid_port: '无效的端口号', err_invalid_db_port: '无效的数据库端口号', err_invalid_db_cache: '无效的数据库缓存时间 (0–3600)', err_invalid_cron: '无效的 Cron 表达式', err_invalid_delay: '无效的签发延迟', err_invalid_issue_dur: '无效的 DAT 签发期间', err_invalid_dat_ttl: '无效的 DAT TTL', err_invalid_kube_ns: '无效的 Kubernetes 命名空间', err_invalid_kube_replicas: '无效的 Kubernetes replicas (1–12)',
 
-    cms_certs: '证书', cms_status: '状态', cms_debug_mode_only: '仅调试模式', cms_binary: '二进制', cms_opt_env: '选项 (环境变量)', cms_opt_hostname_desc: '仅用于日志文件名', cms_opt_port_desc: '服务端口', cms_opt_db_uri_desc: '数据库 URI', cms_supported: '支持', cms_opt_debug_desc: '调试模式', cms_opt_log_console_desc: '控制台输出', cms_no_out: '无输出', cms_value: '值',
+    cms_certs: '证书', cms_status: '状态', cms_debug_mode_only: '仅调试模式', cms_binary: '二进制', cms_opt_env: '选项 (环境变量)', cms_opt_hostname_desc: '仅用于日志文件名', cms_opt_port_desc: 'Docker/Podman 设置主机端口，Kubernetes 设置 Service 端口。容器内部始终使用 80；只有独立二进制程序使用 PORT。', cms_opt_db_uri_desc: '数据库 URI', cms_supported: '支持', cms_opt_debug_desc: '调试模式', cms_opt_log_console_desc: '控制台输出', cms_no_out: '无输出', cms_value: '值',
     cms_log_text_desc: '使用文本日志文件', cms_log_json_desc: '使用 JSON 日志文件 (用于 ELK)', cms_no_log_file: '无日志文件', cms_disabled: '已禁用', cms_schedule: '计划', cms_set_default_value: '设置默认值', cms_k8s_multi_pods_example: 'Kubernetes 多 Pod 示例', cms_ex: '示例：',
 
     cms_help_cert_issue_delay: `

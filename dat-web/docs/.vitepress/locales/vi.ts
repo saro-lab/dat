@@ -54,7 +54,7 @@ export const vi = {
   err_invalid_kube_ns: 'Không gian tên Kubernetes không hợp lệ', err_invalid_kube_replicas: 'Số bản sao Kubernetes không hợp lệ (1–12)',
   cms_certs: 'Chứng chỉ', cms_status: 'Trạng thái', cms_debug_mode_only: 'Chỉ dành cho chế độ gỡ lỗi', cms_binary: 'Tệp nhị phân',
   cms_opt_env: 'Tùy chọn (biến môi trường)', cms_opt_hostname_desc: 'Chỉ dùng trong tên tệp log',
-  cms_opt_port_desc: 'Cổng dịch vụ', cms_opt_db_uri_desc: 'URI cơ sở dữ liệu', cms_supported: 'Được hỗ trợ',
+  cms_opt_port_desc: 'Docker/Podman: cổng máy chủ. Kubernetes: cổng Service. Cổng trong container luôn là 80; PORT chỉ dùng khi chạy tệp nhị phân độc lập.', cms_opt_db_uri_desc: 'URI cơ sở dữ liệu', cms_supported: 'Được hỗ trợ',
   cms_opt_debug_desc: 'Chế độ gỡ lỗi', cms_opt_log_console_desc: 'Đầu ra bảng điều khiển', cms_no_out: 'Không có đầu ra',
   cms_value: 'Giá trị', cms_log_text_desc: 'Dùng tệp log văn bản', cms_log_json_desc: 'Dùng tệp log JSON (cho ELK)',
   cms_no_log_file: 'Không có tệp log', cms_disabled: 'Đã tắt', cms_schedule: 'Lịch',

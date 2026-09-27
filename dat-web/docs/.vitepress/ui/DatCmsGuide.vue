@@ -9,11 +9,10 @@
       <DatCmsExample />
 
       <h2>Docker로 실행</h2>
-      <p>컨테이너는 일반 사용자 권한으로 실행하고, SQLite를 사용한다면 쓰기 가능한 데이터 디렉터리를 연결합니다. 토큰과 데이터베이스 암호는 명령 기록이 아니라 secret 주입 기능으로 전달합니다.</p>
-      <pre><code class="language-shell">docker run --rm --name dat-cms -p 8088:8088 \
+      <p>Docker와 Podman에서 내부 포트는 항상 80입니다. 외부 포트는 <code>-p 8088:80</code>처럼 매핑합니다. <code>PORT</code>는 바이너리 직접 실행에서만 사용하며 기본값은 8088입니다. 컨테이너는 일반 사용자 권한으로 실행하고, SQLite를 사용한다면 쓰기 가능한 데이터 디렉터리를 연결합니다. 토큰과 데이터베이스 암호는 명령 기록이 아니라 secret 주입 기능으로 전달합니다.</p>
+      <pre><code class="language-shell">docker run --rm --name dat-cms -p 8088:80 \
   --user 10001:10001 \
   -v "$PWD/dat-cms-data:/data" \
-  -e PORT=8088 \
   -e DB_URI='sqlite:/data/data.db' \
   -e TOKEN_MASTER='replace-with-a-secret' \
   -e TOKEN_CERT_FULL='replace-with-a-secret' \
@@ -56,7 +55,7 @@
       </ul>
 
       <h2>Kubernetes</h2>
-      <p>컨테이너 포트와 probe를 서비스 포트에 맞추고, 데이터 디렉터리를 일반 사용자에게 쓰기 가능하게 연결합니다. 토큰과 데이터베이스 접속 정보는 Secret으로 주입합니다.</p>
+      <p>컨테이너 포트, probe와 Service의 <code>targetPort</code>는 80으로 유지합니다. 접속 포트는 Service의 <code>port</code>에서 변경합니다. 일반 사용자가 80 포트에 바인딩할 수 있도록 <code>NET_BIND_SERVICE</code>를 부여하고, 데이터 디렉터리를 일반 사용자에게 쓰기 가능하게 연결합니다. 토큰과 데이터베이스 접속 정보는 Secret으로 주입합니다.</p>
       <pre><code class="language-yaml">securityContext:
   runAsNonRoot: true
   runAsUser: 10001
@@ -64,9 +63,13 @@
 containers:
   - name: dat-cms
     image: {{ cmsImage }}
-    ports: [{ containerPort: 8088 }]
-    readinessProbe: { httpGet: { path: /health, port: 8088 } }
-    livenessProbe: { httpGet: { path: /health, port: 8088 } }</code></pre>
+    securityContext:
+      capabilities:
+        drop: ["ALL"]
+        add: ["NET_BIND_SERVICE"]
+    ports: [{ containerPort: 80 }]
+    readinessProbe: { httpGet: { path: /health, port: 80 } }
+    livenessProbe: { httpGet: { path: /health, port: 80 } }</code></pre>
     </template>
 
     <template v-else-if="isEnglish">
@@ -76,11 +79,10 @@ containers:
       <DatCmsExample />
 
       <h2>Run with Docker</h2>
-      <p>Run the container as a non-root user. When using SQLite, mount a writable data directory. Pass tokens and database passwords through a secret-injection mechanism rather than command history.</p>
-      <pre><code class="language-shell">docker run --rm --name dat-cms -p 8088:8088 \
+      <p>Docker and Podman always listen on port 80 inside the container. Map the host port with <code>-p 8088:80</code>. <code>PORT</code> applies only to standalone binaries, which default to 8088. Run the container as a non-root user. When using SQLite, mount a writable data directory. Pass tokens and database passwords through a secret-injection mechanism rather than command history.</p>
+      <pre><code class="language-shell">docker run --rm --name dat-cms -p 8088:80 \
   --user 10001:10001 \
   -v "$PWD/dat-cms-data:/data" \
-  -e PORT=8088 \
   -e DB_URI='sqlite:/data/data.db' \
   -e TOKEN_MASTER='replace-with-a-secret' \
   -e TOKEN_CERT_FULL='replace-with-a-secret' \
@@ -123,7 +125,7 @@ containers:
       </ul>
 
       <h2>Kubernetes</h2>
-      <p>Match the container port and probes to the service port, and mount the data directory with write access for the non-root user. Inject tokens and database connection details through Secrets.</p>
+      <p>Keep the container port, probes, and Service <code>targetPort</code> at 80. Change the exposed port through the Service <code>port</code>. Grant <code>NET_BIND_SERVICE</code> for non-root binding to port 80, and mount the data directory with write access for the non-root user. Inject tokens and database connection details through Secrets.</p>
       <pre><code class="language-yaml">securityContext:
   runAsNonRoot: true
   runAsUser: 10001
@@ -131,9 +133,13 @@ containers:
 containers:
   - name: dat-cms
     image: {{ cmsImage }}
-    ports: [{ containerPort: 8088 }]
-    readinessProbe: { httpGet: { path: /health, port: 8088 } }
-    livenessProbe: { httpGet: { path: /health, port: 8088 } }</code></pre>
+    securityContext:
+      capabilities:
+        drop: ["ALL"]
+        add: ["NET_BIND_SERVICE"]
+    ports: [{ containerPort: 80 }]
+    readinessProbe: { httpGet: { path: /health, port: 80 } }
+    livenessProbe: { httpGet: { path: /health, port: 80 } }</code></pre>
     </template>
 
     <template v-else>
@@ -144,10 +150,9 @@ containers:
 
       <h2>{{ sharedText.cms.dockerTitle }}</h2>
       <p v-html="renderInline(sharedText.cms.dockerBody)" />
-      <pre><code class="language-shell">docker run --rm --name dat-cms -p 8088:8088 \
+      <pre><code class="language-shell">docker run --rm --name dat-cms -p 8088:80 \
   --user 10001:10001 \
   -v "$PWD/dat-cms-data:/data" \
-  -e PORT=8088 \
   -e DB_URI='sqlite:/data/data.db' \
   -e TOKEN_MASTER='replace-with-a-secret' \
   -e TOKEN_CERT_FULL='replace-with-a-secret' \
@@ -192,9 +197,13 @@ containers:
 containers:
   - name: dat-cms
     image: {{ cmsImage }}
-    ports: [{ containerPort: 8088 }]
-    readinessProbe: { httpGet: { path: /health, port: 8088 } }
-    livenessProbe: { httpGet: { path: /health, port: 8088 } }</code></pre>
+    securityContext:
+      capabilities:
+        drop: ["ALL"]
+        add: ["NET_BIND_SERVICE"]
+    ports: [{ containerPort: 80 }]
+    readinessProbe: { httpGet: { path: /health, port: 80 } }
+    livenessProbe: { httpGet: { path: /health, port: 80 } }</code></pre>
     </template>
   </article>
 </template>

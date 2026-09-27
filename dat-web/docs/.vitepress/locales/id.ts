@@ -161,7 +161,7 @@ export const id = {
     cms_binary: 'Biner',
     cms_opt_env: 'Opsi (variabel lingkungan)',
     cms_opt_hostname_desc: 'Hanya digunakan dalam nama berkas log',
-    cms_opt_port_desc: 'Port layanan',
+    cms_opt_port_desc: 'Docker/Podman: port host. Kubernetes: port Service. Container selalu mendengarkan di 80; PORT hanya untuk biner mandiri.',
     cms_opt_db_uri_desc: 'URI basis data',
     cms_supported: 'Didukung',
     cms_opt_debug_desc: 'Mode debug',

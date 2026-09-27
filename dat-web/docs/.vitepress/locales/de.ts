@@ -161,7 +161,7 @@ export const de = {
     cms_binary: 'Binärdatei',
     cms_opt_env: 'Optionen (Umgebungsvariablen)',
     cms_opt_hostname_desc: 'Wird nur in Namen von Protokolldateien verwendet',
-    cms_opt_port_desc: 'Dienst-Port',
+    cms_opt_port_desc: 'Docker/Podman: Host-Port. Kubernetes: Service-Port. Im Container gilt immer Port 80; PORT gilt nur für eigenständig ausgeführte Binärdateien.',
     cms_opt_db_uri_desc: 'Datenbank-URI',
     cms_supported: 'Unterstützt',
     cms_opt_debug_desc: 'Debug-Modus',

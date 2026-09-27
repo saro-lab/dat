@@ -8,6 +8,8 @@ For the full DAT wire protocol and CMS v1 contract shared by every platform, rea
 
 `dat-cms` is the DAT Certificate Management Service: an HTTP server (Rust, `axum`) that creates, stores, and distributes DAT certificates through the CMS v1 API. It is a standalone binary with no client-side code; every DAT client library (`dat-rust`, `dat-go`, `dat-maven`, `dat-npm`, `dat-nuget`, `dat-pypi`, `dat-ruby`, `dat-vcpkg`) can optionally synchronize against it.
 
+Container deployments always listen on port 80. Publish another host port with Docker/Podman `-p 8088:80`, or configure Kubernetes Service `port` with `targetPort: 80`. Standalone binaries default to 8088 and accept `PORT`; container builds ignore `PORT`.
+
 ## Why it is optional
 
 The DAT wire protocol does not require CMS. A deployment may distribute certificates through another trusted channel (configuration management, a secrets store, a different internal service) and never run `dat-cms`. CMS exists to automate certificate creation, versioned distribution, and periodic client refresh — nothing in the DAT token or certificate grammar depends on it.

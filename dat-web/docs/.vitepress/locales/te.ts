@@ -166,7 +166,7 @@ export const te = {
     cms_binary: 'బైనరీ',
     cms_opt_env: 'ఎంపికలు (ఎన్విరాన్‌మెంట్ వేరియబుల్స్)',
     cms_opt_hostname_desc: 'లాగ్ ఫైల్ పేర్లలో మాత్రమే ఉపయోగించబడుతుంది',
-    cms_opt_port_desc: 'సేవా పోర్ట్',
+    cms_opt_port_desc: 'Docker/Podman: హోస్ట్ పోర్ట్. Kubernetes: Service పోర్ట్. కంటైనర్ పోర్ట్ ఎల్లప్పుడూ 80; PORT స్వతంత్ర బైనరీలకు మాత్రమే వర్తిస్తుంది.',
     cms_opt_db_uri_desc: 'డేటాబేస్ URI',
     cms_supported: 'మద్దతు ఉంది',
     cms_opt_debug_desc: 'డీబగ్ మోడ్',

@@ -161,7 +161,7 @@ export const ar = {
     cms_binary: 'ملف ثنائي',
     cms_opt_env: 'الخيارات (متغيرات البيئة)',
     cms_opt_hostname_desc: 'يُستخدم في أسماء ملفات السجل فقط',
-    cms_opt_port_desc: 'منفذ الخدمة',
+    cms_opt_port_desc: 'Docker/Podman: منفذ المضيف. Kubernetes: منفذ Service. تستمع الحاوية دائمًا على 80؛ ويُستخدم PORT فقط عند تشغيل الملف التنفيذي مباشرة.',
     cms_opt_db_uri_desc: 'URI قاعدة البيانات',
     cms_supported: 'مدعوم',
     cms_opt_debug_desc: 'وضع التصحيح',
