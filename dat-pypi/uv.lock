@@ -254,7 +254,7 @@ wheels = [
 
 [[package]]
 name = "saro-dat"
-version = "4.7.0"
+version = "4.7.1"
 source = { editable = "." }
 dependencies = [
     { name = "cryptography" },
@@ -266,7 +266,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "cryptography", specifier = ">=50.0.0" }]
+requires-dist = [{ name = "cryptography", specifier = ">=50.0.1" }]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=9.1.1" }]
