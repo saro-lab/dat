@@ -4,6 +4,7 @@ FROM rust:1.97.1-alpine3.22 AS builder
 ARG TARGETARCH
 
 RUN apk add --no-cache build-base ca-certificates cmake linux-headers
+RUN mkdir -p /runtime/data
 
 WORKDIR /work
 
@@ -26,6 +27,7 @@ FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /work/dat-cms /dat-cms
+COPY --from=builder --chown=10001:10001 /runtime/data /data
 
 USER 10001:10001
 

@@ -4,7 +4,7 @@ This document targets DAT 4.7.1 and later; the operational behavior below is unc
 
 ## Container
 
-The Dockerfile builds with the pinned `rust:1.97.1-alpine3.22` image (musl static target, `RUSTFLAGS=-C target-feature=+crt-static`) and produces a `scratch` runtime image containing only the static `dat-cms` binary and the CA certificate bundle copied from the builder.
+The Dockerfile builds with the pinned `rust:1.97.1-alpine3.22` image (musl static target, `RUSTFLAGS=-C target-feature=+crt-static`) and produces a `scratch` runtime image containing the static `dat-cms` binary, the CA certificate bundle, and an empty `/data` directory owned by UID/GID `10001:10001`.
 
 - Runs as non-root `USER 10001:10001`.
 - `ENV PORT=8088`; `EXPOSE 8088`.
@@ -24,7 +24,7 @@ docker run --rm -p 8088:8088 \
   sarolab/dat-cms:4.7.1
 ```
 
-The image already runs as UID/GID `10001`; mount `/data` writable by that UID/GID for SQLite.
+With `DB_URI` omitted, the image starts with SQLite at `/data/data.db` without a volume mount. To retain the database when replacing the container, mount persistent storage at `/data`, writable by UID/GID `10001:10001`.
 
 ## Environment variables
 
@@ -60,6 +60,8 @@ signature_algorithm,crypto_algorithm,cron,delay_seconds,duration_seconds,ttl_sec
 The short form defaults to cron `0 0/30 * * * *`, `delay=1200`, `duration=10800`, `ttl=600`. Algorithm names and the register-command arguments (delay `>= 0`, duration/ttl `> 0`, all `<= 315360000`) are validated at startup; an invalid value panics the process before it starts serving. If the initial registration fails (e.g. the database schema is not ready), the scheduler does not start and the server fails to come up. This is intended for a single-node/test deployment that self-provisions a rotating certificate; multi-node deployments should provision certificates explicitly through `POST /v1/cert/...` instead.
 
 ## Database
+
+Omitting `DB_URI` selects `sqlite:./data/data.db`. For file-backed SQLite, CMS creates missing parent directories before connecting and lets the driver create the database file; existing databases are preserved. URI query parameters and percent-encoded paths are interpreted by the SQLite driver. In-memory SQLite connections do not create directories or files.
 
 | Database | URI example |
 | --- | --- |

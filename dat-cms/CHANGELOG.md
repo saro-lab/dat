@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- Restored automatic SQLite parent-directory creation and provided a writable `/data` directory in the non-root container image so startup works without `DB_URI`.
+
 ## [4.7.1] - 2026-09-25
 
 ### Changed
