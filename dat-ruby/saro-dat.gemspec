@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name          = "saro-dat"
-  spec.version       = "4.7.0"
+  spec.version       = "4.7.1"
   spec.authors       = ["marker"]
   spec.email         = ["j@saro.me"]
 
@@ -28,7 +28,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "base64"
   spec.add_dependency "logger"
 
-  spec.add_development_dependency "minitest", "= 5.26.1"
+  spec.add_development_dependency "minitest", "~> 6.0.6"
   spec.add_development_dependency "benchmark"
-  spec.add_development_dependency "parallel", "~> 1.28.0"
+  spec.add_development_dependency "parallel", "~> 2.2.0"
 end
